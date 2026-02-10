@@ -1,0 +1,31 @@
+# Large installers and executables  
+*.exe
+*.msi
+*.dmg
+*.pkg
+
+# Database files
+*.sql
+*.sqlite
+*.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Documentation (optional - remove if you want to track these)
+*.odt
+*.pdf
+
+# Environment files (root level)
+.env
+.env.local
+.env.*.local

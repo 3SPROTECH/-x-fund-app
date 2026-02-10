@@ -1,0 +1,35 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  username: <%= ENV.fetch("DATABASE_USERNAME", "postgres") %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD", "3sprotech") %>
+  host: <%= ENV.fetch("DATABASE_HOST", "127.0.0.1") %>
+  port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
+
+development:
+  <<: *default
+  database: xfund
+
+test:
+  <<: *default
+  database: x_fund_test
+
+production:
+  primary:
+    <<: *default
+    database: xfund
+    username: <%= ENV["DATABASE_USERNAME"] %>
+    password: <%= ENV["DATABASE_PASSWORD"] %>
+  cache:
+    <<: *default
+    database: x_fund_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    database: x_fund_production_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    database: x_fund_production_cable
+    migrations_paths: db/cable_migrate

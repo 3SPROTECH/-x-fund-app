@@ -1,0 +1,238 @@
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_000012) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
+  create_table "audit_logs", force: :cascade do |t|
+    t.string "action", null: false
+    t.bigint "auditable_id", null: false
+    t.string "auditable_type", null: false
+    t.jsonb "changes_data", default: {}
+    t.datetime "created_at", null: false
+    t.inet "ip_address"
+    t.string "user_agent"
+    t.bigint "user_id"
+    t.index ["action"], name: "index_audit_logs_on_action"
+    t.index ["auditable_type", "auditable_id"], name: "index_audit_logs_on_auditable_type_and_auditable_id"
+    t.index ["created_at"], name: "index_audit_logs_on_created_at"
+    t.index ["user_id"], name: "index_audit_logs_on_user_id"
+  end
+
+  create_table "dividend_payments", force: :cascade do |t|
+    t.bigint "amount_cents", null: false
+    t.datetime "created_at", null: false
+    t.bigint "dividend_id", null: false
+    t.bigint "investment_id", null: false
+    t.datetime "paid_at"
+    t.integer "shares_count", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["dividend_id", "investment_id"], name: "index_dividend_payments_on_dividend_id_and_investment_id", unique: true
+    t.index ["dividend_id"], name: "index_dividend_payments_on_dividend_id"
+    t.index ["investment_id"], name: "index_dividend_payments_on_investment_id"
+    t.index ["user_id"], name: "index_dividend_payments_on_user_id"
+  end
+
+  create_table "dividends", force: :cascade do |t|
+    t.bigint "amount_per_share_cents", null: false
+    t.datetime "created_at", null: false
+    t.date "distribution_date", null: false
+    t.bigint "investment_project_id", null: false
+    t.date "period_end", null: false
+    t.date "period_start", null: false
+    t.integer "status", default: 0, null: false
+    t.bigint "total_amount_cents", null: false
+    t.datetime "updated_at", null: false
+    t.index ["distribution_date"], name: "index_dividends_on_distribution_date"
+    t.index ["investment_project_id"], name: "index_dividends_on_investment_project_id"
+    t.index ["status"], name: "index_dividends_on_status"
+  end
+
+  create_table "financial_statements", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.decimal "gross_yield_percent", precision: 5, scale: 2
+    t.bigint "investment_project_id", null: false
+    t.bigint "management_fees_cents", default: 0, null: false
+    t.bigint "net_income_cents", default: 0, null: false
+    t.decimal "net_yield_percent", precision: 5, scale: 2
+    t.date "period_end", null: false
+    t.date "period_start", null: false
+    t.integer "statement_type", null: false
+    t.bigint "total_expenses_cents", default: 0, null: false
+    t.bigint "total_revenue_cents", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["investment_project_id", "period_start", "period_end"], name: "idx_financial_statements_on_project_and_period", unique: true
+    t.index ["investment_project_id"], name: "index_financial_statements_on_investment_project_id"
+  end
+
+  create_table "investment_projects", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.date "funding_end_date", null: false
+    t.date "funding_start_date", null: false
+    t.decimal "gross_yield_percent", precision: 5, scale: 2
+    t.decimal "management_fee_percent", precision: 5, scale: 2, default: "0.0", null: false
+    t.bigint "max_investment_cents"
+    t.bigint "min_investment_cents", null: false
+    t.decimal "net_yield_percent", precision: 5, scale: 2
+    t.bigint "property_id", null: false
+    t.text "review_comment"
+    t.integer "review_status", default: 0, null: false
+    t.datetime "reviewed_at"
+    t.bigint "reviewed_by_id"
+    t.bigint "share_price_cents", null: false
+    t.integer "shares_sold", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.string "title", null: false
+    t.bigint "total_amount_cents", null: false
+    t.integer "total_shares", null: false
+    t.datetime "updated_at", null: false
+    t.index ["funding_end_date"], name: "index_investment_projects_on_funding_end_date"
+    t.index ["funding_start_date"], name: "index_investment_projects_on_funding_start_date"
+    t.index ["property_id"], name: "index_investment_projects_on_property_id", unique: true
+    t.index ["review_status"], name: "index_investment_projects_on_review_status"
+    t.index ["reviewed_by_id"], name: "index_investment_projects_on_reviewed_by_id"
+    t.index ["status"], name: "index_investment_projects_on_status"
+  end
+
+  create_table "investments", force: :cascade do |t|
+    t.bigint "amount_cents", null: false
+    t.datetime "confirmed_at"
+    t.datetime "created_at", null: false
+    t.datetime "invested_at", null: false
+    t.bigint "investment_project_id", null: false
+    t.integer "shares_count", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["investment_project_id"], name: "index_investments_on_investment_project_id"
+    t.index ["status"], name: "index_investments_on_status"
+    t.index ["user_id", "investment_project_id"], name: "index_investments_on_user_id_and_investment_project_id"
+    t.index ["user_id"], name: "index_investments_on_user_id"
+  end
+
+  create_table "jwt_denylist", force: :cascade do |t|
+    t.datetime "exp", null: false
+    t.string "jti", null: false
+    t.index ["jti"], name: "index_jwt_denylist_on_jti"
+  end
+
+  create_table "properties", force: :cascade do |t|
+    t.bigint "acquisition_price_cents", null: false
+    t.string "address_line1", null: false
+    t.string "address_line2"
+    t.string "city", null: false
+    t.string "country", default: "FR", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.decimal "estimated_annual_yield_percent", precision: 5, scale: 2, null: false
+    t.bigint "estimated_value_cents"
+    t.integer "investment_duration_months", null: false
+    t.decimal "latitude", precision: 10, scale: 8
+    t.decimal "longitude", precision: 11, scale: 8
+    t.bigint "owner_id", null: false
+    t.string "postal_code", null: false
+    t.integer "property_type", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.decimal "surface_area_sqm", precision: 10, scale: 2
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["city"], name: "index_properties_on_city"
+    t.index ["owner_id"], name: "index_properties_on_owner_id"
+    t.index ["status", "city"], name: "index_properties_on_status_and_city"
+    t.index ["status"], name: "index_properties_on_status"
+  end
+
+  create_table "transactions", force: :cascade do |t|
+    t.bigint "amount_cents", null: false
+    t.bigint "balance_after_cents", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.bigint "investment_id"
+    t.jsonb "metadata", default: {}
+    t.datetime "processed_at"
+    t.string "reference", null: false
+    t.integer "status", default: 0, null: false
+    t.integer "transaction_type", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "wallet_id", null: false
+    t.index ["created_at"], name: "index_transactions_on_created_at"
+    t.index ["investment_id"], name: "index_transactions_on_investment_id"
+    t.index ["reference"], name: "index_transactions_on_reference", unique: true
+    t.index ["status"], name: "index_transactions_on_status"
+    t.index ["transaction_type"], name: "index_transactions_on_transaction_type"
+    t.index ["wallet_id"], name: "index_transactions_on_wallet_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "address_line1"
+    t.string "address_line2"
+    t.string "city"
+    t.string "country", default: "FR"
+    t.datetime "created_at", null: false
+    t.datetime "current_sign_in_at"
+    t.inet "current_sign_in_ip"
+    t.date "date_of_birth"
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "first_name", null: false
+    t.string "jti", null: false
+    t.text "kyc_rejection_reason"
+    t.integer "kyc_status", default: 0, null: false
+    t.datetime "kyc_submitted_at"
+    t.datetime "kyc_verified_at"
+    t.string "last_name", null: false
+    t.datetime "last_sign_in_at"
+    t.inet "last_sign_in_ip"
+    t.string "phone"
+    t.string "postal_code"
+    t.datetime "reset_password_sent_at"
+    t.string "reset_password_token"
+    t.integer "role", default: 0, null: false
+    t.integer "sign_in_count", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["jti"], name: "index_users_on_jti", unique: true
+    t.index ["kyc_status"], name: "index_users_on_kyc_status"
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["role"], name: "index_users_on_role"
+  end
+
+  create_table "wallets", force: :cascade do |t|
+    t.bigint "balance_cents", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.string "currency", default: "EUR", null: false
+    t.bigint "total_deposited_cents", default: 0, null: false
+    t.bigint "total_withdrawn_cents", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_wallets_on_user_id", unique: true
+  end
+
+  add_foreign_key "audit_logs", "users"
+  add_foreign_key "dividend_payments", "dividends"
+  add_foreign_key "dividend_payments", "investments"
+  add_foreign_key "dividend_payments", "users"
+  add_foreign_key "dividends", "investment_projects"
+  add_foreign_key "financial_statements", "investment_projects"
+  add_foreign_key "investment_projects", "properties"
+  add_foreign_key "investment_projects", "users", column: "reviewed_by_id"
+  add_foreign_key "investments", "investment_projects"
+  add_foreign_key "investments", "users"
+  add_foreign_key "properties", "users", column: "owner_id"
+  add_foreign_key "transactions", "investments"
+  add_foreign_key "transactions", "wallets"
+  add_foreign_key "wallets", "users"
+end

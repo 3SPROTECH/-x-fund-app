@@ -1,0 +1,65 @@
+module Api
+  module V1
+    module Admin
+      class UsersController < ApplicationController
+        before_action :require_admin!
+        before_action :set_user, only: [:show, :update, :destroy, :verify_kyc, :reject_kyc]
+
+        def index
+          users = User.all
+          users = users.where(role: params[:role]) if params[:role].present?
+          users = users.where(kyc_status: params[:kyc_status]) if params[:kyc_status].present?
+          users = paginate(users.order(created_at: :desc))
+
+          render json: {
+            data: users.map { |u| UserSerializer.new(u).serializable_hash[:data] },
+            meta: pagination_meta(users)
+          }
+        end
+
+        def show
+          render json: { data: UserSerializer.new(@user).serializable_hash[:data] }
+        end
+
+        def update
+          if @user.update(admin_user_params)
+            render json: { data: UserSerializer.new(@user).serializable_hash[:data] }
+          else
+            render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
+          end
+        end
+
+        def destroy
+          @user.destroy!
+          render json: { message: "Utilisateur supprime." }
+        end
+
+        def verify_kyc
+          @user.update!(kyc_status: :verified, kyc_verified_at: Time.current, kyc_rejection_reason: nil)
+          render json: { message: "KYC verifie.", data: { kyc_status: @user.kyc_status } }
+        end
+
+        def reject_kyc
+          @user.update!(kyc_status: :rejected, kyc_rejection_reason: params[:reason])
+          render json: { message: "KYC rejete.", data: { kyc_status: @user.kyc_status, reason: params[:reason] } }
+        end
+
+        private
+
+        def require_admin!
+          unless current_user.administrateur?
+            render json: { error: "Acces reserve aux administrateurs." }, status: :forbidden
+          end
+        end
+
+        def set_user
+          @user = User.find(params[:id])
+        end
+
+        def admin_user_params
+          params.require(:user).permit(:first_name, :last_name, :phone, :role, :kyc_status)
+        end
+      end
+    end
+  end
+end
