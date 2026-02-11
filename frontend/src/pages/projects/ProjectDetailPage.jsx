@@ -4,8 +4,11 @@ import { investmentProjectsApi, investmentsApi } from '../../api/investments';
 import { dividendsApi } from '../../api/dividends';
 import { financialStatementsApi } from '../../api/financialStatements';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, TrendingUp, FileText, DollarSign } from 'lucide-react';
+import { ArrowLeft, TrendingUp, FileText, DollarSign, AlertCircle, CheckCircle, Image as ImageIcon, Calendar, Upload, X, Trash2, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { walletApi } from '../../api/wallet';
+import { projectImagesApi } from '../../api/images';
+import { getImageUrl } from '../../api/client';
 
 const STATUS_LABELS = { brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé', cloture: 'Clôturé', annule: 'Annulé' };
 const STATUS_BADGE = { ouvert: 'badge-success', finance: 'badge-info', cloture: '', annule: 'badge-danger', brouillon: 'badge-warning' };
@@ -22,10 +25,13 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState(null);
   const [dividends, setDividends] = useState([]);
   const [statements, setStatements] = useState([]);
+  const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('details');
   const [investAmount, setInvestAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   // Admin: create dividend
   const [divForm, setDivForm] = useState({ total_amount_cents: '', period_start: '', period_end: '' });
@@ -37,14 +43,16 @@ export default function ProjectDetailPage() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [projRes, divRes, stmtRes] = await Promise.allSettled([
+      const [projRes, divRes, stmtRes, walletRes] = await Promise.allSettled([
         investmentProjectsApi.get(id),
         dividendsApi.list(id),
         financialStatementsApi.list(id),
+        walletApi.getWallet(),
       ]);
       if (projRes.status === 'fulfilled') setProject(projRes.value.data.data || projRes.value.data);
       if (divRes.status === 'fulfilled') setDividends(divRes.value.data.data || []);
       if (stmtRes.status === 'fulfilled') setStatements(stmtRes.value.data.data || []);
+      if (walletRes.status === 'fulfilled') setWallet(walletRes.value.data.data?.attributes || walletRes.value.data);
     } catch {
       toast.error('Erreur lors du chargement');
     } finally {
@@ -103,11 +111,79 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const handleUploadImages = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setUploadingImages(true);
+    try {
+      await projectImagesApi.uploadImages(id, files);
+      toast.success(`${files.length} image(s) ajoutée(s) avec succès`);
+      loadAll();
+      e.target.value = ''; // Reset input
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de l\'upload');
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const handleDeleteImage = async (imageId) => {
+    if (!confirm('Voulez-vous vraiment supprimer cette image ?')) return;
+
+    try {
+      await projectImagesApi.deleteImage(id, imageId);
+      toast.success('Image supprimée');
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de la suppression');
+    }
+  };
+
+  const handleDeleteDividend = async (dividendId) => {
+    if (!confirm('Voulez-vous vraiment supprimer ce dividende ?')) return;
+
+    try {
+      await dividendsApi.delete(id, dividendId);
+      toast.success('Dividende supprimé');
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de la suppression');
+    }
+  };
+
+  const handleDeleteStatement = async (statementId) => {
+    if (!confirm('Voulez-vous vraiment supprimer ce rapport financier ?')) return;
+
+    try {
+      await financialStatementsApi.delete(id, statementId);
+      toast.success('Rapport financier supprimé');
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de la suppression');
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!confirm('Voulez-vous vraiment supprimer ce projet ? Cette action est irréversible.')) return;
+
+    try {
+      await investmentProjectsApi.delete(id);
+      toast.success('Projet supprimé avec succès');
+      navigate('/projects');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de la suppression');
+    }
+  };
+
   if (loading) return <div className="page-loading"><div className="spinner" /></div>;
   if (!project) return <div className="page"><div className="card"><p>Projet introuvable</p></div></div>;
 
   const a = project.attributes || project;
   const isAdmin = user?.role === 'administrateur';
+  const isOwner = user?.id === a.owner_id;
+  const canEdit = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
+  const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
   const canInvest = (user?.role === 'investisseur' || isAdmin) && a.status === 'ouvert';
 
   return (
@@ -121,11 +197,32 @@ export default function ProjectDetailPage() {
           <h1>{a.title}</h1>
           {a.property_city && <p className="text-muted">{a.property_title} — {a.property_city}</p>}
         </div>
-        <span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+          <span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span>
+          {canEdit && (
+            <button
+              className="btn btn-sm"
+              onClick={() => navigate(`/projects/${id}/edit`)}
+              title="Modifier le projet"
+            >
+              <Edit size={16} /> Modifier
+            </button>
+          )}
+          {canDelete && (
+            <button
+              className="btn btn-sm btn-danger"
+              onClick={handleDeleteProject}
+              title="Supprimer le projet"
+            >
+              <Trash2 size={16} /> Supprimer
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="tabs">
         <button className={`tab${tab === 'details' ? ' active' : ''}`} onClick={() => setTab('details')}>Détails</button>
+        <button className={`tab${tab === 'photos' ? ' active' : ''}`} onClick={() => setTab('photos')}>Photos</button>
         <button className={`tab${tab === 'dividends' ? ' active' : ''}`} onClick={() => setTab('dividends')}>Dividendes ({dividends.length})</button>
         <button className={`tab${tab === 'statements' ? ' active' : ''}`} onClick={() => setTab('statements')}>Rapports ({statements.length})</button>
       </div>
@@ -133,23 +230,88 @@ export default function ProjectDetailPage() {
       {tab === 'details' && (
         <div className="two-col">
           <div className="two-col-main">
-            <div className="card">
-              <h3>Informations du projet</h3>
-              <div className="detail-grid">
-                <div className="detail-row"><span>Montant total (objectif)</span><span>{fmt(a.total_amount_cents)}</span></div>
-                <div className="detail-row"><span>Montant levé</span><span>{fmt(a.amount_raised_cents)}</span></div>
-                <div className="detail-row"><span>Parts (tokens / fractions)</span><span>{a.total_shares} parts au total</span></div>
-                <div className="detail-row"><span>Prix par part</span><span>{fmt(a.share_price_cents)}</span></div>
-                <div className="detail-row"><span>Parts vendues</span><span>{a.shares_sold}</span></div>
-                <div className="detail-row"><span>Parts disponibles</span><span>{a.available_shares}</span></div>
-                <div className="detail-row"><span>Investissement minimum</span><span>{fmt(a.min_investment_cents)}</span></div>
-                <div className="detail-row"><span>Investissement maximum</span><span>{a.max_investment_cents ? fmt(a.max_investment_cents) : '—'}</span></div>
-                <div className="detail-row"><span>Date de début de levée</span><span>{fmtDate(a.funding_start_date)}</span></div>
-                <div className="detail-row"><span>Date de fin de levée</span><span>{fmtDate(a.funding_end_date)}</span></div>
-                <div className="detail-row"><span>Frais de gestion</span><span>{a.management_fee_percent}%</span></div>
-                <div className="detail-row"><span>Rendement brut / net</span><span className="text-success">{a.gross_yield_percent ?? '—'}% / {a.net_yield_percent ?? '—'}%</span></div>
+            {/* Informations clés en haut */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div className="stat-card">
+                <div className="stat-icon stat-icon-primary">
+                  <TrendingUp size={20} />
+                </div>
+                <div className="stat-content">
+                  <span className="stat-value" style={{ color: '#10B981' }}>{a.net_yield_percent ?? '—'}%</span>
+                  <span className="stat-label">Rendement net annuel</span>
+                </div>
               </div>
-              {a.description && <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '.9rem' }}>{a.description}</p>}
+              <div className="stat-card">
+                <div className="stat-icon stat-icon-success">
+                  <DollarSign size={20} />
+                </div>
+                <div className="stat-content">
+                  <span className="stat-value">{fmt(a.share_price_cents)}</span>
+                  <span className="stat-label">Prix par part</span>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon stat-icon-info">
+                  <Calendar size={20} />
+                </div>
+                <div className="stat-content">
+                  <span className="stat-value">{a.available_shares}</span>
+                  <span className="stat-label">Parts disponibles</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            {a.description && (
+              <div className="card" style={{ marginBottom: '1.5rem' }}>
+                <h3>Description du projet</h3>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '.9rem', lineHeight: '1.6' }}>
+                  {a.description}
+                </p>
+              </div>
+            )}
+
+            {/* Période de financement */}
+            <div className="card" style={{ marginBottom: '1.5rem' }}>
+              <h3>Période de levée de fonds</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'rgba(79, 70, 229, 0.05)', borderRadius: '8px' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '.75rem', color: 'var(--text-secondary)', marginBottom: '.25rem' }}>Date de début</div>
+                  <div style={{ fontWeight: 600 }}>{fmtDate(a.funding_start_date)}</div>
+                </div>
+                <div style={{ height: '40px', width: '1px', background: 'var(--border-color)' }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '.75rem', color: 'var(--text-secondary)', marginBottom: '.25rem' }}>Date de fin</div>
+                  <div style={{ fontWeight: 600 }}>{fmtDate(a.funding_end_date)}</div>
+                </div>
+                <div style={{ height: '40px', width: '1px', background: 'var(--border-color)' }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '.75rem', color: 'var(--text-secondary)', marginBottom: '.25rem' }}>Durée restante</div>
+                  <div style={{ fontWeight: 600, color: new Date(a.funding_end_date) > new Date() ? '#10B981' : '#EF4444' }}>
+                    {new Date(a.funding_end_date) > new Date()
+                      ? `${Math.ceil((new Date(a.funding_end_date) - new Date()) / (1000 * 60 * 60 * 24))} jours`
+                      : 'Terminé'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Détails financiers complets */}
+            <div className="card">
+              <h3>Détails financiers</h3>
+              <div className="detail-grid">
+                <div className="detail-row"><span>Montant total (objectif)</span><span style={{ fontWeight: 600 }}>{fmt(a.total_amount_cents)}</span></div>
+                <div className="detail-row"><span>Montant levé</span><span style={{ fontWeight: 600, color: '#10B981' }}>{fmt(a.amount_raised_cents)}</span></div>
+                <div className="detail-row"><span>Parts totales</span><span>{a.total_shares} parts</span></div>
+                <div className="detail-row"><span>Parts vendues</span><span>{a.shares_sold}</span></div>
+                <div className="detail-row"><span>Parts disponibles</span><span style={{ fontWeight: 600 }}>{a.available_shares}</span></div>
+                <div className="detail-row"><span>Prix par part</span><span>{fmt(a.share_price_cents)}</span></div>
+                <div className="detail-row"><span>Investissement minimum</span><span>{fmt(a.min_investment_cents)}</span></div>
+                <div className="detail-row"><span>Investissement maximum</span><span>{a.max_investment_cents ? fmt(a.max_investment_cents) : 'Aucune limite'}</span></div>
+                <div className="detail-row"><span>Frais de gestion</span><span>{a.management_fee_percent}%</span></div>
+                <div className="detail-row"><span>Rendement brut</span><span className="text-success">{a.gross_yield_percent ?? '—'}%</span></div>
+                <div className="detail-row"><span>Rendement net</span><span className="text-success" style={{ fontWeight: 600 }}>{a.net_yield_percent ?? '—'}%</span></div>
+              </div>
             </div>
           </div>
 
@@ -172,26 +334,266 @@ export default function ProjectDetailPage() {
               </div>
             </div>
 
-            {canInvest && (
+{canInvest && (
               <div className="card" style={{ marginTop: '1rem' }}>
-                <h3 style={{ color: 'var(--primary)' }}>Investir</h3>
+                <h3 style={{ color: 'var(--primary)' }}>Investir dans ce projet</h3>
+
+                {/* Vérification KYC */}
+                {user?.kyc_status !== 'verified' && (
+                  <div style={{ padding: '.75rem', background: 'rgba(255, 193, 7, 0.1)', border: '1px solid rgba(255, 193, 7, 0.3)', borderRadius: '8px', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '.5rem' }}>
+                      <AlertCircle size={18} color="#FFC107" />
+                      <span style={{ fontWeight: 600, color: '#FFC107' }}>Vérification KYC requise</span>
+                    </div>
+                    <p style={{ fontSize: '.875rem', margin: 0, color: 'var(--text-secondary)' }}>
+                      Vous devez compléter votre vérification d'identité avant d'investir.
+                    </p>
+                    <button
+                      className="btn btn-sm"
+                      onClick={() => navigate('/kyc')}
+                      style={{ marginTop: '.5rem' }}
+                    >
+                      Compléter mon KYC
+                    </button>
+                  </div>
+                )}
+
+                {/* Info solde wallet */}
+                {wallet && (
+                  <div style={{ padding: '.75rem', background: 'rgba(79, 70, 229, 0.1)', border: '1px solid rgba(79, 70, 229, 0.3)', borderRadius: '8px', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '.875rem', color: 'var(--text-secondary)' }}>Solde disponible</span>
+                      <span style={{ fontWeight: 600, fontSize: '1rem' }}>{fmt(wallet.balance_cents)}</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="invest-constraints">
                   <span>Min: {fmt(a.min_investment_cents)}</span>
                   {a.max_investment_cents && <span>Max: {fmt(a.max_investment_cents)}</span>}
                   <span>Prix/part: {fmt(a.share_price_cents)}</span>
                 </div>
+
                 <form onSubmit={handleInvest}>
                   <div className="form-group">
-                    <label>Montant (EUR)</label>
-                    <input type="number" step="0.01" min="0.01" value={investAmount} onChange={e => setInvestAmount(e.target.value)} placeholder="1000.00" required />
+                    <label>Montant à investir (EUR)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={investAmount}
+                      onChange={e => setInvestAmount(e.target.value)}
+                      placeholder="1000.00"
+                      required
+                      disabled={user?.kyc_status !== 'verified'}
+                    />
                   </div>
-                  <button type="submit" className="btn btn-primary btn-block" disabled={submitting} style={{ marginTop: '.75rem' }}>
-                    {submitting ? 'Traitement...' : 'Confirmer l\'investissement'}
+
+                  {/* Calcul automatique des parts */}
+                  {investAmount && parseFloat(investAmount) > 0 && a.share_price_cents > 0 && (
+                    <div style={{ padding: '.75rem', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', marginTop: '.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '.5rem' }}>
+                        <CheckCircle size={18} color="#10B981" />
+                        <span style={{ fontWeight: 600, color: '#10B981' }}>Détails de l'investissement</span>
+                      </div>
+                      <div style={{ fontSize: '.875rem', color: 'var(--text-secondary)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.25rem' }}>
+                          <span>Nombre de parts</span>
+                          <span style={{ fontWeight: 600 }}>{Math.floor((parseFloat(investAmount) * 100) / a.share_price_cents)} parts</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.25rem' }}>
+                          <span>Rendement estimé annuel</span>
+                          <span style={{ fontWeight: 600, color: '#10B981' }}>
+                            {a.net_yield_percent ? `${fmt(parseFloat(investAmount) * 100 * a.net_yield_percent / 100)} (${a.net_yield_percent}%)` : '—'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>% du projet détenu</span>
+                          <span style={{ fontWeight: 600 }}>
+                            {((Math.floor((parseFloat(investAmount) * 100) / a.share_price_cents) / a.total_shares) * 100).toFixed(2)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Warnings */}
+                  {wallet && investAmount && parseFloat(investAmount) * 100 > wallet.balance_cents && (
+                    <div style={{ padding: '.75rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', marginTop: '.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
+                        <AlertCircle size={18} color="#EF4444" />
+                        <span style={{ fontSize: '.875rem', color: '#EF4444', fontWeight: 600 }}>
+                          Solde insuffisant. Veuillez recharger votre portefeuille.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-block"
+                    disabled={
+                      submitting ||
+                      user?.kyc_status !== 'verified' ||
+                      (wallet && investAmount && parseFloat(investAmount) * 100 > wallet.balance_cents)
+                    }
+                    style={{ marginTop: '.75rem' }}
+                  >
+                    {submitting ? (
+                      <><div className="spinner spinner-sm" /> Traitement...</>
+                    ) : (
+                      'Confirmer l\'investissement'
+                    )}
                   </button>
                 </form>
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {tab === 'photos' && (
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div>
+              <h3 style={{ marginBottom: '.25rem' }}>Galerie du projet</h3>
+              <p style={{ fontSize: '.875rem', color: 'var(--text-secondary)', margin: 0 }}>
+                {(a.images?.length || 0) + (a.property_photos?.length || 0)} photo(s)
+              </p>
+            </div>
+            {isAdmin && (
+              <div>
+                <input
+                  type="file"
+                  id="image-upload"
+                  multiple
+                  accept="image/*"
+                  onChange={handleUploadImages}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="image-upload" className="btn btn-primary btn-sm" style={{ cursor: 'pointer' }}>
+                  {uploadingImages ? (
+                    <><div className="spinner spinner-sm" /> Upload en cours...</>
+                  ) : (
+                    <><Upload size={16} /> Ajouter des photos</>
+                  )}
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* Images du projet */}
+          {a.images && a.images.length > 0 && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h4 style={{ fontSize: '.9rem', marginBottom: '.75rem', color: 'var(--text-secondary)' }}>
+                Photos du projet ({a.images.length})
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                {a.images.map((img) => (
+                  <div key={img.id} style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', cursor: 'pointer' }} onClick={() => setSelectedImage({ url: getImageUrl(img.url), filename: img.filename })}>
+                    <img
+                      src={getImageUrl(img.url)}
+                      alt={img.filename}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#f5f5f5' }}
+                    />
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDeleteImage(img.id)}
+                        style={{
+                          position: 'absolute',
+                          top: '0.5rem',
+                          right: '0.5rem',
+                          background: 'rgba(239, 68, 68, 0.9)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '32px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          color: 'white',
+                          transition: 'background 0.2s',
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(220, 38, 38, 1)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.9)'}
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      padding: '.5rem',
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                      color: 'white',
+                      fontSize: '.75rem',
+                    }}>
+                      {img.filename}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Photos du bien immobilier */}
+          {a.property_photos && a.property_photos.length > 0 && (
+            <div>
+              <h4 style={{ fontSize: '.9rem', marginBottom: '.75rem', color: 'var(--text-secondary)' }}>
+                Photos du bien immobilier ({a.property_photos.length})
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                {a.property_photos.map((photo) => (
+                  <div key={photo.id} style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }} onClick={() => setSelectedImage({ url: getImageUrl(photo.url), filename: photo.filename })} onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)'; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'; }}>
+                    <img
+                      src={getImageUrl(photo.url)}
+                      alt={photo.filename}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#f5f5f5' }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      padding: '.5rem',
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                      color: 'white',
+                      fontSize: '.75rem',
+                    }}>
+                      {photo.filename}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* État vide */}
+          {(!a.images || a.images.length === 0) && (!a.property_photos || a.property_photos.length === 0) && (
+            <div style={{
+              aspectRatio: '16/9',
+              background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)',
+              border: '2px dashed rgba(79, 70, 229, 0.3)',
+              borderRadius: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '.5rem',
+              color: 'var(--text-secondary)',
+            }}>
+              <ImageIcon size={40} opacity={0.5} />
+              <span style={{ fontSize: '.875rem' }}>Aucune photo pour le moment</span>
+              {isAdmin && (
+                <label htmlFor="image-upload" style={{ marginTop: '.5rem', cursor: 'pointer', color: 'var(--primary)', fontSize: '.875rem', textDecoration: 'underline' }}>
+                  Ajouter la première photo
+                </label>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -225,7 +627,7 @@ export default function ProjectDetailPage() {
             <div className="table-container">
               <table className="table">
                 <thead>
-                  <tr><th>Date distribution</th><th>Période</th><th>Montant total</th><th>Par part</th><th>Statut</th></tr>
+                  <tr><th>Date distribution</th><th>Période</th><th>Montant total</th><th>Par part</th><th>Statut</th>{isAdmin && <th>Actions</th>}</tr>
                 </thead>
                 <tbody>
                   {dividends.map(d => {
@@ -237,6 +639,15 @@ export default function ProjectDetailPage() {
                         <td>{fmt(da.total_amount_cents)}</td>
                         <td>{fmt(da.amount_per_share_cents)}</td>
                         <td><span className={`badge ${da.status === 'distribue' ? 'badge-success' : da.status === 'annule' ? 'badge-danger' : 'badge-warning'}`}>{DIV_STATUS[da.status] || da.status}</span></td>
+                        {isAdmin && (
+                          <td>
+                            <div className="actions-cell">
+                              <button className="btn-icon btn-danger" title="Supprimer" onClick={() => handleDeleteDividend(d.id)}>
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
@@ -281,7 +692,7 @@ export default function ProjectDetailPage() {
             <div className="table-container">
               <table className="table">
                 <thead>
-                  <tr><th>Type</th><th>Période</th><th>Revenus</th><th>Dépenses</th><th>Résultat net</th><th>Rend. net</th></tr>
+                  <tr><th>Type</th><th>Période</th><th>Revenus</th><th>Dépenses</th><th>Résultat net</th><th>Rend. net</th>{isAdmin && <th>Actions</th>}</tr>
                 </thead>
                 <tbody>
                   {statements.map(s => {
@@ -294,6 +705,15 @@ export default function ProjectDetailPage() {
                         <td className="amount-negative">{fmt(sa.total_expenses_cents)}</td>
                         <td style={{ fontWeight: 600 }}>{fmt(sa.net_income_cents)}</td>
                         <td>{sa.net_yield_percent ?? '—'}%</td>
+                        {isAdmin && (
+                          <td>
+                            <div className="actions-cell">
+                              <button className="btn-icon btn-danger" title="Supprimer" onClick={() => handleDeleteStatement(s.id)}>
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
@@ -301,6 +721,87 @@ export default function ProjectDetailPage() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modal pour visualiser l'image en grand */}
+      {selectedImage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '2rem',
+          }}
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            onClick={() => setSelectedImage(null)}
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              right: '1rem',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '48px',
+              height: '48px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'white',
+              fontSize: '24px',
+              transition: 'background 0.2s',
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
+            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
+          >
+            <X size={24} />
+          </button>
+          <div
+            style={{
+              maxWidth: '95%',
+              maxHeight: '95%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '1rem',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={selectedImage.url}
+              alt={selectedImage.filename}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '90vh',
+                objectFit: 'contain',
+                borderRadius: '8px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              }}
+            />
+            <div
+              style={{
+                color: 'white',
+                fontSize: '0.875rem',
+                textAlign: 'center',
+                padding: '0.5rem 1rem',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
+              {selectedImage.filename}
+            </div>
+          </div>
         </div>
       )}
     </div>

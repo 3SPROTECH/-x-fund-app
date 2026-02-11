@@ -10,4 +10,10 @@ export const dividendsApi = {
   create(projectId, data) {
     return client.post(`/investment_projects/${projectId}/dividends`, data);
   },
+  update(projectId, id, data) {
+    return client.put(`/investment_projects/${projectId}/dividends/${id}`, { dividend: data });
+  },
+  delete(projectId, id) {
+    return client.delete(`/investment_projects/${projectId}/dividends/${id}`);
+  },
 };

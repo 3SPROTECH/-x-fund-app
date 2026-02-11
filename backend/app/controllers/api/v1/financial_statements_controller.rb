@@ -2,6 +2,7 @@ module Api
   module V1
     class FinancialStatementsController < ApplicationController
       before_action :set_investment_project
+      before_action :set_financial_statement, only: [:show, :update, :destroy]
 
       def index
         statements = @investment_project.financial_statements.order(period_start: :desc)
@@ -11,10 +12,8 @@ module Api
       end
 
       def show
-        statement = @investment_project.financial_statements.find(params[:id])
-        authorize statement
-
-        render json: { data: FinancialStatementSerializer.new(statement).serializable_hash[:data] }
+        authorize @financial_statement
+        render json: { data: FinancialStatementSerializer.new(@financial_statement).serializable_hash[:data] }
       end
 
       def create
@@ -35,10 +34,30 @@ module Api
         end
       end
 
+      def update
+        authorize @financial_statement
+
+        if @financial_statement.update(statement_params)
+          render json: { data: FinancialStatementSerializer.new(@financial_statement).serializable_hash[:data] }
+        else
+          render json: { errors: @financial_statement.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
+      def destroy
+        authorize @financial_statement
+        @financial_statement.destroy!
+        render json: { message: "Rapport financier supprime avec succes." }, status: :ok
+      end
+
       private
 
       def set_investment_project
         @investment_project = InvestmentProject.find(params[:investment_project_id])
+      end
+
+      def set_financial_statement
+        @financial_statement = @investment_project.financial_statements.find(params[:id])
       end
 
       def verify_project_ownership!
@@ -46,6 +65,13 @@ module Api
         unless @investment_project.owner == current_user
           render json: { error: "Vous ne pouvez creer des rapports que pour vos propres projets." }, status: :forbidden
         end
+      end
+
+      def statement_params
+        params.require(:financial_statement).permit(
+          :statement_type, :period_start, :period_end,
+          :total_revenue_cents, :total_expenses_cents, :net_income_cents, :net_yield_percent
+        )
       end
     end
   end

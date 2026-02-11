@@ -23,6 +23,14 @@ class PropertyPolicy < ApplicationPolicy
     admin? || record.owner == user
   end
 
+  def upload_photos?
+    admin? || record.owner == user
+  end
+
+  def delete_photo?
+    admin? || record.owner == user
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       if user.administrateur?

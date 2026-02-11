@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import {
   ShieldCheck, ShieldX, Trash2, Eye, ChevronLeft,
-  ChevronRight, Users, UserCheck, UserX, Search,
+  ChevronRight, Users, UserCheck, UserX, Search, FileText, Download,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../../api/client';
 
 const KYC_LABELS = { pending: 'En attente', submitted: 'Soumis', verified: 'Vérifié', rejected: 'Rejeté' };
 const ROLE_LABELS = { investisseur: 'Investisseur', porteur_de_projet: 'Porteur de projet', administrateur: 'Administrateur' };
@@ -204,6 +205,77 @@ export default function AdminUsersPage() {
                     <div className="detail-row"><span>Adresse</span><span>{[a.address_line1, a.city, a.postal_code, a.country].filter(Boolean).join(', ') || '—'}</span></div>
                     <div className="detail-row"><span>Inscrit le</span><span>{new Date(a.created_at).toLocaleDateString('fr-FR')}</span></div>
                   </div>
+
+                  {/* Documents KYC */}
+                  {(a.kyc_identity_document || a.kyc_proof_of_address) && (
+                    <>
+                      <div className="divider" />
+                      <div>
+                        <h4 style={{ fontSize: '.9rem', marginBottom: '.75rem', display: 'flex', alignItems: 'center', gap: '.5rem' }}>
+                          <FileText size={16} />
+                          Documents KYC
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
+                          {a.kyc_identity_document && (
+                            <div style={{
+                              padding: '.75rem',
+                              background: 'rgba(79, 70, 229, 0.05)',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(79, 70, 229, 0.2)',
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                  <div style={{ fontSize: '.875rem', fontWeight: 600, marginBottom: '.25rem' }}>
+                                    Pièce d'identité
+                                  </div>
+                                  <div style={{ fontSize: '.75rem', color: 'var(--text-secondary)' }}>
+                                    {a.kyc_identity_document.filename}
+                                  </div>
+                                </div>
+                                <a
+                                  href={getImageUrl(a.kyc_identity_document.url)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn btn-sm btn-primary"
+                                  style={{ display: 'flex', alignItems: 'center', gap: '.25rem' }}
+                                >
+                                  <Download size={14} /> Voir
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                          {a.kyc_proof_of_address && (
+                            <div style={{
+                              padding: '.75rem',
+                              background: 'rgba(79, 70, 229, 0.05)',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(79, 70, 229, 0.2)',
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                  <div style={{ fontSize: '.875rem', fontWeight: 600, marginBottom: '.25rem' }}>
+                                    Justificatif de domicile
+                                  </div>
+                                  <div style={{ fontSize: '.75rem', color: 'var(--text-secondary)' }}>
+                                    {a.kyc_proof_of_address.filename}
+                                  </div>
+                                </div>
+                                <a
+                                  href={getImageUrl(a.kyc_proof_of_address.url)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn btn-sm btn-primary"
+                                  style={{ display: 'flex', alignItems: 'center', gap: '.25rem' }}
+                                >
+                                  <Download size={14} /> Voir
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {a.kyc_status === 'submitted' && (
                     <div className="detail-actions">

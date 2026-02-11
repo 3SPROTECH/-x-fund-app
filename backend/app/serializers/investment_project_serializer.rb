@@ -35,4 +35,41 @@ class InvestmentProjectSerializer
   attribute :reviewer_name do |project|
     project.reviewer&.full_name
   end
+
+  attribute :images do |project|
+    next [] unless project.additional_documents.attached?
+
+    project.additional_documents.map { |img|
+      begin
+        {
+          id: img.id,
+          url: Rails.application.routes.url_helpers.rails_blob_path(img, only_path: true),
+          filename: img.filename.to_s,
+          content_type: img.content_type,
+          byte_size: img.byte_size
+        }
+      rescue => e
+        Rails.logger.error("Error generating image URL: #{e.message}")
+        nil
+      end
+    }.compact
+  end
+
+  attribute :property_photos do |project|
+    next [] unless project.property.photos.attached?
+
+    project.property.photos.map { |photo|
+      begin
+        {
+          id: photo.id,
+          url: Rails.application.routes.url_helpers.rails_blob_path(photo, only_path: true),
+          filename: photo.filename.to_s,
+          content_type: photo.content_type
+        }
+      rescue => e
+        Rails.logger.error("Error generating property photo URL: #{e.message}")
+        nil
+      end
+    }.compact
+  end
 end

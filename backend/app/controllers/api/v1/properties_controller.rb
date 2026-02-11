@@ -1,7 +1,7 @@
 module Api
   module V1
     class PropertiesController < ApplicationController
-      before_action :set_property, only: [:show, :update, :destroy]
+      before_action :set_property, only: [:show, :update, :destroy, :upload_photos, :delete_photo]
 
       def index
         properties = policy_scope(Property)
@@ -45,6 +45,36 @@ module Api
         authorize @property
         @property.destroy!
         render json: { message: "Bien immobilier supprime." }, status: :ok
+      end
+
+      def upload_photos
+        authorize @property
+
+        if params[:photos].present?
+          params[:photos].each do |photo|
+            @property.photos.attach(photo)
+          end
+          render json: {
+            message: "Photos ajoutees avec succes",
+            data: PropertySerializer.new(@property).serializable_hash[:data]
+          }, status: :ok
+        else
+          render json: { error: "Aucune photo fournie" }, status: :unprocessable_entity
+        end
+      end
+
+      def delete_photo
+        authorize @property
+
+        photo = @property.photos.find(params[:photo_id])
+        photo.purge
+
+        render json: {
+          message: "Photo supprimee avec succes",
+          data: PropertySerializer.new(@property).serializable_hash[:data]
+        }, status: :ok
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: "Photo introuvable" }, status: :not_found
       end
 
       private

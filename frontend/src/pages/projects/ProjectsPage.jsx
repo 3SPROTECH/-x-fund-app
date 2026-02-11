@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { investmentProjectsApi } from '../../api/investments';
 import { useAuth } from '../../context/AuthContext';
-import { TrendingUp, MapPin, ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react';
+import { TrendingUp, MapPin, ChevronLeft, ChevronRight, Plus, Calendar, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../../api/client';
 
 const STATUS_LABELS = { brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé', cloture: 'Clôturé', annule: 'Annulé' };
 const STATUS_BADGE = { brouillon: 'badge-warning', ouvert: 'badge-success', finance: 'badge-info', cloture: '', annule: 'badge-danger' };
@@ -85,8 +86,43 @@ export default function ProjectsPage() {
             {projects.map(p => {
               const a = p.attributes || p;
               const progress = Math.min(a.funding_progress_percent || 0, 100);
+              const firstImage = (a.images && a.images.length > 0) ? a.images[0] : (a.property_photos && a.property_photos.length > 0) ? a.property_photos[0] : null;
+
               return (
                 <div key={p.id} className="project-card" onClick={() => navigate(`/projects/${p.id}`)}>
+                  {/* Image section */}
+                  <div style={{
+                    width: '100%',
+                    aspectRatio: '16/9',
+                    overflow: 'hidden',
+                    borderRadius: '12px 12px 0 0',
+                    backgroundColor: '#f5f5f5',
+                  }}>
+                    {firstImage ? (
+                      <img
+                        src={getImageUrl(firstImage.url)}
+                        alt={a.title}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--text-secondary)',
+                        background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)',
+                      }}>
+                        <ImageIcon size={40} opacity={0.3} />
+                      </div>
+                    )}
+                  </div>
+
                   <div className="project-card-body">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '.5rem' }}>
                       <h3 style={{ fontSize: '1.05rem', fontWeight: 650, margin: 0 }}>{a.title}</h3>

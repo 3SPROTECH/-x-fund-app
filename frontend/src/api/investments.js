@@ -12,6 +12,14 @@ export const investmentProjectsApi = {
   create(propertyId, data) {
     return client.post(`/properties/${propertyId}/investment_projects`, { investment_project: data });
   },
+
+  update(id, data) {
+    return client.put(`/investment_projects/${id}`, { investment_project: data });
+  },
+
+  delete(id) {
+    return client.delete(`/investment_projects/${id}`);
+  },
 };
 
 export const investmentsApi = {

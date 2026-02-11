@@ -25,14 +25,24 @@ Rails.application.routes.draw do
       # === Properties ===
       resources :properties do
         resources :investment_projects, only: [:create], controller: "investment_projects"
+        # Images management
+        member do
+          post :upload_photos
+          delete 'delete_photo/:photo_id', action: :delete_photo, as: :delete_photo
+        end
       end
 
       # === Investment Projects ===
       resources :investment_projects, only: [:index, :show, :update, :destroy] do
         resources :investments, only: [:create], controller: "project_investments"
-        resources :dividends, only: [:index, :show, :create]
-        resources :financial_statements, only: [:index, :show, :create]
+        resources :dividends, only: [:index, :show, :create, :update, :destroy]
+        resources :financial_statements, only: [:index, :show, :create, :update, :destroy]
         resources :investors, only: [:index], controller: "project_investors"
+        # Images management for projects
+        member do
+          post :upload_images
+          delete 'delete_image/:image_id', action: :delete_image, as: :delete_image
+        end
       end
 
       # === Investments (user's own) ===

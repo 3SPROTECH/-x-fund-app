@@ -126,10 +126,10 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon stat-icon-info"><Wallet size={20} /></div>
+              <div className="stat-icon stat-icon-info"><CheckCircle size={20} /></div>
               <div className="stat-content">
-                <span className="stat-value">{fmt(financial.total_wallets_balance_cents)}</span>
-                <span className="stat-label">Solde total wallets</span>
+                <span className="stat-value">{projects.finance ?? '—'}</span>
+                <span className="stat-label">Projets financés</span>
               </div>
             </div>
           </div>

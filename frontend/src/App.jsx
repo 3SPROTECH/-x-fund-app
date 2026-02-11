@@ -38,6 +38,7 @@ import PropertiesPage from './pages/dashboard/PropertiesPage';
 import ProjectsPage from './pages/projects/ProjectsPage';
 import ProjectDetailPage from './pages/projects/ProjectDetailPage';
 import CreateProjectPage from './pages/projects/CreateProjectPage';
+import EditProjectPage from './pages/projects/EditProjectPage';
 import MyInvestmentsPage from './pages/investments/MyInvestmentsPage';
 
 // Profile
@@ -78,6 +79,7 @@ export default function App() {
             <Route path="/properties" element={<PropertiesPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/new" element={<CreateProjectPage />} />
+            <Route path="/projects/:id/edit" element={<EditProjectPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/investments" element={<MyInvestmentsPage />} />
             <Route path="/profile" element={<ProfilePage />} />

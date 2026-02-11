@@ -1,7 +1,7 @@
 module Api
   module V1
     class InvestmentProjectsController < ApplicationController
-      before_action :set_investment_project, only: [:show, :update, :destroy]
+      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image]
 
       def index
         projects = policy_scope(InvestmentProject).includes(:property)
@@ -74,6 +74,36 @@ module Api
         authorize @investment_project
         @investment_project.destroy!
         render json: { message: "Projet d'investissement supprime." }, status: :ok
+      end
+
+      def upload_images
+        authorize @investment_project
+
+        if params[:images].present?
+          params[:images].each do |image|
+            @investment_project.additional_documents.attach(image)
+          end
+          render json: {
+            message: "Images ajoutees avec succes",
+            data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data]
+          }, status: :ok
+        else
+          render json: { error: "Aucune image fournie" }, status: :unprocessable_entity
+        end
+      end
+
+      def delete_image
+        authorize @investment_project
+
+        image = @investment_project.additional_documents.find(params[:image_id])
+        image.purge
+
+        render json: {
+          message: "Image supprimee avec succes",
+          data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data]
+        }, status: :ok
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: "Image introuvable" }, status: :not_found
       end
 
       private
