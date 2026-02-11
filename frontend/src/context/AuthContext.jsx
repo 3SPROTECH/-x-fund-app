@@ -5,10 +5,8 @@ import { profileApi } from '../api/profile';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
-  });
+  // Ne PAS initialiser depuis localStorage pour éviter les données obsolètes
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const refreshProfile = useCallback(async () => {
@@ -23,11 +21,24 @@ export function AuthProvider({ children }) {
       const userData = res.data.data?.attributes || res.data;
       const merged = { id: res.data.data?.id, ...userData };
       setUser(merged);
+      // Mettre à jour le localStorage avec les données fraîches
       localStorage.setItem('user', JSON.stringify(merged));
-    } catch {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setUser(null);
+    } catch (error) {
+      // Ne déconnecter QUE si c'est une erreur d'authentification (401)
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+      } else {
+        // Pour les autres erreurs (réseau, serveur), utiliser les données en cache si disponibles
+        const cachedUser = localStorage.getItem('user');
+        if (cachedUser) {
+          console.warn('Erreur réseau - utilisation des données en cache');
+          setUser(JSON.parse(cachedUser));
+        } else {
+          console.warn('Erreur lors du refresh du profil:', error.message);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -44,12 +55,9 @@ export function AuthProvider({ children }) {
     if (token) {
       localStorage.setItem('token', token);
     }
-    const userData = res.data.data?.attributes || res.data.status?.data?.attributes || res.data;
-    const id = res.data.data?.id || res.data.status?.data?.id;
-    const merged = { id, ...userData };
-    setUser(merged);
-    localStorage.setItem('user', JSON.stringify(merged));
-    return merged;
+    // Récupérer le profil à jour depuis l'API après connexion
+    await refreshProfile();
+    return user;
   };
 
   const signUp = async (userData) => {
@@ -58,12 +66,9 @@ export function AuthProvider({ children }) {
     if (token) {
       localStorage.setItem('token', token);
     }
-    const profile = res.data.data?.attributes || res.data.status?.data?.attributes || res.data;
-    const id = res.data.data?.id || res.data.status?.data?.id;
-    const merged = { id, ...profile };
-    setUser(merged);
-    localStorage.setItem('user', JSON.stringify(merged));
-    return merged;
+    // Récupérer le profil à jour depuis l'API après inscription
+    await refreshProfile();
+    return user;
   };
 
   const signOut = async () => {

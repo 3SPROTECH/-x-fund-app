@@ -6,7 +6,19 @@ import Layout from './components/Layout';
 
 /** Redirige vers le tableau de bord adapté au rôle après login / accès à / */
 function DashboardRedirect() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Attendre que le profil soit chargé avant de rediriger
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <p>Chargement...</p>
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" replace />;
   if (user?.role === 'administrateur') return <Navigate to="/admin/dashboard" replace />;
   return <Navigate to="/dashboard" replace />;
 }
@@ -25,6 +37,7 @@ import PropertiesPage from './pages/dashboard/PropertiesPage';
 // Projects & Investments
 import ProjectsPage from './pages/projects/ProjectsPage';
 import ProjectDetailPage from './pages/projects/ProjectDetailPage';
+import CreateProjectPage from './pages/projects/CreateProjectPage';
 import MyInvestmentsPage from './pages/investments/MyInvestmentsPage';
 
 // Profile
@@ -64,6 +77,7 @@ export default function App() {
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/properties" element={<PropertiesPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/new" element={<CreateProjectPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/investments" element={<MyInvestmentsPage />} />
             <Route path="/profile" element={<ProfilePage />} />

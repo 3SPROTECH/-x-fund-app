@@ -47,8 +47,8 @@ export default function ProjectsPage() {
           <p className="text-muted">Découvrez les opportunités et suivez l'avancement du financement</p>
         </div>
         {canCreateProject && (
-          <button type="button" className="btn btn-primary" onClick={() => navigate('/properties')}>
-            <Plus size={16} /> Créer un projet (via un bien)
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/projects/new')}>
+            <Plus size={16} /> Créer un projet
           </button>
         )}
       </div>

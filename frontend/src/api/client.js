@@ -16,16 +16,29 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
+// Flag pour éviter les redirections multiples
+let isRedirecting = false;
+
 // Handle 401 responses globally
 client.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // Only redirect if not already on auth pages
-      if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
-        window.location.href = '/login';
+      // Éviter les redirections multiples simultanées
+      if (!isRedirecting) {
+        isRedirecting = true;
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+
+        // Only redirect if not already on auth pages
+        if (!window.location.pathname.startsWith('/login') &&
+            !window.location.pathname.startsWith('/register')) {
+          console.warn('Session expirée - redirection vers login');
+          window.location.href = '/login';
+        }
+
+        // Reset le flag après un court délai
+        setTimeout(() => { isRedirecting = false; }, 1000);
       }
     }
     return Promise.reject(error);
