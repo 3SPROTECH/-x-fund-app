@@ -25,7 +25,7 @@ class InvestmentProject < ApplicationRecord
   validates :min_investment_cents, presence: true, numericality: { greater_than: 0 }
   validates :funding_start_date, presence: true
   validates :funding_end_date, presence: true
-  validates :management_fee_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
+  validates :management_fee_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }, allow_nil: true
   validate :end_date_after_start_date
   validate :must_be_approved_to_open
 

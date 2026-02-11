@@ -1,0 +1,9 @@
+{
+  "name": "x-fund-app",
+  "private": true,
+  "description": "x-fund-app - frontend + backend",
+  "scripts": {
+    "install:auto": "powershell -ExecutionPolicy Bypass -File ./install.ps1",
+    "install": "npm run install:auto"
+  }
+}

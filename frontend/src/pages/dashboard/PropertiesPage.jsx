@@ -25,7 +25,7 @@ const EMPTY_PROPERTY = {
 const EMPTY_PROJECT = {
   title: '', description: '', total_amount_cents: '', share_price_cents: '',
   total_shares: '', min_investment_cents: '', max_investment_cents: '',
-  start_date: '', end_date: '',
+  funding_start_date: '', funding_end_date: '',
 };
 
 export default function PropertiesPage() {
@@ -177,23 +177,73 @@ export default function PropertiesPage() {
 
   const handleSaveProject = async (e) => {
     e.preventDefault();
+    const totalAmount = Math.round(parseFloat(projectForm.total_amount_cents) * 100) || 0;
+    const sharePrice = Math.round(parseFloat(projectForm.share_price_cents) * 100) || 0;
+    const totalShares = parseInt(projectForm.total_shares, 10) || 0;
+    const minCents = Math.round(parseFloat(projectForm.min_investment_cents) * 100) || 0;
+
+    if (!projectForm.title?.trim()) {
+      toast.error('Le titre du projet est requis');
+      return;
+    }
+    if (sharePrice <= 0) {
+      toast.error('Le prix par part doit être supérieur à 0');
+      return;
+    }
+    if (totalAmount <= 0 && totalShares <= 0) {
+      toast.error('Renseignez le montant total à lever ou le nombre de parts');
+      return;
+    }
+    if (minCents <= 0) {
+      toast.error("L'investissement minimum est requis et doit être supérieur à 0");
+      return;
+    }
+    if (!projectForm.funding_start_date || !projectForm.funding_end_date) {
+      toast.error('Les dates de début et fin de levée sont requises');
+      return;
+    }
+    if (new Date(projectForm.funding_end_date) <= new Date(projectForm.funding_start_date)) {
+      toast.error('La date de fin doit être postérieure à la date de début');
+      return;
+    }
+
+    const propertyId = Number(showProjectModal);
+    if (!propertyId || Number.isNaN(propertyId)) {
+      toast.error('Erreur: bien non identifié. Fermez le formulaire et rouvrez-le.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const data = {
-        ...projectForm,
-        total_amount_cents: Math.round(parseFloat(projectForm.total_amount_cents) * 100) || 0,
-        share_price_cents: Math.round(parseFloat(projectForm.share_price_cents) * 100) || 0,
-        total_shares: parseInt(projectForm.total_shares) || 0,
-        min_investment_cents: Math.round(parseFloat(projectForm.min_investment_cents) * 100) || 0,
-        max_investment_cents: Math.round(parseFloat(projectForm.max_investment_cents) * 100) || 0,
+        title: projectForm.title.trim(),
+        description: projectForm.description?.trim() || undefined,
+        total_amount_cents: totalAmount,
+        share_price_cents: sharePrice,
+        total_shares: totalShares > 0 ? totalShares : undefined,
+        min_investment_cents: minCents,
+        max_investment_cents: projectForm.max_investment_cents ? Math.round(parseFloat(projectForm.max_investment_cents) * 100) : undefined,
+        funding_start_date: projectForm.funding_start_date,
+        funding_end_date: projectForm.funding_end_date,
       };
-      await investmentProjectsApi.create(showProjectModal, data);
+      await investmentProjectsApi.create(propertyId, data);
       toast.success("Projet d'investissement créé");
       setShowProjectModal(false);
       loadData();
       if (selected) viewProperty(selected.id);
     } catch (err) {
-      toast.error(err.response?.data?.errors?.join(', ') || 'Erreur');
+      const res = err.response;
+      const msg = res?.data?.errors?.join(', ') || res?.data?.error || err.message || 'Erreur lors de la création';
+      if (res?.status === 404) {
+        toast.error('Bien introuvable. Rechargez la page.');
+      } else if (res?.status === 422) {
+        toast.error(msg || 'Données invalides.');
+      } else {
+        toast.error(msg);
+      }
+      if (process.env.NODE_ENV === 'development' && res?.data) {
+        console.error('Création projet échec:', res.status, res.data);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -397,11 +447,12 @@ export default function PropertiesPage() {
       {showPropertyModal && (
         <div className="modal-overlay" onClick={() => setShowPropertyModal(false)}>
           <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <h3 style={{ margin: 0 }}>{editingProperty ? 'Modifier le bien' : 'Ajouter un bien immobilier'}</h3>
-              <button className="btn-icon" onClick={() => setShowPropertyModal(false)}><X size={18} /></button>
+              <button type="button" className="btn-icon" onClick={() => setShowPropertyModal(false)} aria-label="Fermer"><X size={18} /></button>
             </div>
-            <form onSubmit={handleSaveProperty}>
+            <form onSubmit={handleSaveProperty} style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <div className="modal-body">
               <div className="form-section">
                 <div className="form-section-title">Informations générales</div>
                 <div className="form-group" style={{ marginBottom: '.75rem' }}>
@@ -458,7 +509,7 @@ export default function PropertiesPage() {
                   <div className="form-group"><label>Durée investissement (mois)</label><input type="number" value={propertyForm.investment_duration_months} onChange={setPF('investment_duration_months')} /></div>
                 </div>
               </div>
-
+              </div>
               <div className="modal-actions">
                 <button type="button" className="btn" onClick={() => setShowPropertyModal(false)}>Annuler</button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
@@ -474,11 +525,12 @@ export default function PropertiesPage() {
       {showProjectModal && (
         <div className="modal-overlay" onClick={() => setShowProjectModal(false)}>
           <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <h3 style={{ margin: 0 }}>Créer un projet d'investissement</h3>
-              <button className="btn-icon" onClick={() => setShowProjectModal(false)}><X size={18} /></button>
+              <button type="button" className="btn-icon" onClick={() => setShowProjectModal(false)} aria-label="Fermer"><X size={18} /></button>
             </div>
-            <form onSubmit={handleSaveProject}>
+            <form onSubmit={handleSaveProject} style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <div className="modal-body">
               <div className="form-section">
                 <div className="form-section-title">Informations du projet</div>
                 <div className="form-group" style={{ marginBottom: '.75rem' }}>
@@ -492,28 +544,38 @@ export default function PropertiesPage() {
               </div>
 
               <div className="form-section">
-                <div className="form-section-title">Paramètres financiers</div>
+                <div className="form-section-title">Parts (tokens / fractions)</div>
+                <p className="text-muted" style={{ fontSize: '.85rem', marginBottom: '.75rem' }}>
+                  Définissez le montant total ou le nombre de parts et le prix par part.
+                </p>
                 <div className="form-row">
-                  <div className="form-group"><label>Montant total (EUR)</label><input type="number" step="0.01" value={projectForm.total_amount_cents} onChange={setPJ('total_amount_cents')} required /></div>
-                  <div className="form-group"><label>Prix par part (EUR)</label><input type="number" step="0.01" value={projectForm.share_price_cents} onChange={setPJ('share_price_cents')} required /></div>
+                  <div className="form-group"><label>Montant total à lever (EUR)</label><input type="number" step="0.01" min="1" value={projectForm.total_amount_cents} onChange={setPJ('total_amount_cents')} placeholder="Ex: 500000" /></div>
+                  <div className="form-group"><label>Prix par part (EUR)</label><input type="number" step="0.01" min="0.01" value={projectForm.share_price_cents} onChange={setPJ('share_price_cents')} placeholder="Ex: 100" required /></div>
                 </div>
                 <div className="form-row">
-                  <div className="form-group"><label>Nombre total de parts</label><input type="number" value={projectForm.total_shares} onChange={setPJ('total_shares')} required /></div>
-                  <div className="form-group"><label>Investissement min (EUR)</label><input type="number" step="0.01" value={projectForm.min_investment_cents} onChange={setPJ('min_investment_cents')} /></div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group"><label>Investissement max (EUR)</label><input type="number" step="0.01" value={projectForm.max_investment_cents} onChange={setPJ('max_investment_cents')} /></div>
+                  <div className="form-group"><label>Ou : nombre total de parts</label><input type="number" min="1" value={projectForm.total_shares} onChange={setPJ('total_shares')} placeholder="Optionnel : si vide, calculé à partir du montant total" /></div>
+                  {projectForm.total_amount_cents && projectForm.share_price_cents && parseFloat(projectForm.share_price_cents) > 0 && !projectForm.total_shares && (
+                    <div className="form-group"><label>Parts calculées</label><span style={{ display: 'block', padding: '.5rem 0', color: 'var(--primary)' }}>{Math.floor((parseFloat(projectForm.total_amount_cents) * 100) / (parseFloat(projectForm.share_price_cents) * 100))} parts</span></div>
+                  )}
                 </div>
               </div>
 
               <div className="form-section">
-                <div className="form-section-title">Dates</div>
+                <div className="form-section-title">Montant minimum et maximum d'investissement</div>
                 <div className="form-row">
-                  <div className="form-group"><label>Date de début</label><input type="date" value={projectForm.start_date} onChange={setPJ('start_date')} /></div>
-                  <div className="form-group"><label>Date de fin</label><input type="date" value={projectForm.end_date} onChange={setPJ('end_date')} /></div>
+                  <div className="form-group"><label>Investissement minimum (EUR)</label><input type="number" step="0.01" min="0.01" value={projectForm.min_investment_cents} onChange={setPJ('min_investment_cents')} required placeholder="Ex: 100" /></div>
+                  <div className="form-group"><label>Investissement maximum (EUR)</label><input type="number" step="0.01" min="0" value={projectForm.max_investment_cents} onChange={setPJ('max_investment_cents')} placeholder="Optionnel" /></div>
                 </div>
               </div>
 
+              <div className="form-section">
+                <div className="form-section-title">Date de début / fin de levée de fonds</div>
+                <div className="form-row">
+                  <div className="form-group"><label>Date de début de levée</label><input type="date" value={projectForm.funding_start_date} onChange={setPJ('funding_start_date')} required /></div>
+                  <div className="form-group"><label>Date de fin de levée</label><input type="date" value={projectForm.funding_end_date} onChange={setPJ('funding_end_date')} required /></div>
+                </div>
+              </div>
+              </div>
               <div className="modal-actions">
                 <button type="button" className="btn" onClick={() => setShowProjectModal(false)}>Annuler</button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>

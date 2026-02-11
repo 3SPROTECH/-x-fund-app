@@ -23,8 +23,34 @@ module Api
         property = Property.find(params[:property_id])
         authorize property, :create_project?
 
+        if property.investment_project.present?
+          return render json: { errors: ["Ce bien a déjà un projet d'investissement"] }, status: :unprocessable_entity
+        end
+
+        share_price = (project_params[:share_price_cents].presence || 0).to_i
+        if share_price <= 0
+          return render json: { errors: ["Le prix par part doit être supérieur à 0"] }, status: :unprocessable_entity
+        end
+
         @investment_project = property.build_investment_project(project_params)
-        @investment_project.total_shares = @investment_project.total_amount_cents / @investment_project.share_price_cents
+        @investment_project.management_fee_percent = (@investment_project.management_fee_percent || 0).to_d
+        # Définition des parts : soit total_shares fourni, soit dérivé de total_amount / share_price
+        if project_params[:total_shares].to_i.positive?
+          @investment_project.total_shares = project_params[:total_shares].to_i
+          @investment_project.share_price_cents = share_price
+          @investment_project.total_amount_cents = @investment_project.total_shares * share_price
+        else
+          total_cents = (@investment_project.total_amount_cents || 0).to_i
+          if total_cents <= 0
+            return render json: { errors: ["Renseignez le montant total à lever ou le nombre de parts"] }, status: :unprocessable_entity
+          end
+          @investment_project.total_amount_cents = total_cents
+          @investment_project.share_price_cents = share_price
+          @investment_project.total_shares = total_cents / share_price
+          if @investment_project.total_shares <= 0
+            return render json: { errors: ["Le montant total doit être au moins égal au prix par part"] }, status: :unprocessable_entity
+          end
+        end
 
         if @investment_project.save
           property.update!(status: :en_financement) if property.brouillon?
@@ -58,7 +84,7 @@ module Api
 
       def project_params
         params.require(:investment_project).permit(
-          :title, :description, :total_amount_cents, :share_price_cents,
+          :title, :description, :total_amount_cents, :share_price_cents, :total_shares,
           :min_investment_cents, :max_investment_cents,
           :funding_start_date, :funding_end_date,
           :management_fee_percent, :gross_yield_percent, :net_yield_percent,

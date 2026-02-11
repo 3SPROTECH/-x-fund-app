@@ -1,21 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { investmentProjectsApi } from '../../api/investments';
-import { TrendingUp, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { TrendingUp, MapPin, ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STATUS_LABELS = { brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé', cloture: 'Clôturé', annule: 'Annulé' };
 const STATUS_BADGE = { brouillon: 'badge-warning', ouvert: 'badge-success', finance: 'badge-info', cloture: '', annule: 'badge-danger' };
 
 const formatCents = (c) => c == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(c / 100);
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [statusFilter, setStatusFilter] = useState('');
+
+  const canCreateProject = user?.role === 'porteur_de_projet' || user?.role === 'administrateur';
 
   useEffect(() => { loadProjects(); }, [page, statusFilter]);
 
@@ -39,8 +44,13 @@ export default function ProjectsPage() {
       <div className="page-header">
         <div>
           <h1>Projets d'investissement</h1>
-          <p className="text-muted">Découvrez les opportunités d'investissement immobilier</p>
+          <p className="text-muted">Découvrez les opportunités et suivez l'avancement du financement</p>
         </div>
+        {canCreateProject && (
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/properties')}>
+            <Plus size={16} /> Créer un projet (via un bien)
+          </button>
+        )}
       </div>
 
       <div className="filters-bar">
@@ -58,12 +68,23 @@ export default function ProjectsPage() {
       {loading ? (
         <div className="page-loading"><div className="spinner" /></div>
       ) : projects.length === 0 ? (
-        <div className="card"><div className="empty-state"><TrendingUp size={48} /><p>Aucun projet disponible</p></div></div>
+        <div className="card">
+          <div className="empty-state">
+            <TrendingUp size={48} />
+            <p>Aucun projet disponible</p>
+            {canCreateProject && (
+              <button type="button" className="btn btn-primary" onClick={() => navigate('/properties')}>
+                <Plus size={16} /> Créer un projet depuis Mes biens
+              </button>
+            )}
+          </div>
+        </div>
       ) : (
         <>
           <div className="project-grid">
             {projects.map(p => {
               const a = p.attributes || p;
+              const progress = Math.min(a.funding_progress_percent || 0, 100);
               return (
                 <div key={p.id} className="project-card" onClick={() => navigate(`/projects/${p.id}`)}>
                   <div className="project-card-body">
@@ -72,12 +93,17 @@ export default function ProjectsPage() {
                       <span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span>
                     </div>
                     {a.property_city && <p className="text-muted"><MapPin size={14} /> {a.property_city}</p>}
-                    <div className="progress-bar-container" style={{ marginTop: '.75rem' }}>
-                      <div className="progress-bar" style={{ width: `${Math.min(a.funding_progress_percent || 0, 100)}%` }} />
+                    {/* Suivi de l'avancement du financement */}
+                    <div className="progress-bar-container" style={{ marginTop: '.75rem' }} title={`${progress.toFixed(0)}% financé`}>
+                      <div className="progress-bar" style={{ width: `${progress}%` }} />
                     </div>
                     <div className="progress-info">
                       <span>{formatCents(a.amount_raised_cents)} levés</span>
-                      <span>{Math.round(a.funding_progress_percent || 0)}%</span>
+                      <span>{Math.round(progress)}%</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '.35rem', marginTop: '.35rem', fontSize: '.8rem', color: 'var(--text-muted)' }}>
+                      <Calendar size={12} />
+                      <span>Levée : {fmtDate(a.funding_start_date)} → {fmtDate(a.funding_end_date)}</span>
                     </div>
                     <div className="property-card-stats" style={{ marginTop: '.75rem' }}>
                       <div className="property-card-stat">
@@ -93,14 +119,18 @@ export default function ProjectsPage() {
                         <span>{a.available_shares ?? '—'}</span>
                       </div>
                       <div className="property-card-stat">
+                        <label>Min / Max</label>
+                        <span style={{ fontSize: '.8rem' }}>{formatCents(a.min_investment_cents)} / {a.max_investment_cents != null ? formatCents(a.max_investment_cents) : '—'}</span>
+                      </div>
+                      <div className="property-card-stat">
                         <label>Rendement</label>
                         <span className="yield">{a.net_yield_percent ?? a.gross_yield_percent ?? '—'}%</span>
                       </div>
                     </div>
                   </div>
                   <div className="project-card-footer">
-                    <span>Du {a.funding_start_date ? new Date(a.funding_start_date).toLocaleDateString('fr-FR') : '—'}</span>
-                    <span>Au {a.funding_end_date ? new Date(a.funding_end_date).toLocaleDateString('fr-FR') : '—'}</span>
+                    <span>Début : {fmtDate(a.funding_start_date)}</span>
+                    <span>Fin : {fmtDate(a.funding_end_date)}</span>
                   </div>
                 </div>
               );

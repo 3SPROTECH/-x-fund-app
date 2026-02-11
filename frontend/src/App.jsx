@@ -1,8 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+
+/** Redirige vers le tableau de bord adapté au rôle après login / accès à / */
+function DashboardRedirect() {
+  const { user } = useAuth();
+  if (user?.role === 'administrateur') return <Navigate to="/admin/dashboard" replace />;
+  return <Navigate to="/dashboard" replace />;
+}
 
 // Auth
 import LoginPage from './pages/auth/LoginPage';
@@ -121,9 +128,9 @@ export default function App() {
             />
           </Route>
 
-          {/* Redirect root to dashboard */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Redirect root to dashboard selon le rôle */}
+          <Route path="/" element={<DashboardRedirect />} />
+          <Route path="*" element={<DashboardRedirect />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

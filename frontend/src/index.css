@@ -590,27 +590,68 @@ a:hover { color: var(--primary-hover); }
   justify-content: center;
   z-index: 100;
   animation: fadeIn .15s ease-out;
+  padding: 1.5rem;
+  overflow-y: auto;
 }
 .modal {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
-  padding: 2rem;
-  width: 90%;
+  padding: 1.5rem;
+  width: 100%;
   max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--shadow-xl);
   animation: fadeUp .2s ease-out;
+  margin: auto;
 }
-.modal-lg { max-width: 680px; }
+.modal-lg {
+  max-width: 560px;
+  max-height: 90vh;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+.modal-lg form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+.modal-lg .modal-body {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  margin: 0 -0.25rem 1rem;
+  padding: 0 0.25rem;
+  -webkit-overflow-scrolling: touch;
+}
 .modal h3 {
   font-size: 1.15rem;
   font-weight: 650;
   margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 .modal-actions {
   display: flex;
   gap: .75rem;
   justify-content: flex-end;
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+.modal .form-section {
+  margin-bottom: 1rem;
+}
+.modal .form-section-title {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  margin-bottom: .5rem;
 }
 
 /* ======= Properties ======= */
@@ -811,11 +852,34 @@ a:hover { color: var(--primary-hover); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ======= Scrollbar ======= */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+/* ======= Scrollbars transparents (partout) ======= */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+/* Firefox: garder la zone scrollable visible mais barre transparente */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-color: transparent transparent;
+  }
+}
 
 /* ======= Responsive ======= */
 @media (max-width: 1024px) {

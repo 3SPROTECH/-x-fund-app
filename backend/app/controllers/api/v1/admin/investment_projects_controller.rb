@@ -24,7 +24,12 @@ module Api
         def create
           property = Property.find(params[:property_id])
           @project = property.build_investment_project(admin_project_params)
-          @project.total_shares = @project.total_amount_cents / @project.share_price_cents
+          if admin_project_params[:total_shares].to_i.positive?
+            @project.total_shares = admin_project_params[:total_shares].to_i
+            @project.total_amount_cents = @project.total_shares * @project.share_price_cents
+          else
+            @project.total_shares = @project.total_amount_cents / @project.share_price_cents
+          end
 
           if @project.save
             property.update!(status: :en_financement) if property.brouillon?

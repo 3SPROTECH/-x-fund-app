@@ -35,3 +35,9 @@ export const dashboardApi = {
     return client.get('/dashboard');
   },
 };
+
+export const porteurDashboardApi = {
+  get() {
+    return client.get('/porteur_dashboard');
+  },
+};

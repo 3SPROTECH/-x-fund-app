@@ -136,19 +136,18 @@ export default function ProjectDetailPage() {
             <div className="card">
               <h3>Informations du projet</h3>
               <div className="detail-grid">
-                <div className="detail-row"><span>Montant total</span><span>{fmt(a.total_amount_cents)}</span></div>
+                <div className="detail-row"><span>Montant total (objectif)</span><span>{fmt(a.total_amount_cents)}</span></div>
                 <div className="detail-row"><span>Montant levé</span><span>{fmt(a.amount_raised_cents)}</span></div>
+                <div className="detail-row"><span>Parts (tokens / fractions)</span><span>{a.total_shares} parts au total</span></div>
                 <div className="detail-row"><span>Prix par part</span><span>{fmt(a.share_price_cents)}</span></div>
-                <div className="detail-row"><span>Total parts</span><span>{a.total_shares}</span></div>
                 <div className="detail-row"><span>Parts vendues</span><span>{a.shares_sold}</span></div>
                 <div className="detail-row"><span>Parts disponibles</span><span>{a.available_shares}</span></div>
-                <div className="detail-row"><span>Investissement min.</span><span>{fmt(a.min_investment_cents)}</span></div>
-                {a.max_investment_cents && <div className="detail-row"><span>Investissement max.</span><span>{fmt(a.max_investment_cents)}</span></div>}
+                <div className="detail-row"><span>Investissement minimum</span><span>{fmt(a.min_investment_cents)}</span></div>
+                <div className="detail-row"><span>Investissement maximum</span><span>{a.max_investment_cents ? fmt(a.max_investment_cents) : '—'}</span></div>
+                <div className="detail-row"><span>Date de début de levée</span><span>{fmtDate(a.funding_start_date)}</span></div>
+                <div className="detail-row"><span>Date de fin de levée</span><span>{fmtDate(a.funding_end_date)}</span></div>
                 <div className="detail-row"><span>Frais de gestion</span><span>{a.management_fee_percent}%</span></div>
-                <div className="detail-row"><span>Rendement brut</span><span className="text-success">{a.gross_yield_percent ?? '—'}%</span></div>
-                <div className="detail-row"><span>Rendement net</span><span className="text-success">{a.net_yield_percent ?? '—'}%</span></div>
-                <div className="detail-row"><span>Début financement</span><span>{fmtDate(a.funding_start_date)}</span></div>
-                <div className="detail-row"><span>Fin financement</span><span>{fmtDate(a.funding_end_date)}</span></div>
+                <div className="detail-row"><span>Rendement brut / net</span><span className="text-success">{a.gross_yield_percent ?? '—'}% / {a.net_yield_percent ?? '—'}%</span></div>
               </div>
               {a.description && <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '.9rem' }}>{a.description}</p>}
             </div>
@@ -156,13 +155,16 @@ export default function ProjectDetailPage() {
 
           <div className="two-col-side">
             <div className="card">
-              <h3>Progression</h3>
+              <h3>Suivi de l'avancement du financement</h3>
               <div className="progress-bar-container" style={{ marginBottom: '.5rem' }}>
                 <div className="progress-bar" style={{ width: `${Math.min(a.funding_progress_percent || 0, 100)}%` }} />
               </div>
               <div className="progress-info">
-                <span>{fmt(a.amount_raised_cents)}</span>
+                <span>{fmt(a.amount_raised_cents)} levés</span>
                 <span>{Math.round(a.funding_progress_percent || 0)}%</span>
+              </div>
+              <div style={{ marginTop: '1rem', fontSize: '.9rem', color: 'var(--text-secondary)' }}>
+                Objectif : {fmt(a.total_amount_cents)} · Période de levée : {fmtDate(a.funding_start_date)} → {fmtDate(a.funding_end_date)}
               </div>
               <div style={{ textAlign: 'center', marginTop: '1rem' }}>
                 <span className="stat-value">{a.available_shares}</span>
