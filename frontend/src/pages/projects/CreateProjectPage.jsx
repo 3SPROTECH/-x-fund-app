@@ -33,6 +33,9 @@ export default function CreateProjectPage() {
     total_shares: '',
     min_investment_cents: '',
     max_investment_cents: '',
+    management_fee_percent: '',
+    gross_yield_percent: '',
+    net_yield_percent: '',
 
     // Step 3
     funding_start_date: '',
@@ -139,6 +142,9 @@ export default function CreateProjectPage() {
         total_shares: formData.total_shares ? parseInt(formData.total_shares) : undefined,
         min_investment_cents: Math.round(parseFloat(formData.min_investment_cents) * 100),
         max_investment_cents: formData.max_investment_cents ? Math.round(parseFloat(formData.max_investment_cents) * 100) : undefined,
+        management_fee_percent: formData.management_fee_percent ? parseFloat(formData.management_fee_percent) : undefined,
+        gross_yield_percent: formData.gross_yield_percent ? parseFloat(formData.gross_yield_percent) : undefined,
+        net_yield_percent: formData.net_yield_percent ? parseFloat(formData.net_yield_percent) : undefined,
         funding_start_date: formData.funding_start_date,
         funding_end_date: formData.funding_end_date,
       };
@@ -156,7 +162,24 @@ export default function CreateProjectPage() {
   };
 
   const updateField = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+
+      // Calcul automatique du rendement net: Net Yield = Gross Yield - Management Fees
+      if (field === 'gross_yield_percent' || field === 'management_fee_percent') {
+        const grossYield = parseFloat(field === 'gross_yield_percent' ? value : prev.gross_yield_percent);
+        const managementFee = parseFloat(field === 'management_fee_percent' ? value : prev.management_fee_percent);
+
+        if (!isNaN(grossYield) && !isNaN(managementFee)) {
+          updated.net_yield_percent = (grossYield - managementFee).toFixed(2);
+        } else if (!isNaN(grossYield) && (isNaN(managementFee) || managementFee === 0)) {
+          updated.net_yield_percent = grossYield.toFixed(2);
+        }
+      }
+
+      return updated;
+    });
+
     // Clear error for this field
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -397,6 +420,51 @@ export default function CreateProjectPage() {
                 </div>
               </div>
             </div>
+
+            <div className="divider" />
+
+            <div className="form-section">
+              <div className="form-section-title">Rendements</div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Frais de gestion (%)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.management_fee_percent}
+                    onChange={(e) => updateField('management_fee_percent', e.target.value)}
+                    placeholder="2.5"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Rendement brut (%)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.gross_yield_percent}
+                    onChange={(e) => updateField('gross_yield_percent', e.target.value)}
+                    placeholder="5.0"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Rendement net (%) - Calculé automatiquement</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.net_yield_percent}
+                    readOnly
+                    placeholder="Calculé: Brut - Frais"
+                    style={{ backgroundColor: 'var(--bg-secondary)', cursor: 'not-allowed' }}
+                  />
+                  <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    Formule: Rendement net = Rendement brut - Frais de gestion
+                  </small>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -444,6 +512,13 @@ export default function CreateProjectPage() {
                 <div className="detail-row"><span>Prix par part</span><span>{parseFloat(formData.share_price_cents || 0).toLocaleString('fr-FR')} €</span></div>
                 <div className="detail-row"><span>Nombre de parts</span><span>{formData.total_shares || calculatedShares() || '—'}</span></div>
                 <div className="detail-row"><span>Investissement min</span><span>{parseFloat(formData.min_investment_cents || 0).toLocaleString('fr-FR')} €</span></div>
+                {formData.gross_yield_percent && (
+                  <>
+                    <div className="detail-row"><span>Rendement brut</span><span>{formData.gross_yield_percent}%</span></div>
+                    <div className="detail-row"><span>Frais de gestion</span><span>{formData.management_fee_percent || 0}%</span></div>
+                    <div className="detail-row"><span>Rendement net</span><span style={{ color: 'var(--success)', fontWeight: '600' }}>{formData.net_yield_percent}%</span></div>
+                  </>
+                )}
                 <div className="detail-row"><span>Période</span><span>{formData.funding_start_date} → {formData.funding_end_date}</span></div>
               </div>
             </div>
