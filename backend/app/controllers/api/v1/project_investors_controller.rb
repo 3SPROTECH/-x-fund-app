@@ -5,16 +5,22 @@ module Api
         project = InvestmentProject.find(params[:investment_project_id])
         authorize project, :view_investors?
 
-        investments = project.investments.includes(:user).order(created_at: :desc)
-        investments = paginate(investments)
-
-        render json: {
-          data: investments.map { |inv| AdminInvestmentSerializer.new(inv).serializable_hash[:data] },
-          meta: pagination_meta(investments).merge(
-            total_amount_cents: project.investments.active.sum(:amount_cents),
-            total_investors: project.investments.select(:user_id).distinct.count
-          )
+        meta = {
+          total_amount_cents: project.investments.active.sum(:amount_cents),
+          total_investors: project.investments.select(:user_id).distinct.count
         }
+
+        if policy(project).list_investors?
+          investments = project.investments.includes(:user).order(created_at: :desc)
+          investments = paginate(investments)
+
+          render json: {
+            data: investments.map { |inv| AdminInvestmentSerializer.new(inv).serializable_hash[:data] },
+            meta: pagination_meta(investments).merge(meta)
+          }
+        else
+          render json: { data: [], meta: meta }
+        end
       end
     end
   end

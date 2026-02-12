@@ -24,6 +24,10 @@ class InvestmentProjectPolicy < ApplicationPolicy
   end
 
   def view_investors?
+    true
+  end
+
+  def list_investors?
     admin? || (user.porteur_de_projet? && record.owner == user)
   end
 
