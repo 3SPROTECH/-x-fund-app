@@ -33,7 +33,7 @@ export default function CreateProjectPage() {
     total_shares: '',
     min_investment_cents: '',
     max_investment_cents: '',
-    management_fee_percent: '',
+    management_fee_percent: '2.5',
     gross_yield_percent: '',
     net_yield_percent: '',
 
@@ -165,15 +165,13 @@ export default function CreateProjectPage() {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
 
-      // Calcul automatique du rendement net: Net Yield = Gross Yield - Management Fees
-      if (field === 'gross_yield_percent' || field === 'management_fee_percent') {
-        const grossYield = parseFloat(field === 'gross_yield_percent' ? value : prev.gross_yield_percent);
-        const managementFee = parseFloat(field === 'management_fee_percent' ? value : prev.management_fee_percent);
+      // Calcul automatique du rendement net: Net Yield = Gross Yield - Management Fees (fixé à 2.5%)
+      if (field === 'gross_yield_percent') {
+        const grossYield = parseFloat(value);
+        const managementFee = 2.5;
 
-        if (!isNaN(grossYield) && !isNaN(managementFee)) {
+        if (!isNaN(grossYield)) {
           updated.net_yield_percent = (grossYield - managementFee).toFixed(2);
-        } else if (!isNaN(grossYield) && (isNaN(managementFee) || managementFee === 0)) {
-          updated.net_yield_percent = grossYield.toFixed(2);
         }
       }
 
@@ -430,11 +428,9 @@ export default function CreateProjectPage() {
                   <label>Frais de gestion (%)</label>
                   <input
                     type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.management_fee_percent}
-                    onChange={(e) => updateField('management_fee_percent', e.target.value)}
-                    placeholder="2.5"
+                    value={2.5}
+                    disabled
+                    style={{ opacity: 0.7, cursor: 'not-allowed' }}
                   />
                 </div>
                 <div className="form-group">

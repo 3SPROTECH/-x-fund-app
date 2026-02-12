@@ -22,7 +22,7 @@ export default function EditProjectPage() {
     max_investment_cents: '',
     funding_start_date: '',
     funding_end_date: '',
-    management_fee_percent: '',
+    management_fee_percent: '2.5',
     gross_yield_percent: '',
     net_yield_percent: '',
   });
@@ -48,7 +48,7 @@ export default function EditProjectPage() {
         max_investment_cents: project.max_investment_cents ? (project.max_investment_cents / 100).toString() : '',
         funding_start_date: project.funding_start_date || '',
         funding_end_date: project.funding_end_date || '',
-        management_fee_percent: project.management_fee_percent || '',
+        management_fee_percent: '2.5',
         gross_yield_percent: project.gross_yield_percent || '',
         net_yield_percent: project.net_yield_percent || '',
       });
@@ -277,11 +277,9 @@ export default function EditProjectPage() {
                 <label>Frais de gestion (%)</label>
                 <input
                   type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.management_fee_percent}
-                  onChange={(e) => updateField('management_fee_percent', e.target.value)}
-                  placeholder="2.5"
+                  value={2.5}
+                  disabled
+                  style={{ opacity: 0.7, cursor: 'not-allowed' }}
                 />
               </div>
               <div className="form-group">
