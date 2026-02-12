@@ -449,7 +449,7 @@ export default function CreateProjectPage() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Rendement net (%) - Calculé automatiquement</label>
+                  <label>Rendement net (%)</label>
                   <input
                     type="number"
                     step="0.01"
