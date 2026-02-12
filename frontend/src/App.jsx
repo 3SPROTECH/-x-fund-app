@@ -20,6 +20,7 @@ function DashboardRedirect() {
 
   if (!user) return <Navigate to="/login" replace />;
   if (user?.role === 'administrateur') return <Navigate to="/admin/dashboard" replace />;
+  if (user?.role === 'investisseur') return <Navigate to="/projects" replace />;
   return <Navigate to="/dashboard" replace />;
 }
 

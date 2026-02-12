@@ -4,6 +4,7 @@ import {
   LogOut, User, LayoutDashboard, Wallet, Building, FileCheck,
   TrendingUp, Briefcase, Shield, BarChart3, ScrollText, CreditCard,
 } from 'lucide-react';
+import Navbar from './Navbar';
 
 export default function Layout() {
   const { user, signOut } = useAuth();
@@ -22,8 +23,22 @@ export default function Layout() {
 
   const isAdmin = user?.role === 'administrateur';
   const isPorteur = user?.role === 'porteur_de_projet';
+  const isInvestor = user?.role === 'investisseur';
   const showProperties = isPorteur || isAdmin;
 
+  // Layout pour investisseurs: navbar horizontale
+  if (isInvestor) {
+    return (
+      <div className="investor-layout">
+        <Navbar />
+        <main className="investor-content">
+          <Outlet />
+        </main>
+      </div>
+    );
+  }
+
+  // Layout pour porteurs de projet et admins: sidebar verticale
   return (
     <div className="layout">
       <aside className="sidebar">

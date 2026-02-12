@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { dashboardApi, porteurDashboardApi } from '../../api/investments';
+import { dashboardApi, porteurDashboardApi, investmentProjectsApi } from '../../api/investments';
 import { walletApi } from '../../api/wallet';
 import {
   Wallet, TrendingUp, FileCheck, Building, Briefcase, ArrowRight,
-  ArrowDownCircle, ArrowUpCircle, PieChart, Users, DollarSign,
+  ArrowDownCircle, ArrowUpCircle, PieChart, Users, DollarSign, AlertCircle, ChevronRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [recentTx, setRecentTx] = useState([]);
   // Investisseur
   const [investorDashboard, setInvestorDashboard] = useState(null);
+  const [featuredProjects, setFeaturedProjects] = useState([]);
   // Porteur
   const [porteurDashboard, setPorteurDashboard] = useState(null);
 
@@ -46,14 +47,20 @@ export default function DashboardPage() {
         promises.push(porteurDashboardApi.get());
       } else {
         promises.push(dashboardApi.get());
+        promises.push(investmentProjectsApi.list({ status: 'ouvert', per_page: 6 }));
       }
-      const [walletRes, txRes, dashRes] = await Promise.allSettled(promises);
+      const results = await Promise.allSettled(promises);
+      const [walletRes, txRes, dashRes, projectsRes] = results;
+
       if (walletRes.status === 'fulfilled') setWallet(walletRes.value.data.data?.attributes || walletRes.value.data);
       if (txRes.status === 'fulfilled') setRecentTx((txRes.value.data.data || []).slice(0, 5));
       if (dashRes.status === 'fulfilled') {
         const data = dashRes.value.data.data || dashRes.value.data;
         if (isPorteur) setPorteurDashboard(data);
         else setInvestorDashboard(data);
+      }
+      if (projectsRes && projectsRes.status === 'fulfilled') {
+        setFeaturedProjects(projectsRes.value.data.data || []);
       }
     } catch {
       toast.error('Erreur lors du chargement');
@@ -196,141 +203,127 @@ export default function DashboardPage() {
   }
 
   // ——— Dashboard INVESTISSEUR ———
+  const totalInvested = investorDashboard?.total_invested_cents ?? 0;
+  const totalDividends = investorDashboard?.total_dividends_received_cents ?? 0;
+  const avgYield = totalInvested > 0 ? ((totalDividends / totalInvested) * 100).toFixed(2) : '0.00';
+
+  const profileCompletionScore = () => {
+    let score = 0;
+    if (user?.kyc_status === 'verified') score += 1;
+    if (totalInvested > 0) score += 1;
+    return score;
+  };
+
+  const completionSteps = profileCompletionScore();
+  const needsCompletion = completionSteps < 2;
+
   return (
-    <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Bonjour, {user?.first_name} !</h1>
-          <p className="text-muted">Tableau de bord investisseur</p>
-        </div>
-        <span className="badge badge-primary">{roleLabel[user?.role] || user?.role}</span>
-      </div>
+    <div className="simple-investor-dashboard">
+      <h1 className="simple-greeting">Bonjour {user?.first_name} !</h1>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-primary"><Wallet size={20} /></div>
-          <div className="stat-content">
-            <span className="stat-value">{fmt(wallet?.balance_cents)}</span>
-            <span className="stat-label">Solde portefeuille</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-success"><TrendingUp size={20} /></div>
-          <div className="stat-content">
-            <span className="stat-value">{fmt(investorDashboard?.total_invested_cents ?? wallet?.total_deposited_cents)}</span>
-            <span className="stat-label">Total investi</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-warning"><PieChart size={20} /></div>
-          <div className="stat-content">
-            <span className="stat-value">{investorDashboard?.active_investments_count ?? 0}</span>
-            <span className="stat-label">Investissements actifs</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-info"><FileCheck size={20} /></div>
-          <div className="stat-content">
-            <span className={`badge ${KYC_BADGE[user?.kyc_status] || 'kyc-pending'}`} style={{ fontSize: '.85rem' }}>
-              {KYC_LABELS[user?.kyc_status] || 'En attente'}
-            </span>
-            <span className="stat-label">Statut KYC</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="two-col">
-        <div className="two-col-main">
-          {investorDashboard && (
-            <div className="card">
-              <div className="card-header">
-                <h3>Résumé du portefeuille</h3>
-                <button type="button" className="btn btn-sm btn-ghost" onClick={() => navigate('/investments')}>
-                  Voir tout <ArrowRight size={14} />
-                </button>
+      <div className="dashboard-grid">
+        <div className="dashboard-main">
+          {needsCompletion && (
+            <div className="profile-alert">
+              <div className="alert-content">
+                <h3>Votre profil n'est pas complet</h3>
+                <p>Complétez toutes les étapes pour commencer à investir.</p>
+                <div className="alert-progress">
+                  <div className="progress-bar-simple">
+                    <div className="progress-fill-simple" style={{ width: `${(completionSteps / 2) * 100}%` }} />
+                  </div>
+                  <span>{completionSteps} étape sur 2</span>
+                </div>
               </div>
-              <div className="detail-grid">
-                {investorDashboard.total_invested_cents != null && (
-                  <div className="detail-row"><span>Total investi</span><span>{fmt(investorDashboard.total_invested_cents)}</span></div>
-                )}
-                {investorDashboard.total_dividends_received_cents != null && (
-                  <div className="detail-row"><span>Dividendes reçus</span><span className="amount-positive">{fmt(investorDashboard.total_dividends_received_cents)}</span></div>
-                )}
-                {investorDashboard.active_investments_count != null && (
-                  <div className="detail-row"><span>Projets actifs</span><span>{investorDashboard.active_investments_count}</span></div>
-                )}
-                <div className="detail-row"><span>Solde disponible</span><span>{fmt(wallet?.balance_cents)}</span></div>
-              </div>
+              <button className="btn-alert" onClick={() => navigate(user?.kyc_status !== 'verified' ? '/kyc' : '/projects')}>
+                Compléter mon profil →
+              </button>
             </div>
           )}
 
-          <div className="card">
-            <div className="card-header">
-              <h3>Transactions récentes</h3>
-              <button type="button" className="btn btn-sm btn-ghost" onClick={() => navigate('/wallet')}>
-                Voir tout <ArrowRight size={14} />
-              </button>
+          <div className="stats-row">
+            <div className="stat-simple">
+              <h4>Investissements en cours</h4>
+              <div className="stat-value-large">{fmt(totalInvested)}</div>
             </div>
-            {recentTx.length === 0 ? (
-              <p className="text-muted" style={{ padding: '1rem 0' }}>Aucune transaction récente</p>
+            <div className="stat-simple">
+              <h4>Gain total brut</h4>
+              <div className="stat-value-large">{fmt(totalDividends)}</div>
+            </div>
+            <div className="stat-simple">
+              <h4>Rendement moyen</h4>
+              <div className="stat-value-large">{avgYield} %</div>
+            </div>
+          </div>
+
+          <div className="chart-section">
+            <div className="chart-placeholder">
+              <div className="chart-curve">
+                <svg viewBox="0 0 400 150" preserveAspectRatio="none">
+                  <path d="M 0,100 Q 100,80 200,90 T 400,70" fill="none" stroke="#e5e7eb" strokeWidth="2" />
+                </svg>
+              </div>
+              <p className="chart-message">Vos données seront disponibles après votre premier investissement.</p>
+            </div>
+            <button className="btn-secondary" onClick={() => navigate('/projects')}>
+              Voir nos projets
+            </button>
+          </div>
+        </div>
+
+        <div className="dashboard-sidebar">
+          <div className="projects-sidebar">
+            <h3>Les projets à la une</h3>
+            {featuredProjects.length === 0 ? (
+              <p className="no-projects">Aucun projet disponible</p>
             ) : (
-              <div className="table-container">
-                <table className="table">
-                  <thead>
-                    <tr><th>Date</th><th>Type</th><th>Montant</th></tr>
-                  </thead>
-                  <tbody>
-                    {recentTx.map((tx) => {
-                      const a = tx.attributes || tx;
-                      const isCredit = ['depot', 'dividende', 'remboursement'].includes(a.transaction_type);
-                      return (
-                        <tr key={tx.id}>
-                          <td>{new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
-                          <td style={{ textTransform: 'capitalize' }}>{a.transaction_type}</td>
-                          <td className={isCredit ? 'amount-positive' : 'amount-negative'}>
-                            {isCredit ? '+' : '-'}{fmt(a.amount_cents)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="projects-list">
+                {featuredProjects.slice(0, 4).map((project) => {
+                  const p = project.attributes || project;
+                  return (
+                    <div key={project.id} className="project-item-simple" onClick={() => navigate(`/projects/${project.id}`)}>
+                      <div className="project-info-simple">
+                        <h4>{p.title}</h4>
+                        <span className="project-location-simple">📍 {p.property_city || 'France'}</span>
+                      </div>
+                      <span className={`project-status-badge ${p.status === 'ouvert' ? 'status-open' : 'status-coming'}`}>
+                        {p.status === 'ouvert' ? 'Collecte en cours' : 'À venir'}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
-          </div>
-        </div>
-
-        <div className="two-col-side">
-          <div className="card">
-            <h3>Actions rapides</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
-              <button type="button" className="btn btn-block" onClick={() => navigate('/wallet')} style={{ justifyContent: 'flex-start' }}>
-                <ArrowDownCircle size={16} /> Déposer des fonds
-              </button>
-              <button type="button" className="btn btn-block" onClick={() => navigate('/projects')} style={{ justifyContent: 'flex-start' }}>
-                <TrendingUp size={16} /> Explorer les projets
-              </button>
-              <button type="button" className="btn btn-block" onClick={() => navigate('/investments')} style={{ justifyContent: 'flex-start' }}>
-                <Briefcase size={16} /> Mes investissements
-              </button>
-            </div>
+            <button className="btn-link-simple" onClick={() => navigate('/projects')}>
+              Voir tous les projets
+            </button>
           </div>
 
-          {user?.kyc_status !== 'verified' && (
-            <div className="card" style={{ borderLeft: '3px solid var(--warning)' }}>
-              <h3>Vérification KYC</h3>
-              <p className="text-muted" style={{ marginBottom: '.75rem' }}>
-                {user?.kyc_status === 'submitted'
-                  ? 'Vos documents sont en cours de vérification.'
-                  : user?.kyc_status === 'rejected'
-                    ? 'Votre vérification a été rejetée. Veuillez soumettre à nouveau.'
-                    : 'Complétez votre vérification KYC pour investir.'}
-              </p>
-              <button type="button" className="btn btn-sm btn-primary" onClick={() => navigate('/kyc')}>
-                {user?.kyc_status === 'rejected' ? 'Re-soumettre' : 'Compléter le KYC'}
-              </button>
+          <div className="charts-grid">
+            <div className="chart-box">
+              <h4>Statuts</h4>
+              <div className="circular-chart">
+                <svg viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="#f3f4f6" />
+                  <circle cx="60" cy="60" r="35" fill="white" />
+                  <text x="60" y="65" textAnchor="middle" fill="#6b7280" fontSize="24" fontWeight="600">0</text>
+                  <text x="60" y="80" textAnchor="middle" fill="#9ca3af" fontSize="12">projets</text>
+                </svg>
+              </div>
             </div>
-          )}
+
+            <div className="chart-box">
+              <h4>Typologie</h4>
+              <div className="circular-chart">
+                <svg viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="#f3f4f6" />
+                  <circle cx="60" cy="60" r="35" fill="white" />
+                  <text x="60" y="65" textAnchor="middle" fill="#6b7280" fontSize="24" fontWeight="600">0</text>
+                  <text x="60" y="80" textAnchor="middle" fill="#9ca3af" fontSize="12">projets</text>
+                </svg>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
