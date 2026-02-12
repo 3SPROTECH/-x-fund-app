@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { investmentProjectsApi, investmentsApi } from '../../api/investments';
+import { investmentProjectsApi, investmentsApi, projectInvestorsApi } from '../../api/investments';
 import { dividendsApi } from '../../api/dividends';
 import { financialStatementsApi } from '../../api/financialStatements';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, TrendingUp, FileText, DollarSign, AlertCircle, CheckCircle, Image as ImageIcon, Calendar, Upload, X, Trash2, Edit } from 'lucide-react';
+import { ArrowLeft, TrendingUp, FileText, DollarSign, AlertCircle, CheckCircle, Image as ImageIcon, Calendar, Upload, X, Trash2, Edit, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { walletApi } from '../../api/wallet';
 import { projectImagesApi } from '../../api/images';
@@ -25,6 +25,8 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState(null);
   const [dividends, setDividends] = useState([]);
   const [statements, setStatements] = useState([]);
+  const [investors, setInvestors] = useState([]);
+  const [investorsMeta, setInvestorsMeta] = useState(null);
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('details');
@@ -49,16 +51,21 @@ export default function ProjectDetailPage() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [projRes, divRes, stmtRes, walletRes] = await Promise.allSettled([
+      const [projRes, divRes, stmtRes, walletRes, investorsRes] = await Promise.allSettled([
         investmentProjectsApi.get(id),
         dividendsApi.list(id),
         financialStatementsApi.list(id),
         walletApi.getWallet(),
+        projectInvestorsApi.list(id),
       ]);
       if (projRes.status === 'fulfilled') setProject(projRes.value.data.data || projRes.value.data);
       if (divRes.status === 'fulfilled') setDividends(divRes.value.data.data || []);
       if (stmtRes.status === 'fulfilled') setStatements(stmtRes.value.data.data || []);
       if (walletRes.status === 'fulfilled') setWallet(walletRes.value.data.data?.attributes || walletRes.value.data);
+      if (investorsRes.status === 'fulfilled') {
+        setInvestors(investorsRes.value.data.data || []);
+        setInvestorsMeta(investorsRes.value.data.meta || null);
+      }
     } catch {
       toast.error('Erreur lors du chargement');
     } finally {
@@ -204,6 +211,7 @@ export default function ProjectDetailPage() {
   const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
   const canInvest = (user?.role === 'investisseur' || isAdmin) && a.status === 'ouvert';
   const canCreateStatement = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'finance');
+  const canViewInvestors = isAdmin || (user?.role === 'porteur_de_projet' && isOwner);
 
   return (
     <div className="page">
@@ -244,6 +252,7 @@ export default function ProjectDetailPage() {
         <button className={`tab${tab === 'photos' ? ' active' : ''}`} onClick={() => setTab('photos')}>Photos</button>
         <button className={`tab${tab === 'dividends' ? ' active' : ''}`} onClick={() => setTab('dividends')}>Dividendes ({dividends.length})</button>
         <button className={`tab${tab === 'statements' ? ' active' : ''}`} onClick={() => setTab('statements')}>Rapports ({statements.length})</button>
+        <button className={`tab${tab === 'investors' ? ' active' : ''}`} onClick={() => setTab('investors')}>Associés ({investorsMeta?.total_investors || 0})</button>
       </div>
 
       {tab === 'details' && (
@@ -813,6 +822,94 @@ export default function ProjectDetailPage() {
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Onglet Associés (Investisseurs) */}
+      {tab === 'investors' && (
+        <div>
+          {canViewInvestors ? (
+            // Admin et Porteur: voir la liste complète des investisseurs
+            <div>
+              <div className="card" style={{ marginBottom: '1rem' }}>
+                <h3>Résumé des investisseurs</h3>
+                <div className="detail-grid">
+                  <div className="detail-row">
+                    <span>Nombre total d'investisseurs</span>
+                    <span style={{ fontWeight: 600 }}>{investorsMeta?.total_investors || 0}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span>Montant total investi</span>
+                    <span style={{ fontWeight: 600 }}>{fmt(investorsMeta?.total_amount_cents || 0)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {investors.length === 0 ? (
+                <div className="card">
+                  <div className="empty-state">
+                    <Users size={48} />
+                    <p>Aucun investisseur pour le moment</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="table-container">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Investisseur</th>
+                        <th>Email</th>
+                        <th>Montant investi</th>
+                        <th>Date d'investissement</th>
+                        <th>Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {investors.map(inv => {
+                        const a = inv.attributes || inv;
+                        return (
+                          <tr key={inv.id}>
+                            <td>{a.user_name || '—'}</td>
+                            <td>{a.user_email || '—'}</td>
+                            <td style={{ fontWeight: 600 }}>{fmt(a.amount_cents)}</td>
+                            <td>{fmtDate(a.created_at)}</td>
+                            <td>
+                              <span className={`badge ${a.status === 'active' ? 'badge-success' : 'badge-info'}`}>
+                                {a.status === 'active' ? 'Actif' : a.status}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Investisseur: voir seulement le nombre total
+            <div className="card">
+              <div className="empty-state">
+                <Users size={64} style={{ color: '#DAA520' }} />
+                <h3 style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>
+                  {investorsMeta?.total_investors || 0} investisseur{(investorsMeta?.total_investors || 0) > 1 ? 's' : ''}
+                </h3>
+                <p style={{ color: '#6b7280' }}>
+                  {(investorsMeta?.total_investors || 0) > 0
+                    ? `${investorsMeta?.total_investors} personne${investorsMeta?.total_investors > 1 ? 's' : ''} ${investorsMeta?.total_investors > 1 ? 'ont' : 'a'} investi dans ce projet`
+                    : 'Aucun investisseur pour le moment'}
+                </p>
+                <div style={{ marginTop: '1.5rem', padding: '1.25rem', background: '#f8f9fb', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                    Montant total investi
+                  </div>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1f2937' }}>
+                    {fmt(investorsMeta?.total_amount_cents || 0)}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

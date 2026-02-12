@@ -49,3 +49,9 @@ export const porteurDashboardApi = {
     return client.get('/porteur_dashboard');
   },
 };
+
+export const projectInvestorsApi = {
+  list(projectId, params = {}) {
+    return client.get(`/investment_projects/${projectId}/project_investors`, { params });
+  },
+};
