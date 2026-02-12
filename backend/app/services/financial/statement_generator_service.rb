@@ -17,8 +17,6 @@ module Financial
       errors = validate
       return Result.new(success: false, errors: errors) if errors.any?
 
-      yield_calculator = YieldCalculatorService.new(@project)
-
       # Use provided revenue/expenses or calculate from dividends
       if @total_revenue_cents.present? && @total_expenses_cents.present?
         # Manual input from project owner
@@ -36,6 +34,10 @@ module Financial
         net_income = total_revenue - total_expenses
       end
 
+      # Calculate yields based on actual statement data
+      gross_yield = calculate_annualized_yield(total_revenue, @project.total_amount_cents)
+      net_yield = calculate_annualized_yield(net_income, @project.total_amount_cents)
+
       statement = FinancialStatement.create!(
         investment_project: @project,
         statement_type: @statement_type,
@@ -45,8 +47,8 @@ module Financial
         total_expenses_cents: total_expenses,
         management_fees_cents: management_fees,
         net_income_cents: net_income,
-        gross_yield_percent: yield_calculator.gross_yield_percent,
-        net_yield_percent: yield_calculator.net_yield_percent
+        gross_yield_percent: gross_yield,
+        net_yield_percent: net_yield
       )
 
       Result.new(success: true, statement: statement, errors: [])
@@ -68,6 +70,24 @@ module Financial
       end
 
       errors
+    end
+
+    # Calculate annualized yield percentage
+    # Formula: (income / total_investment) * (12 / period_months) * 100
+    def calculate_annualized_yield(income_cents, total_investment_cents)
+      return 0.0 if total_investment_cents.nil? || total_investment_cents.zero?
+      return 0.0 if income_cents.nil?
+
+      # Calculate period duration in months
+      period_months = ((@period_end.year - @period_start.year) * 12) + (@period_end.month - @period_start.month) + 1
+      period_months = [period_months, 1].max # At least 1 month
+
+      # Calculate annualized yield
+      yield_for_period = income_cents.to_f / total_investment_cents
+      annualization_factor = 12.0 / period_months
+      annualized_yield = yield_for_period * annualization_factor * 100
+
+      annualized_yield.round(2)
     end
   end
 end
