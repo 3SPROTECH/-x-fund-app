@@ -24,7 +24,9 @@ module Api
           investment_project: @investment_project,
           statement_type: params[:statement_type],
           period_start: Date.parse(params[:period_start]),
-          period_end: Date.parse(params[:period_end])
+          period_end: Date.parse(params[:period_end]),
+          total_revenue_cents: params[:total_revenue_cents],
+          total_expenses_cents: params[:total_expenses_cents]
         ).call
 
         if result.success?
@@ -62,8 +64,13 @@ module Api
 
       def verify_project_ownership!
         return if current_user.administrateur?
+
         unless @investment_project.owner == current_user
-          render json: { error: "Vous ne pouvez creer des rapports que pour vos propres projets." }, status: :forbidden
+          return render json: { error: "Vous ne pouvez creer des rapports que pour vos propres projets." }, status: :forbidden
+        end
+
+        unless @investment_project.finance?
+          return render json: { error: "Vous ne pouvez creer des rapports que pour des projets finances." }, status: :forbidden
         end
       end
 

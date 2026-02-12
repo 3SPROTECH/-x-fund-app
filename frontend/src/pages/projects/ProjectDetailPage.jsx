@@ -35,8 +35,14 @@ export default function ProjectDetailPage() {
 
   // Admin: create dividend
   const [divForm, setDivForm] = useState({ total_amount_cents: '', period_start: '', period_end: '' });
-  // Admin: create statement
-  const [stmtForm, setStmtForm] = useState({ statement_type: 'trimestriel', period_start: '', period_end: '' });
+  // Create statement (Admin + Project Owner)
+  const [stmtForm, setStmtForm] = useState({
+    statement_type: 'trimestriel',
+    period_start: '',
+    period_end: '',
+    total_revenue_cents: '',
+    total_expenses_cents: ''
+  });
 
   useEffect(() => { loadAll(); }, [id]);
 
@@ -100,9 +106,21 @@ export default function ProjectDetailPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await financialStatementsApi.create(id, stmtForm);
+      await financialStatementsApi.create(id, {
+        statement_type: stmtForm.statement_type,
+        period_start: stmtForm.period_start,
+        period_end: stmtForm.period_end,
+        total_revenue_cents: Math.round(parseFloat(stmtForm.total_revenue_cents) * 100),
+        total_expenses_cents: Math.round(parseFloat(stmtForm.total_expenses_cents) * 100)
+      });
       toast.success('Rapport financier créé');
-      setStmtForm({ statement_type: 'trimestriel', period_start: '', period_end: '' });
+      setStmtForm({
+        statement_type: 'trimestriel',
+        period_start: '',
+        period_end: '',
+        total_revenue_cents: '',
+        total_expenses_cents: ''
+      });
       loadAll();
     } catch (err) {
       toast.error(err.response?.data?.error || err.response?.data?.errors?.join(', ') || 'Erreur');
@@ -185,6 +203,7 @@ export default function ProjectDetailPage() {
   const canEdit = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
   const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
   const canInvest = (user?.role === 'investisseur' || isAdmin) && a.status === 'ouvert';
+  const canCreateStatement = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'finance');
 
   return (
     <div className="page">
@@ -660,29 +679,104 @@ export default function ProjectDetailPage() {
 
       {tab === 'statements' && (
         <div>
-          {isAdmin && (
+          {canCreateStatement && (
             <div className="card" style={{ marginBottom: '1rem' }}>
-              <h3>Générer un rapport financier</h3>
+              <h3>Soumettre un rapport financier</h3>
+              <p style={{ fontSize: '.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                Les rapports financiers permettent de suivre les revenus et dépenses du projet sur une période donnée.
+              </p>
               <form onSubmit={handleCreateStatement}>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Type</label>
-                    <select value={stmtForm.statement_type} onChange={e => setStmtForm({ ...stmtForm, statement_type: e.target.value })}>
+                    <label>Type de Rapport *</label>
+                    <select value={stmtForm.statement_type} onChange={e => setStmtForm({ ...stmtForm, statement_type: e.target.value })} required>
                       <option value="trimestriel">Trimestriel</option>
                       <option value="semestriel">Semestriel</option>
                       <option value="annuel">Annuel</option>
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Début période</label>
-                    <input type="date" required value={stmtForm.period_start} onChange={e => setStmtForm({ ...stmtForm, period_start: e.target.value })} />
+                    <label>Date de début *</label>
+                    <input
+                      type="date"
+                      required
+                      value={stmtForm.period_start}
+                      onChange={e => setStmtForm({ ...stmtForm, period_start: e.target.value })}
+                    />
                   </div>
                   <div className="form-group">
-                    <label>Fin période</label>
-                    <input type="date" required value={stmtForm.period_end} onChange={e => setStmtForm({ ...stmtForm, period_end: e.target.value })} />
+                    <label>Date de fin *</label>
+                    <input
+                      type="date"
+                      required
+                      value={stmtForm.period_end}
+                      onChange={e => setStmtForm({ ...stmtForm, period_end: e.target.value })}
+                    />
                   </div>
                 </div>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? '...' : 'Générer'}</button>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Loyers Encaissés (Revenus) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      required
+                      value={stmtForm.total_revenue_cents}
+                      onChange={e => setStmtForm({ ...stmtForm, total_revenue_cents: e.target.value })}
+                      placeholder="0.00 EUR"
+                    />
+                    <small style={{ fontSize: '.75rem', color: 'var(--text-secondary)' }}>
+                      Saisissez le montant total des loyers perçus pendant cette période
+                    </small>
+                  </div>
+                  <div className="form-group">
+                    <label>Charges / Dépenses *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      required
+                      value={stmtForm.total_expenses_cents}
+                      onChange={e => setStmtForm({ ...stmtForm, total_expenses_cents: e.target.value })}
+                      placeholder="0.00 EUR"
+                    />
+                    <small style={{ fontSize: '.75rem', color: 'var(--text-secondary)' }}>
+                      Incluant taxes foncières, charges de copropriété, travaux, etc.
+                    </small>
+                  </div>
+                </div>
+
+                {/* Calcul automatique des montants */}
+                {stmtForm.total_revenue_cents && stmtForm.total_expenses_cents && (
+                  <div style={{ padding: '1rem', background: 'rgba(79, 70, 229, 0.05)', borderRadius: '8px', marginTop: '1rem', marginBottom: '1rem' }}>
+                    <h4 style={{ fontSize: '.9rem', marginBottom: '.75rem', color: 'var(--primary)' }}>Calcul automatique</h4>
+                    <div className="detail-grid">
+                      <div className="detail-row">
+                        <span>Frais de Gestion ({a.management_fee_percent}%)</span>
+                        <span style={{ fontWeight: 600 }}>{fmt(Math.round(parseFloat(stmtForm.total_revenue_cents) * 100 * (a.management_fee_percent / 100)))}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span style={{ fontWeight: 600 }}>Résultat Net (À verser aux investisseurs)</span>
+                        <span style={{ fontWeight: 600, color: '#10B981' }}>
+                          {fmt(
+                            Math.round(parseFloat(stmtForm.total_revenue_cents) * 100) -
+                            Math.round(parseFloat(stmtForm.total_expenses_cents) * 100) -
+                            Math.round(parseFloat(stmtForm.total_revenue_cents) * 100 * (a.management_fee_percent / 100))
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? (
+                    <><div className="spinner spinner-sm" /> Envoi en cours...</>
+                  ) : (
+                    'Soumettre le rapport'
+                  )}
+                </button>
               </form>
             </div>
           )}

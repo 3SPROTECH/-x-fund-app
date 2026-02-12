@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_12_094500) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_12_104058) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -115,6 +115,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_094500) do
     t.bigint "max_investment_cents"
     t.bigint "min_investment_cents", null: false
     t.decimal "net_yield_percent", precision: 5, scale: 2
+    t.bigint "owner_id", null: false
     t.bigint "property_id", null: false
     t.text "review_comment"
     t.integer "review_status", default: 0, null: false
@@ -129,6 +130,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_094500) do
     t.datetime "updated_at", null: false
     t.index ["funding_end_date"], name: "index_investment_projects_on_funding_end_date"
     t.index ["funding_start_date"], name: "index_investment_projects_on_funding_start_date"
+    t.index ["owner_id"], name: "index_investment_projects_on_owner_id"
     t.index ["property_id"], name: "index_investment_projects_on_property_id", unique: true
     t.index ["review_status"], name: "index_investment_projects_on_review_status"
     t.index ["reviewed_by_id"], name: "index_investment_projects_on_reviewed_by_id"
@@ -258,6 +260,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_094500) do
   add_foreign_key "dividends", "investment_projects"
   add_foreign_key "financial_statements", "investment_projects"
   add_foreign_key "investment_projects", "properties"
+  add_foreign_key "investment_projects", "users", column: "owner_id"
   add_foreign_key "investment_projects", "users", column: "reviewed_by_id"
   add_foreign_key "investments", "investment_projects"
   add_foreign_key "investments", "users"

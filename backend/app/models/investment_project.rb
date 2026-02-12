@@ -2,7 +2,7 @@ class InvestmentProject < ApplicationRecord
   include Auditable
 
   belongs_to :property
-  has_one :owner, through: :property
+  belongs_to :owner, class_name: "User"
   belongs_to :reviewer, class_name: "User", foreign_key: :reviewed_by_id, optional: true
   has_many :investments, dependent: :restrict_with_error
   has_many :investors, through: :investments, source: :user

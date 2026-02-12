@@ -28,8 +28,12 @@ class InvestmentProjectSerializer
     project.property.city
   end
 
+  attribute :owner_id do |project|
+    project.owner_id
+  end
+
   attribute :owner_name do |project|
-    project.property.owner.full_name
+    project.owner.full_name
   end
 
   attribute :reviewer_name do |project|

@@ -33,6 +33,7 @@ module Api
         end
 
         @investment_project = property.build_investment_project(project_params)
+        @investment_project.owner = current_user
         @investment_project.management_fee_percent = (@investment_project.management_fee_percent || 0).to_d
         # Définition des parts : soit total_shares fourni, soit dérivé de total_amount / share_price
         if project_params[:total_shares].to_i.positive?
