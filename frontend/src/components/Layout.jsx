@@ -43,8 +43,7 @@ export default function Layout() {
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <div className="logo-icon">XF</div>
-          <span className="logo">X-Fund</span>
+          <span className="logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
         </div>
 
         <nav className="sidebar-nav">
@@ -116,7 +115,7 @@ export default function Layout() {
             <span className="user-name">{user?.first_name} {user?.last_name}</span>
             <span className="user-role">{roleLabel[user?.role] || user?.role}</span>
           </div>
-          <button onClick={handleSignOut} className="btn-icon" title="Se déconnecter" style={{ color: '#9e9ec0' }}>
+          <button onClick={handleSignOut} className="btn-icon" title="Se déconnecter" style={{ color: '#DAA520' }}>
             <LogOut size={18} />
           </button>
         </div>

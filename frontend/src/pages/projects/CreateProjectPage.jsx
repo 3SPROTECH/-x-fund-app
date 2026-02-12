@@ -3,13 +3,15 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { propertiesApi } from '../../api/properties';
 import { investmentProjectsApi } from '../../api/investments';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, ArrowRight, Check, Building, TrendingUp, Calendar, Euro } from 'lucide-react';
+import { projectImagesApi } from '../../api/images';
+import { ArrowLeft, ArrowRight, Check, Building, TrendingUp, Calendar, Euro, ImagePlus, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STEPS = [
   { id: 1, title: 'Sélection du bien', icon: Building },
   { id: 2, title: 'Configuration financière', icon: Euro },
-  { id: 3, title: 'Planning & Validation', icon: Calendar },
+  { id: 3, title: 'Photos du projet', icon: ImagePlus },
+  { id: 4, title: 'Planning & Validation', icon: Calendar },
 ];
 
 export default function CreateProjectPage() {
@@ -42,6 +44,7 @@ export default function CreateProjectPage() {
     funding_end_date: '',
   });
 
+  const [photos, setPhotos] = useState([]);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -113,9 +116,10 @@ export default function CreateProjectPage() {
     let isValid = false;
     if (currentStep === 1) isValid = validateStep1();
     else if (currentStep === 2) isValid = validateStep2();
-    else if (currentStep === 3) isValid = validateStep3();
+    else if (currentStep === 3) isValid = true; // Photos are optional
+    else if (currentStep === 4) isValid = validateStep3();
 
-    if (isValid && currentStep < 3) {
+    if (isValid && currentStep < 4) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -149,7 +153,18 @@ export default function CreateProjectPage() {
         funding_end_date: formData.funding_end_date,
       };
 
-      await investmentProjectsApi.create(formData.property_id, data);
+      const res = await investmentProjectsApi.create(formData.property_id, data);
+      const projectId = res.data.data?.id || res.data.id;
+
+      // Upload photos if any were selected
+      if (photos.length > 0 && projectId) {
+        try {
+          await projectImagesApi.uploadImages(projectId, photos);
+        } catch {
+          toast.error("Projet créé mais erreur lors de l'upload des photos");
+        }
+      }
+
       toast.success("Projet d'investissement créé avec succès !");
       navigate('/properties');
     } catch (err) {
@@ -184,6 +199,17 @@ export default function CreateProjectPage() {
     }
   };
 
+  const handleAddPhotos = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    setPhotos(prev => [...prev, ...files]);
+    e.target.value = '';
+  };
+
+  const handleRemovePhoto = (index) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
   const calculatedShares = () => {
     const total = parseFloat(formData.total_amount_cents);
     const price = parseFloat(formData.share_price_cents);
@@ -216,7 +242,7 @@ export default function CreateProjectPage() {
       <div className="page-header">
         <div>
           <h1>Créer un projet d'investissement</h1>
-          <p className="text-muted">Configurez votre projet en 3 étapes simples</p>
+          <p className="text-muted">Configurez votre projet en 4 étapes simples</p>
         </div>
       </div>
 
@@ -235,7 +261,7 @@ export default function CreateProjectPage() {
                 </div>
                 <div className="wizard-step-content">
                   <div className="wizard-step-title">{step.title}</div>
-                  <div className="wizard-step-subtitle">Étape {step.id}/3</div>
+                  <div className="wizard-step-subtitle">Étape {step.id}/4</div>
                 </div>
               </div>
               {index < STEPS.length - 1 && <div className={`wizard-step-line ${isCompleted ? 'completed' : ''}`} />}
@@ -462,8 +488,88 @@ export default function CreateProjectPage() {
           </div>
         )}
 
-        {/* STEP 3: Planning & Validation */}
+        {/* STEP 3: Photos du projet */}
         {currentStep === 3 && (
+          <div className="card">
+            <h3 style={{ marginBottom: '1.5rem' }}>
+              <ImagePlus size={20} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
+              Photos du projet
+            </h3>
+
+            <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
+              Ajoutez des photos pour illustrer votre projet (optionnel).
+            </p>
+
+            <label
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                padding: '0.75rem 1.25rem', border: '2px dashed #d1d5db',
+                borderRadius: '8px', cursor: 'pointer', color: '#374151',
+                transition: 'border-color 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+            >
+              <ImagePlus size={20} />
+              Ajouter des photos
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleAddPhotos}
+                style={{ display: 'none' }}
+              />
+            </label>
+
+            {photos.length > 0 && (
+              <div style={{
+                display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                gap: '1rem', marginTop: '1.5rem',
+              }}>
+                {photos.map((photo, index) => (
+                  <div key={index} style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden' }}>
+                    <img
+                      src={URL.createObjectURL(photo)}
+                      alt={photo.name}
+                      style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block', borderRadius: '8px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePhoto(index)}
+                      style={{
+                        position: 'absolute', top: '4px', right: '4px',
+                        background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none',
+                        borderRadius: '50%', width: '24px', height: '24px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
+                    <div style={{
+                      fontSize: '0.7rem', color: '#6b7280', padding: '4px',
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}>
+                      {photo.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {photos.length === 0 && (
+              <div style={{
+                marginTop: '1.5rem', padding: '2rem', textAlign: 'center',
+                color: '#9ca3af', background: '#f9fafb', borderRadius: '8px',
+              }}>
+                Aucune photo ajoutée. Vous pourrez en ajouter plus tard.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STEP 4: Planning & Validation */}
+        {currentStep === 4 && (
           <div className="card">
             <h3 style={{ marginBottom: '1.5rem' }}>
               <Calendar size={20} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
@@ -514,6 +620,7 @@ export default function CreateProjectPage() {
                   </>
                 )}
                 <div className="detail-row"><span>Période</span><span>{formData.funding_start_date} → {formData.funding_end_date}</span></div>
+                <div className="detail-row"><span>Photos</span><span>{photos.length} photo{photos.length > 1 ? 's' : ''}</span></div>
               </div>
             </div>
           </div>
@@ -528,7 +635,7 @@ export default function CreateProjectPage() {
           </button>
         )}
         <div style={{ flex: 1 }} />
-        {currentStep < 3 ? (
+        {currentStep < 4 ? (
           <button type="button" className="btn btn-primary" onClick={handleNext}>
             Suivant <ArrowRight size={16} />
           </button>
