@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { investmentProjectsApi } from '../../api/investments';
 import { useAuth } from '../../context/AuthContext';
-import { TrendingUp, MapPin, ChevronLeft, ChevronRight, Plus, Calendar, Image as ImageIcon } from 'lucide-react';
+import { TrendingUp, MapPin, ChevronLeft, ChevronRight, Plus, Calendar, Image as ImageIcon, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../api/client';
 
@@ -37,6 +37,22 @@ export default function ProjectsPage() {
       toast.error('Erreur lors du chargement des projets');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteProject = async (projectId, projectTitle, e) => {
+    e.stopPropagation();
+    if (!window.confirm(`Voulez-vous vraiment supprimer "${projectTitle}" ? Cette action est irréversible.`)) {
+      return;
+    }
+
+    try {
+      await investmentProjectsApi.delete(projectId);
+      toast.success('Projet supprimé avec succès');
+      loadProjects();
+    } catch (err) {
+      console.error('Erreur suppression projet:', err);
+      toast.error(err.response?.data?.error || 'Erreur lors de la suppression du projet');
     }
   };
 
@@ -88,6 +104,10 @@ export default function ProjectsPage() {
               const progress = Math.min(a.funding_progress_percent || 0, 100);
               const firstImage = (a.images && a.images.length > 0) ? a.images[0] : (a.property_photos && a.property_photos.length > 0) ? a.property_photos[0] : null;
 
+              const isAdmin = user?.role === 'administrateur';
+              const isOwner = user?.id === a.owner_id;
+              const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
+
               return (
                 <div key={p.id} className="project-card" onClick={() => navigate(`/projects/${p.id}`)}>
                   {/* Image section */}
@@ -126,7 +146,30 @@ export default function ProjectsPage() {
                   <div className="project-card-body">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '.5rem' }}>
                       <h3 style={{ fontSize: '1.05rem', fontWeight: 650, margin: 0 }}>{a.title}</h3>
-                      <span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span>
+                      <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
+                        <span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span>
+                        {canDelete && (
+                          <button
+                            onClick={(e) => handleDeleteProject(p.id, a.title, e)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              color: 'var(--danger)',
+                              opacity: 0.7,
+                              transition: 'opacity 0.2s',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                            title="Supprimer le projet"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {a.property_city && <p className="text-muted"><MapPin size={14} /> {a.property_city}</p>}
                     {/* Suivi de l'avancement du financement */}
