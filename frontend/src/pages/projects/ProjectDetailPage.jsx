@@ -871,8 +871,8 @@ export default function ProjectDetailPage() {
                         const a = inv.attributes || inv;
                         return (
                           <tr key={inv.id}>
-                            <td>{a.user_name || '—'}</td>
-                            <td>{a.user_email || '—'}</td>
+                            <td>{a.investor_name || '—'}</td>
+                            <td>{a.investor_email || '—'}</td>
                             <td style={{ fontWeight: 600 }}>{fmt(a.amount_cents)}</td>
                             <td>{fmtDate(a.created_at)}</td>
                             <td>
