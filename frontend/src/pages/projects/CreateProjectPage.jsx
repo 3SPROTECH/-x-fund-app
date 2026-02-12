@@ -459,9 +459,7 @@ export default function CreateProjectPage() {
                     placeholder="Calculé: Brut - Frais"
                     style={{ backgroundColor: 'var(--bg-secondary)', cursor: 'not-allowed' }}
                   />
-                  <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    Formule: Rendement net = Rendement brut - Frais de gestion
-                  </small>
+                  
                 </div>
               </div>
             </div>
