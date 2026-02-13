@@ -18,26 +18,29 @@ module Investments
       ActiveRecord::Base.transaction do
         shares_count = @calculator.shares_for_amount(@amount_cents)
 
+        # Platform fee deducted from the invested amount
+        commission_percent = Setting.get("platform_investment_commission_percent") || 0.0
+        fee_cents = commission_percent > 0 ? (@amount_cents * commission_percent / 100.0).round : 0
+
         investment = Investment.create!(
           user: @user,
           investment_project: @project,
           amount_cents: @amount_cents,
+          fee_cents: fee_cents,
           shares_count: shares_count,
           status: :en_cours,
           invested_at: Time.current
         )
 
-        # Debit investor wallet
+        # Debit full amount from investor wallet
         Wallets::WalletService.new(@user.wallet).invest(
           amount_cents: @amount_cents,
           investment: investment,
           reference: "INV-#{investment.id}-#{SecureRandom.hex(4).upcase}"
         )
 
-        # Collect platform commission on investment
-        commission_percent = Setting.get("platform_investment_commission_percent") || 0.0
-        if commission_percent > 0
-          fee_cents = (@amount_cents * commission_percent / 100.0).round
+        # Collect fee to platform wallet
+        if fee_cents > 0
           Wallets::WalletService.collect_fee(
             amount_cents: fee_cents,
             fee_type: "investment_commission",

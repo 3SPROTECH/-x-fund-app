@@ -430,32 +430,51 @@ export default function ProjectDetailPage() {
                   </div>
 
                   {/* Calcul automatique des parts */}
-                  {investAmount && parseFloat(investAmount) > 0 && a.share_price_cents > 0 && (
-                    <div style={{ padding: '.75rem', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', marginTop: '.75rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '.5rem' }}>
-                        <CheckCircle size={18} color="#10B981" />
-                        <span style={{ fontWeight: 600, color: '#10B981' }}>Détails de l'investissement</span>
+                  {investAmount && parseFloat(investAmount) > 0 && a.share_price_cents > 0 && (() => {
+                    const amountCents = parseFloat(investAmount) * 100;
+                    const feePercent = a.investment_fee_percent || 0;
+                    const feeCents = feePercent > 0 ? Math.round(amountCents * feePercent / 100) : 0;
+                    const shares = Math.floor(amountCents / a.share_price_cents);
+                    const netCents = amountCents - feeCents;
+                    return (
+                      <div style={{ padding: '.75rem', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', marginTop: '.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '.5rem' }}>
+                          <CheckCircle size={18} color="#10B981" />
+                          <span style={{ fontWeight: 600, color: '#10B981' }}>Détails de l'investissement</span>
+                        </div>
+                        <div style={{ fontSize: '.875rem', color: 'var(--text-secondary)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.25rem' }}>
+                            <span>Nombre de parts</span>
+                            <span style={{ fontWeight: 600 }}>{shares} parts</span>
+                          </div>
+                          {feeCents > 0 && (
+                            <>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.25rem' }}>
+                                <span>Frais de plateforme ({feePercent}%)</span>
+                                <span style={{ fontWeight: 600, color: '#EF4444' }}>-{fmt(feeCents)}</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.25rem', paddingTop: '.25rem', borderTop: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                                <span style={{ fontWeight: 600 }}>Montant net investi</span>
+                                <span style={{ fontWeight: 600 }}>{fmt(netCents)}</span>
+                              </div>
+                            </>
+                          )}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.25rem' }}>
+                            <span>Rendement estimé annuel</span>
+                            <span style={{ fontWeight: 600, color: '#10B981' }}>
+                              {a.net_yield_percent ? `${fmt(amountCents * a.net_yield_percent / 100)} (${a.net_yield_percent}%)` : '—'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>% du projet détenu</span>
+                            <span style={{ fontWeight: 600 }}>
+                              {((shares / a.total_shares) * 100).toFixed(2)}%
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ fontSize: '.875rem', color: 'var(--text-secondary)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.25rem' }}>
-                          <span>Nombre de parts</span>
-                          <span style={{ fontWeight: 600 }}>{Math.floor((parseFloat(investAmount) * 100) / a.share_price_cents)} parts</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.25rem' }}>
-                          <span>Rendement estimé annuel</span>
-                          <span style={{ fontWeight: 600, color: '#10B981' }}>
-                            {a.net_yield_percent ? `${fmt(parseFloat(investAmount) * 100 * a.net_yield_percent / 100)} (${a.net_yield_percent}%)` : '—'}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span>% du projet détenu</span>
-                          <span style={{ fontWeight: 600 }}>
-                            {((Math.floor((parseFloat(investAmount) * 100) / a.share_price_cents) / a.total_shares) * 100).toFixed(2)}%
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Warnings */}
                   {wallet && investAmount && parseFloat(investAmount) * 100 > wallet.balance_cents && (

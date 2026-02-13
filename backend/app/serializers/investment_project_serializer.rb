@@ -44,6 +44,10 @@ class InvestmentProjectSerializer
     project.reviewer&.full_name
   end
 
+  attribute :investment_fee_percent do |_project|
+    Setting.get("platform_investment_commission_percent") || 0.0
+  end
+
   attribute :images do |project|
     next [] unless project.additional_documents.attached?
 
