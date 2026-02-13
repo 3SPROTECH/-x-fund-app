@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LogOut, User, LayoutDashboard, Wallet, Building, FileCheck,
-  TrendingUp, Briefcase, Shield, BarChart3, ScrollText, CreditCard,
+  TrendingUp, Briefcase, Shield, BarChart3, ScrollText, CreditCard, Settings,
 } from 'lucide-react';
 import Navbar from './Navbar';
 
@@ -75,6 +75,11 @@ export default function Layout() {
             </NavLink>
             <NavLink to="/admin/audit" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
               <ScrollText size={18} /><span>Audit Logs</span>
+            </NavLink>
+
+            <div className="nav-section"><span className="nav-section-label">Systeme</span></div>
+            <NavLink to="/admin/settings" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+              <Settings size={18} /><span>Parametres</span>
             </NavLink>
           </nav>
 

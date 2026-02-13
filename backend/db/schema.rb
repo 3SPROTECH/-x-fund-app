@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_13_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_14_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -202,6 +202,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_160000) do
     t.index ["owner_id"], name: "index_properties_on_owner_id"
     t.index ["status", "city"], name: "index_properties_on_status_and_city"
     t.index ["status"], name: "index_properties_on_status"
+  end
+
+  create_table "settings", force: :cascade do |t|
+    t.string "category", null: false
+    t.datetime "created_at", null: false
+    t.string "description"
+    t.string "key", null: false
+    t.datetime "updated_at", null: false
+    t.text "value", default: "", null: false
+    t.string "value_type", default: "string", null: false
+    t.index ["category"], name: "index_settings_on_category"
+    t.index ["key"], name: "index_settings_on_key", unique: true
   end
 
   create_table "transactions", force: :cascade do |t|

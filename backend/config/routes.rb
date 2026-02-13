@@ -89,6 +89,10 @@ Rails.application.routes.draw do
 
         resource :dashboard, only: [:show], controller: "dashboard"
 
+        # Settings
+        get "settings", to: "settings#index"
+        patch "settings", to: "settings#update"
+
         # Data exports
         get "exports/users", to: "exports#users"
         get "exports/investments", to: "exports#investments"

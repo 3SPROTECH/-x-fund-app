@@ -108,4 +108,13 @@ export const adminApi = {
   exportTransactions(format = 'json') {
     return client.get('/admin/exports/transactions', { params: { format } });
   },
+
+  // Settings
+  getSettings() {
+    return client.get('/admin/settings');
+  },
+
+  updateSettings(settings) {
+    return client.patch('/admin/settings', { settings });
+  },
 };
