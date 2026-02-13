@@ -20,7 +20,7 @@ const TYPE_LABELS = {
 const EMPTY_PROPERTY = {
   title: '', description: '', property_type: 'appartement', address_line1: '', address_line2: '',
   city: '', postal_code: '', country: 'France', surface_area_sqm: '', acquisition_price_cents: '',
-  estimated_value_cents: '',
+  estimated_value_cents: '', number_of_lots: '', lots: [],
 };
 
 
@@ -126,6 +126,8 @@ export default function PropertiesPage() {
       city: a.city || '', postal_code: a.postal_code || '', country: a.country || 'France',
       surface_area_sqm: a.surface_area_sqm || '', acquisition_price_cents: a.acquisition_price_cents ? a.acquisition_price_cents / 100 : '',
       estimated_value_cents: a.estimated_value_cents ? a.estimated_value_cents / 100 : '',
+      number_of_lots: a.number_of_lots || '',
+      lots: (a.lots || []).map(l => ({ id: l.id, lot_number: l.lot_number, surface_area_sqm: l.surface_area_sqm || '', description: l.description || '' })),
     });
     setShowPropertyModal(true);
   };
@@ -134,14 +136,28 @@ export default function PropertiesPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
+      const isImmeuble = propertyForm.property_type === 'immeuble';
+      const lotsAttributes = isImmeuble
+        ? propertyForm.lots.map(l => ({
+            ...(l.id ? { id: l.id } : {}),
+            lot_number: l.lot_number,
+            surface_area_sqm: parseFloat(l.surface_area_sqm) || null,
+            description: l.description || '',
+          }))
+        : [];
+      // Mark existing lots for destruction if switching away from immeuble
+      const existingLotIds = (propertyForm.lots || []).filter(l => l.id).map(l => ({ id: l.id, _destroy: true }));
       const data = {
         property: {
           ...propertyForm,
           acquisition_price_cents: Math.round(parseFloat(propertyForm.acquisition_price_cents) * 100) || 0,
           estimated_value_cents: Math.round(parseFloat(propertyForm.estimated_value_cents) * 100) || 0,
           surface_area_sqm: parseFloat(propertyForm.surface_area_sqm) || 0,
+          number_of_lots: isImmeuble ? (parseInt(propertyForm.number_of_lots) || null) : null,
+          lots_attributes: isImmeuble ? lotsAttributes : existingLotIds,
         },
       };
+      delete data.property.lots;
       if (editingProperty) {
         await propertiesApi.update(editingProperty.id, data);
         toast.success('Bien mis à jour');
@@ -184,7 +200,36 @@ export default function PropertiesPage() {
     navigate(`/projects/new?propertyId=${propertyId}`);
   };
 
-  const setPF = (field) => (e) => setPropertyForm({ ...propertyForm, [field]: e.target.value });
+  const setPF = (field) => (e) => {
+    const value = e.target.value;
+    setPropertyForm(prev => {
+      const updated = { ...prev, [field]: value };
+      // When number_of_lots changes, resize the lots array
+      if (field === 'number_of_lots') {
+        const count = parseInt(value) || 0;
+        const currentLots = prev.lots || [];
+        const newLots = [];
+        for (let i = 0; i < count; i++) {
+          newLots.push(currentLots[i] || { lot_number: i + 1, surface_area_sqm: '', description: '' });
+        }
+        updated.lots = newLots;
+      }
+      // When switching away from immeuble, reset lots
+      if (field === 'property_type' && value !== 'immeuble') {
+        updated.number_of_lots = '';
+        updated.lots = [];
+      }
+      return updated;
+    });
+  };
+
+  const setLotField = (index, field) => (e) => {
+    setPropertyForm(prev => {
+      const lots = [...prev.lots];
+      lots[index] = { ...lots[index], [field]: e.target.value };
+      return { ...prev, lots };
+    });
+  };
 
   if (loading) return <div className="page-loading"><div className="spinner" /></div>;
 
@@ -222,7 +267,10 @@ export default function PropertiesPage() {
               <h3>Informations du bien</h3>
               <div className="detail-grid">
                 <div className="detail-row"><span>Type</span><span>{TYPE_LABELS[a.property_type] || a.property_type}</span></div>
-                <div className="detail-row"><span>Surface</span><span>{a.surface_area_sqm} m²</span></div>
+                {a.property_type === 'immeuble' && a.number_of_lots && (
+                  <div className="detail-row"><span>Nombre de lots</span><span>{a.number_of_lots}</span></div>
+                )}
+                <div className="detail-row"><span>Surface totale</span><span>{a.surface_area_sqm} m²</span></div>
                 <div className="detail-row"><span>Prix d'acquisition</span><span>{fmt(a.acquisition_price_cents)}</span></div>
                 <div className="detail-row"><span>Valeur estimée</span><span>{fmt(a.estimated_value_cents)}</span></div>
                 {pa && <div className="detail-row"><span>Rendement net annuel</span><span className="text-success">{pa.net_yield_percent ?? '—'}%</span></div>}
@@ -237,6 +285,21 @@ export default function PropertiesPage() {
                 <>
                   <div className="divider" />
                   <p style={{ fontSize: '.9rem', color: 'var(--text-secondary)' }}>{a.description}</p>
+                </>
+              )}
+              {a.property_type === 'immeuble' && a.lots?.length > 0 && (
+                <>
+                  <div className="divider" />
+                  <h4 style={{ marginBottom: '.75rem' }}>Lots ({a.lots.length})</h4>
+                  <div style={{ display: 'grid', gap: '.5rem' }}>
+                    {a.lots.map((lot) => (
+                      <div key={lot.id} style={{ display: 'flex', gap: '1rem', padding: '.5rem .75rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }}>
+                        <span style={{ fontWeight: 600, minWidth: '50px' }}>Lot {lot.lot_number}</span>
+                        {lot.surface_area_sqm && <span>{lot.surface_area_sqm} m²</span>}
+                        {lot.description && <span style={{ color: 'var(--text-muted)' }}>{lot.description}</span>}
+                      </div>
+                    ))}
+                  </div>
                 </>
               )}
             </div>
@@ -414,7 +477,33 @@ export default function PropertiesPage() {
                     <label>Surface (m²)</label>
                     <input type="number" step="0.1" value={propertyForm.surface_area_sqm} onChange={setPF('surface_area_sqm')} required />
                   </div>
+                  {propertyForm.property_type === 'immeuble' && (
+                    <div className="form-group">
+                      <label>Nombre de lots</label>
+                      <input type="number" min="1" max="50" step="1" value={propertyForm.number_of_lots} onChange={setPF('number_of_lots')} required placeholder="Ex: 4" />
+                    </div>
+                  )}
                 </div>
+                {propertyForm.property_type === 'immeuble' && propertyForm.lots.length > 0 && (
+                  <div style={{ marginTop: '1rem', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '1rem' }}>
+                    <div className="form-section-title">Détail des lots</div>
+                    {propertyForm.lots.map((lot, i) => (
+                      <div key={i} style={{ display: 'flex', gap: '.75rem', alignItems: 'flex-end', marginBottom: '.75rem' }}>
+                        <div style={{ minWidth: '60px', fontWeight: 600, paddingBottom: '.5rem', color: 'var(--text-muted)' }}>
+                          Lot {i + 1}
+                        </div>
+                        <div className="form-group" style={{ flex: 1 }}>
+                          <label>Surface (m²)</label>
+                          <input type="number" step="0.1" min="0" value={lot.surface_area_sqm} onChange={setLotField(i, 'surface_area_sqm')} placeholder="Surface" />
+                        </div>
+                        <div className="form-group" style={{ flex: 2 }}>
+                          <label>Description</label>
+                          <input value={lot.description} onChange={setLotField(i, 'description')} placeholder={`Ex: Appartement T${i + 2}`} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="form-group" style={{ marginTop: '.75rem' }}>
                   <label>Description</label>
                   <textarea value={propertyForm.description} onChange={setPF('description')} placeholder="Description du bien..." />

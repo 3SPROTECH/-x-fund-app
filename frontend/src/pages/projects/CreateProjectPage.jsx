@@ -25,7 +25,7 @@ export default function CreateProjectPage() {
 
   const [formData, setFormData] = useState({
     // Step 1
-    property_id: searchParams.get('propertyId') || '',
+    property_ids: searchParams.get('propertyId') ? [searchParams.get('propertyId')] : [],
     title: '',
     description: '',
 
@@ -62,13 +62,23 @@ export default function CreateProjectPage() {
     }
   };
 
-  const getSelectedProperty = () => {
-    return properties.find(p => String(p.id) === String(formData.property_id));
+  const getSelectedProperties = () => {
+    const ids = formData.property_ids || [];
+    return properties.filter(p => ids.includes(String(p.id)));
+  };
+
+  const togglePropertyId = (id) => {
+    const sid = String(id);
+    setFormData(prev => {
+      const ids = prev.property_ids || [];
+      if (ids.includes(sid)) return { ...prev, property_ids: ids.filter(i => i !== sid) };
+      return { ...prev, property_ids: [...ids, sid] };
+    });
   };
 
   const validateStep1 = () => {
     const newErrors = {};
-    if (!formData.property_id) newErrors.property_id = 'Veuillez sélectionner un bien';
+    if (!formData.property_ids?.length) newErrors.property_ids = 'Veuillez sélectionner au moins un bien';
     if (!formData.title?.trim()) newErrors.title = 'Le titre est requis';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -153,7 +163,7 @@ export default function CreateProjectPage() {
         funding_end_date: formData.funding_end_date,
       };
 
-      const res = await investmentProjectsApi.create(formData.property_id, data);
+      const res = await investmentProjectsApi.create({ ...data, property_ids: formData.property_ids });
       const projectId = res.data.data?.id || res.data.id;
 
       // Upload photos if any were selected
@@ -227,8 +237,7 @@ export default function CreateProjectPage() {
     );
   }
 
-  const selectedProperty = getSelectedProperty();
-  const selectedPropertyData = selectedProperty?.attributes || selectedProperty;
+  const selectedProperties = getSelectedProperties();
 
   return (
     <div className="page">
@@ -276,50 +285,50 @@ export default function CreateProjectPage() {
         {currentStep === 1 && (
           <div className="card">
             <h3 style={{ marginBottom: '1.5rem' }}>
-              <Building size={20} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
               Sélection du bien immobilier
             </h3>
 
             <div className="form-group">
-              <label>Bien immobilier *</label>
+              <label>Biens immobiliers *</label>
               <select
-                value={formData.property_id}
-                onChange={(e) => updateField('property_id', e.target.value)}
-                className={errors.property_id ? 'error' : ''}
+                value=""
+                onChange={(e) => { if (e.target.value) togglePropertyId(e.target.value); }}
+                className={errors.property_ids ? 'error' : ''}
+                style={{ marginTop: '0.5rem' }}
               >
-                <option value="">-- Sélectionnez un bien --</option>
-                {properties.map(prop => {
-                  const a = prop.attributes || prop;
-                  return (
-                    <option key={prop.id} value={prop.id}>
-                      {a.title} - {a.city}
-                    </option>
-                  );
-                })}
+                <option value="">-- Sélectionner un bien à ajouter --</option>
+                {properties
+                  .filter(p => !(formData.property_ids || []).includes(String(p.id)))
+                  .map(prop => {
+                    const a = prop.attributes || prop;
+                    return (
+                      <option key={prop.id} value={prop.id}>
+                        {a.title} — {a.city} ({a.property_type})
+                      </option>
+                    );
+                  })}
               </select>
-              {errors.property_id && <span className="error-message">{errors.property_id}</span>}
+              {errors.property_ids && <span className="error-message">{errors.property_ids}</span>}
             </div>
 
-            {selectedProperty && (
-              <div className="property-preview">
-                <h4>Aperçu du bien sélectionné</h4>
-                <div className="detail-grid">
-                  <div className="detail-row">
-                    <span>Titre</span>
-                    <span>{selectedPropertyData.title}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Type</span>
-                    <span>{selectedPropertyData.property_type}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Ville</span>
-                    <span>{selectedPropertyData.city}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Surface</span>
-                    <span>{selectedPropertyData.surface_area_sqm} m²</span>
-                  </div>
+            {getSelectedProperties().length > 0 && (
+              <div style={{ marginTop: '1rem' }}>
+                <h4>Biens sélectionnés ({getSelectedProperties().length})</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  {getSelectedProperties().map(prop => {
+                    const a = prop.attributes || prop;
+                    return (
+                      <div key={prop.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '0.75rem' }}>
+                        <div>
+                          <strong>{a.title}</strong>
+                          <span style={{ color: 'var(--text-muted)', marginLeft: '0.5rem' }}>{a.city} — {a.property_type} — {a.surface_area_sqm} m²</span>
+                        </div>
+                        <button type="button" className="btn-icon" onClick={() => togglePropertyId(prop.id)} aria-label="Retirer" style={{ color: 'var(--danger)' }}>
+                          <X size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -606,7 +615,7 @@ export default function CreateProjectPage() {
             <div className="summary-section">
               <h4>Récapitulatif du projet</h4>
               <div className="detail-grid">
-                <div className="detail-row"><span>Bien</span><span>{selectedPropertyData?.title}</span></div>
+                <div className="detail-row"><span>Biens</span><span>{selectedProperties.length} bien{selectedProperties.length > 1 ? 's' : ''} sélectionné{selectedProperties.length > 1 ? 's' : ''}</span></div>
                 <div className="detail-row"><span>Titre</span><span>{formData.title}</span></div>
                 <div className="detail-row"><span>Montant total</span><span>{parseFloat(formData.total_amount_cents || 0).toLocaleString('fr-FR')} €</span></div>
                 <div className="detail-row"><span>Prix par part</span><span>{parseFloat(formData.share_price_cents || 0).toLocaleString('fr-FR')} €</span></div>

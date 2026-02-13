@@ -64,9 +64,6 @@ export default function Layout() {
           <NavLink to="/projects" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             <TrendingUp size={18} /><span>Projets</span>
           </NavLink>
-          <NavLink to="/investments" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <Briefcase size={18} /><span>Mes Investissements</span>
-          </NavLink>
 
           {showProperties && (
             <>
