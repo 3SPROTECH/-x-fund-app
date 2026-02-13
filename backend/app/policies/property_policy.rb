@@ -36,7 +36,7 @@ class PropertyPolicy < ApplicationPolicy
       if user.administrateur?
         scope.all
       elsif user.porteur_de_projet?
-        scope.where(owner: user).or(scope.published)
+        scope.where(owner: user)
       else
         scope.published
       end

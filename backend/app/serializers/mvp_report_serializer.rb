@@ -13,10 +13,15 @@ class MvpReportSerializer
              :risk_identified, :risk_impact, :corrective_action,
              :estimated_compromise_date, :estimated_deed_date,
              :estimated_repayment_date, :exit_confirmed,
+             :review_status, :review_comment, :reviewed_at,
              :created_at, :updated_at
 
   attribute :author_name do |report|
     report.author.full_name
+  end
+
+  attribute :reviewer_name do |report|
+    report.reviewer&.full_name
   end
 
   attribute :project_title do |report|

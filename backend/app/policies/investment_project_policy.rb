@@ -44,10 +44,7 @@ class InvestmentProjectPolicy < ApplicationPolicy
       if user.administrateur?
         scope.all
       elsif user.porteur_de_projet?
-        scope.left_joins(:properties)
-             .where(properties: { owner_id: user.id })
-             .or(scope.left_joins(:properties).where.not(status: :brouillon))
-             .distinct
+        scope.where(owner_id: user.id)
       else
         scope.where.not(status: :brouillon)
       end

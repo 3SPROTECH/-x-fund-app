@@ -131,7 +131,7 @@ module Api
           :min_investment_cents, :max_investment_cents,
           :funding_start_date, :funding_end_date,
           :management_fee_percent, :gross_yield_percent, :net_yield_percent,
-          :status, :contrat_obligataire, :fici_document, :pv_decision, :note_operation,
+          :status, :operation_type, :contrat_obligataire, :fici_document, :pv_decision, :note_operation,
           additional_documents: []
         )
       end

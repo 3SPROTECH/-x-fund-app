@@ -59,3 +59,29 @@ export const projectInvestorsApi = {
     return client.get(`/investment_projects/${projectId}/investors`, { params });
   },
 };
+
+export const mvpReportsApi = {
+  list(projectId, params = {}) {
+    return client.get(`/investment_projects/${projectId}/mvp_reports`, { params });
+  },
+
+  get(projectId, reportId) {
+    return client.get(`/investment_projects/${projectId}/mvp_reports/${reportId}`);
+  },
+
+  create(projectId, data) {
+    return client.post(`/investment_projects/${projectId}/mvp_reports`, { mvp_report: data });
+  },
+
+  update(projectId, reportId, data) {
+    return client.patch(`/investment_projects/${projectId}/mvp_reports/${reportId}`, { mvp_report: data });
+  },
+
+  delete(projectId, reportId) {
+    return client.delete(`/investment_projects/${projectId}/mvp_reports/${reportId}`);
+  },
+
+  submit(projectId, reportId) {
+    return client.patch(`/investment_projects/${projectId}/mvp_reports/${reportId}/submit`);
+  },
+};

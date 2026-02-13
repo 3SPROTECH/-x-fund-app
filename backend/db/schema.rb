@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_14_100002) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_14_100003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -199,6 +199,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_100002) do
     t.integer "operation_status", default: 0, null: false
     t.bigint "purchase_price_previsionnel_cents"
     t.bigint "purchase_price_realise_cents"
+    t.text "review_comment"
+    t.integer "review_status", default: 0, null: false
+    t.datetime "reviewed_at"
+    t.bigint "reviewed_by_id"
     t.string "risk_identified"
     t.string "risk_impact"
     t.date "sale_start_date"
@@ -215,6 +219,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_100002) do
     t.index ["author_id"], name: "index_mvp_reports_on_author_id"
     t.index ["investment_project_id", "created_at"], name: "idx_mvp_reports_on_project_and_date"
     t.index ["investment_project_id"], name: "index_mvp_reports_on_investment_project_id"
+    t.index ["review_status"], name: "index_mvp_reports_on_review_status"
   end
 
   create_table "properties", force: :cascade do |t|
@@ -339,6 +344,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_100002) do
   add_foreign_key "lots", "properties"
   add_foreign_key "mvp_reports", "investment_projects"
   add_foreign_key "mvp_reports", "users", column: "author_id"
+  add_foreign_key "mvp_reports", "users", column: "reviewed_by_id"
   add_foreign_key "properties", "users", column: "owner_id"
   add_foreign_key "transactions", "investments"
   add_foreign_key "transactions", "wallets"

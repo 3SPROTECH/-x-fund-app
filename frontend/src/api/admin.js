@@ -89,6 +89,14 @@ export const adminApi = {
     return client.delete(`/admin/investment_projects/${projectId}/mvp_reports/${reportId}`);
   },
 
+  validateMvpReport(projectId, reportId, comment = '') {
+    return client.patch(`/admin/investment_projects/${projectId}/mvp_reports/${reportId}/validate_report`, { comment });
+  },
+
+  rejectMvpReport(projectId, reportId, comment) {
+    return client.patch(`/admin/investment_projects/${projectId}/mvp_reports/${reportId}/reject_report`, { comment });
+  },
+
   // Investments
   getInvestments(params = {}) {
     return client.get('/admin/investments', { params });

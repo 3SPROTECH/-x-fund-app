@@ -4,10 +4,11 @@ module Api
       class MvpReportsController < ApplicationController
         before_action :require_admin!
         before_action :set_project
-        before_action :set_report, only: [:show, :update, :destroy]
+        before_action :set_report, only: [:show, :update, :destroy, :validate_report, :reject_report]
 
         def index
           reports = @project.mvp_reports.latest_first
+          reports = reports.where(review_status: params[:review_status]) if params[:review_status].present?
           reports = paginate(reports)
 
           render json: {
@@ -23,6 +24,7 @@ module Api
         def create
           @report = @project.mvp_reports.new(report_params)
           @report.author = current_user
+          @report.review_status = :valide
 
           if @report.save
             render json: { data: MvpReportSerializer.new(@report).serializable_hash[:data] }, status: :created
@@ -42,6 +44,52 @@ module Api
         def destroy
           @report.destroy!
           render json: { message: "Rapport MVP supprime." }
+        end
+
+        # PATCH /admin/investment_projects/:id/mvp_reports/:report_id/validate_report
+        def validate_report
+          @report.update!(
+            review_status: :valide,
+            reviewed_by_id: current_user.id,
+            reviewed_at: Time.current,
+            review_comment: params[:comment]
+          )
+
+          # Approve and publish the project
+          project = @report.investment_project
+          if project.review_en_attente? || project.review_rejete?
+            project.update!(
+              review_status: :approuve,
+              reviewed_by_id: current_user.id,
+              reviewed_at: Time.current,
+              review_comment: "Rapport MVP valide - projet approuve.",
+              status: :ouvert
+            )
+          end
+
+          render json: {
+            message: "Rapport valide. Le projet a ete approuve et publie.",
+            data: MvpReportSerializer.new(@report).serializable_hash[:data]
+          }
+        end
+
+        # PATCH /admin/investment_projects/:id/mvp_reports/:report_id/reject_report
+        def reject_report
+          if params[:comment].blank?
+            return render json: { error: "Un commentaire est requis pour le rejet." }, status: :unprocessable_entity
+          end
+
+          @report.update!(
+            review_status: :rejete,
+            reviewed_by_id: current_user.id,
+            reviewed_at: Time.current,
+            review_comment: params[:comment]
+          )
+
+          render json: {
+            message: "Rapport rejete.",
+            data: MvpReportSerializer.new(@report).serializable_hash[:data]
+          }
         end
 
         private
