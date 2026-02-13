@@ -23,7 +23,7 @@ const TYPE_LABELS = {
 const EMPTY_PROPERTY = {
   title: '', description: '', property_type: 'appartement', address_line1: '', address_line2: '',
   city: '', postal_code: '', country: 'France', surface_area_sqm: '', acquisition_price_cents: '',
-  estimated_value_cents: '', status: 'brouillon',
+  estimated_value_cents: '', status: 'brouillon', number_of_lots: '', lots: [],
 };
 
 const fmt = (cents) =>
@@ -106,6 +106,8 @@ export default function AdminPropertiesPage() {
       acquisition_price_cents: a.acquisition_price_cents ? a.acquisition_price_cents / 100 : '',
       estimated_value_cents: a.estimated_value_cents ? a.estimated_value_cents / 100 : '',
       status: a.status || 'brouillon',
+      number_of_lots: a.number_of_lots || '',
+      lots: (a.lots || []).map(l => ({ id: l.id, lot_number: l.lot_number, surface_area_sqm: l.surface_area_sqm || '', description: l.description || '' })),
     });
     setShowEditModal(true);
   };
@@ -113,6 +115,16 @@ export default function AdminPropertiesPage() {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    const isImmeuble = editForm.property_type === 'immeuble';
+    const lotsAttributes = isImmeuble
+      ? editForm.lots.map(l => ({
+          ...(l.id ? { id: l.id } : {}),
+          lot_number: l.lot_number,
+          surface_area_sqm: parseFloat(l.surface_area_sqm) || null,
+          description: l.description || '',
+        }))
+      : [];
+    const existingLotIds = (editForm.lots || []).filter(l => l.id).map(l => ({ id: l.id, _destroy: true }));
     const payload = {
       title: editForm.title,
       description: editForm.description,
@@ -126,6 +138,8 @@ export default function AdminPropertiesPage() {
       acquisition_price_cents: Math.round(parseFloat(editForm.acquisition_price_cents) * 100) || 0,
       estimated_value_cents: Math.round(parseFloat(editForm.estimated_value_cents) * 100) || 0,
       status: editForm.status,
+      number_of_lots: isImmeuble ? (parseInt(editForm.number_of_lots) || null) : null,
+      lots_attributes: isImmeuble ? lotsAttributes : existingLotIds,
     };
     try {
       if (editingId) {
@@ -145,7 +159,34 @@ export default function AdminPropertiesPage() {
     }
   };
 
-  const setEF = (field) => (e) => setEditForm({ ...editForm, [field]: e.target.value });
+  const setEF = (field) => (e) => {
+    const value = e.target.value;
+    setEditForm(prev => {
+      const updated = { ...prev, [field]: value };
+      if (field === 'number_of_lots') {
+        const count = parseInt(value) || 0;
+        const currentLots = prev.lots || [];
+        const newLots = [];
+        for (let i = 0; i < count; i++) {
+          newLots.push(currentLots[i] || { lot_number: i + 1, surface_area_sqm: '', description: '' });
+        }
+        updated.lots = newLots;
+      }
+      if (field === 'property_type' && value !== 'immeuble') {
+        updated.number_of_lots = '';
+        updated.lots = [];
+      }
+      return updated;
+    });
+  };
+
+  const setLotField = (index, field) => (e) => {
+    setEditForm(prev => {
+      const lots = [...prev.lots];
+      lots[index] = { ...lots[index], [field]: e.target.value };
+      return { ...prev, lots };
+    });
+  };
 
   return (
     <div className="page">
@@ -250,11 +291,30 @@ export default function AdminPropertiesPage() {
                 <div className="detail-row"><span>Type</span><span>{TYPE_LABELS[a.property_type] || a.property_type}</span></div>
                 <div className="detail-row"><span>Adresse</span><span>{[a.address_line1, a.city, a.postal_code].filter(Boolean).join(', ')}</span></div>
                 <div className="detail-row"><span>Surface</span><span>{a.surface_area_sqm ? `${a.surface_area_sqm} m²` : '—'}</span></div>
+                {a.property_type === 'immeuble' && a.number_of_lots && (
+                  <div className="detail-row"><span>Nombre de lots</span><span>{a.number_of_lots}</span></div>
+                )}
                 <div className="detail-row"><span>Prix d'acquisition</span><span>{fmt(a.acquisition_price_cents)}</span></div>
                 <div className="detail-row"><span>Valeur estimée</span><span>{fmt(a.estimated_value_cents)}</span></div>
                 <div className="detail-row"><span>Projet lié</span><span>{a.has_investment_project ? 'Oui' : 'Non'}</span></div>
                 <div className="detail-row"><span>Créé le</span><span>{new Date(a.created_at).toLocaleDateString('fr-FR')}</span></div>
               </div>
+
+              {a.property_type === 'immeuble' && a.lots?.length > 0 && (
+                <>
+                  <div className="divider" />
+                  <h4 style={{ fontSize: '.85rem', marginBottom: '.5rem' }}>Lots ({a.lots.length})</h4>
+                  <div style={{ display: 'grid', gap: '.35rem' }}>
+                    {a.lots.map((lot) => (
+                      <div key={lot.id || lot.lot_number} style={{ display: 'flex', gap: '.75rem', padding: '.4rem .6rem', background: 'var(--bg)', borderRadius: 'var(--radius-sm)', fontSize: '.8rem' }}>
+                        <span style={{ fontWeight: 600, minWidth: '40px' }}>Lot {lot.lot_number}</span>
+                        {lot.surface_area_sqm && <span>{lot.surface_area_sqm} m²</span>}
+                        {lot.description && <span style={{ color: 'var(--text-muted)' }}>{lot.description}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
               <div className="divider" />
               <div className="detail-actions">
@@ -303,7 +363,33 @@ export default function AdminPropertiesPage() {
                         {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                       </select>
                     </div>
+                    {editForm.property_type === 'immeuble' && (
+                      <div className="form-group">
+                        <label>Nombre de lots</label>
+                        <input type="number" min="1" max="50" step="1" value={editForm.number_of_lots} onChange={setEF('number_of_lots')} required placeholder="Ex: 4" />
+                      </div>
+                    )}
                   </div>
+                  {editForm.property_type === 'immeuble' && editForm.lots.length > 0 && (
+                    <div style={{ marginTop: '1rem', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '1rem' }}>
+                      <div className="form-section-title">Détail des lots</div>
+                      {editForm.lots.map((lot, i) => (
+                        <div key={i} style={{ display: 'flex', gap: '.75rem', alignItems: 'flex-end', marginBottom: '.75rem' }}>
+                          <div style={{ minWidth: '60px', fontWeight: 600, paddingBottom: '.5rem', color: 'var(--text-muted)' }}>
+                            Lot {i + 1}
+                          </div>
+                          <div className="form-group" style={{ flex: 1 }}>
+                            <label>Surface (m²)</label>
+                            <input type="number" step="0.1" min="0" value={lot.surface_area_sqm} onChange={setLotField(i, 'surface_area_sqm')} placeholder="Surface" />
+                          </div>
+                          <div className="form-group" style={{ flex: 2 }}>
+                            <label>Description</label>
+                            <input value={lot.description} onChange={setLotField(i, 'description')} placeholder={`Ex: Appartement T${i + 2}`} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <div className="form-group" style={{ marginTop: '.75rem' }}>
                     <label>Description</label>
                     <textarea value={editForm.description} onChange={setEF('description')} placeholder="Description du bien..." />

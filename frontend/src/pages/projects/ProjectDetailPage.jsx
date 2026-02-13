@@ -1057,49 +1057,13 @@ export default function ProjectDetailPage() {
               </form>
             </div>
           )}
-          {statements.length === 0 ? (
-            <div className="card"><div className="empty-state"><FileText size={48} /><p>Aucun rapport financier</p></div></div>
-          ) : (
-            <div className="table-container">
-              <table className="table">
-                <thead>
-                  <tr><th>Type</th><th>Période</th><th>Revenus</th><th>Dépenses</th><th>Résultat net</th><th>Rend. net</th>{isAdmin && <th>Actions</th>}</tr>
-                </thead>
-                <tbody>
-                  {statements.map(s => {
-                    const sa = s.attributes || s;
-                    return (
-                      <tr key={s.id}>
-                        <td><span className="badge badge-info">{STMT_TYPE[sa.statement_type] || sa.statement_type}</span></td>
-                        <td>{fmtDate(sa.period_start)} — {fmtDate(sa.period_end)}</td>
-                        <td className="amount-positive">{fmt(sa.total_revenue_cents)}</td>
-                        <td className="amount-negative">{fmt(sa.total_expenses_cents)}</td>
-                        <td style={{ fontWeight: 600 }}>{fmt(sa.net_income_cents)}</td>
-                        <td>{sa.net_yield_percent ?? '—'}%</td>
-                        {isAdmin && (
-                          <td>
-                            <div className="actions-cell">
-                              <button className="btn-icon btn-danger" title="Supprimer" onClick={() => handleDeleteStatement(s.id)}>
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+          
 
           {/* ===== RAPPORT MVP (Admin + Porteur owner) ===== */}
           {(isAdmin || isOwner) && (
             <div style={{ marginTop: '2rem' }}>
-              <div className="divider" style={{ marginBottom: '1.5rem' }} />
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3>Rapport MVP</h3>
                 {mvpMode === 'list' && a.operation_type === 'marchand_de_biens' && !isAdmin && (
                   <button className="btn btn-sm btn-primary" onClick={handleMvpCreate}><Plus size={14} /> Nouveau rapport</button>
                 )}
