@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_14_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_14_100002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -126,6 +126,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_000002) do
     t.bigint "max_investment_cents"
     t.bigint "min_investment_cents", null: false
     t.decimal "net_yield_percent", precision: 5, scale: 2
+    t.integer "operation_type"
     t.bigint "owner_id", null: false
     t.text "review_comment"
     t.integer "review_status", default: 0, null: false
@@ -140,6 +141,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_000002) do
     t.datetime "updated_at", null: false
     t.index ["funding_end_date"], name: "index_investment_projects_on_funding_end_date"
     t.index ["funding_start_date"], name: "index_investment_projects_on_funding_start_date"
+    t.index ["operation_type"], name: "index_investment_projects_on_operation_type"
     t.index ["owner_id"], name: "index_investment_projects_on_owner_id"
     t.index ["review_status"], name: "index_investment_projects_on_review_status"
     t.index ["reviewed_by_id"], name: "index_investment_projects_on_reviewed_by_id"
@@ -177,6 +179,42 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_000002) do
     t.datetime "updated_at", null: false
     t.index ["property_id", "lot_number"], name: "index_lots_on_property_id_and_lot_number", unique: true
     t.index ["property_id"], name: "index_lots_on_property_id"
+  end
+
+  create_table "mvp_reports", force: :cascade do |t|
+    t.bigint "author_id", null: false
+    t.bigint "best_offer_previsionnel_cents"
+    t.bigint "best_offer_realise_cents"
+    t.decimal "budget_variance_percent", precision: 5, scale: 2
+    t.text "corrective_action"
+    t.datetime "created_at", null: false
+    t.date "estimated_compromise_date"
+    t.date "estimated_deed_date"
+    t.date "estimated_repayment_date"
+    t.boolean "exit_confirmed", default: false, null: false
+    t.date "expected_repayment_date"
+    t.bigint "investment_project_id", null: false
+    t.bigint "listed_price_cents"
+    t.integer "offers_count"
+    t.integer "operation_status", default: 0, null: false
+    t.bigint "purchase_price_previsionnel_cents"
+    t.bigint "purchase_price_realise_cents"
+    t.string "risk_identified"
+    t.string "risk_impact"
+    t.date "sale_start_date"
+    t.text "summary"
+    t.bigint "target_sale_price_previsionnel_cents"
+    t.bigint "target_sale_price_realise_cents"
+    t.bigint "total_cost_previsionnel_cents"
+    t.bigint "total_cost_realise_cents"
+    t.datetime "updated_at", null: false
+    t.integer "visits_count"
+    t.bigint "works_previsionnel_cents"
+    t.decimal "works_progress_percent", precision: 5, scale: 2
+    t.bigint "works_realise_cents"
+    t.index ["author_id"], name: "index_mvp_reports_on_author_id"
+    t.index ["investment_project_id", "created_at"], name: "idx_mvp_reports_on_project_and_date"
+    t.index ["investment_project_id"], name: "index_mvp_reports_on_investment_project_id"
   end
 
   create_table "properties", force: :cascade do |t|
@@ -299,6 +337,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_000002) do
   add_foreign_key "investments", "investment_projects"
   add_foreign_key "investments", "users"
   add_foreign_key "lots", "properties"
+  add_foreign_key "mvp_reports", "investment_projects"
+  add_foreign_key "mvp_reports", "users", column: "author_id"
   add_foreign_key "properties", "users", column: "owner_id"
   add_foreign_key "transactions", "investments"
   add_foreign_key "transactions", "wallets"

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../../api/admin';
 import {
   Briefcase, CheckCircle, XCircle, ChevronLeft,
-  ChevronRight, Search, Plus,
+  ChevronRight, Search, Plus, Eye, FileText,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -150,6 +150,8 @@ export default function AdminProjectsPage() {
                           </td>
                           <td>
                             <div className="actions-cell" onClick={(e) => e.stopPropagation()}>
+                              <button className="btn-icon" title="Voir le détail" onClick={() => navigate(`/projects/${p.id}`)}><Eye size={16} /></button>
+                              <button className="btn-icon" title="Rapport MVP" onClick={() => navigate(`/admin/projects/${p.id}/mvp-report`)}><FileText size={16} /></button>
                               {a.review_status === 'en_attente' && (
                                 <>
                                   <button className="btn-icon btn-success" title="Approuver" onClick={() => handleApprove(p.id)}><CheckCircle size={16} /></button>

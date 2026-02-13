@@ -80,6 +80,7 @@ Rails.application.routes.draw do
             patch :approve
             patch :reject
           end
+          resources :mvp_reports, only: [:index, :show, :create, :update, :destroy]
         end
 
         resources :investments, only: [:index, :show]
