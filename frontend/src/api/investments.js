@@ -9,8 +9,12 @@ export const investmentProjectsApi = {
     return client.get(`/investment_projects/${id}`);
   },
 
-  create(propertyId, data) {
-    return client.post(`/properties/${propertyId}/investment_projects`, { investment_project: data });
+  create(data) {
+    const { property_ids, ...payload } = data;
+    return client.post('/investment_projects', {
+      property_ids: property_ids || [],
+      investment_project: payload,
+    });
   },
 
   update(id, data) {

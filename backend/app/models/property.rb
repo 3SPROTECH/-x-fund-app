@@ -2,7 +2,11 @@ class Property < ApplicationRecord
   include Auditable
 
   belongs_to :owner, class_name: "User"
-  has_one :investment_project, dependent: :destroy
+  has_one :investment_project_property, dependent: :destroy
+  has_one :investment_project, through: :investment_project_property
+
+  has_many :lots, dependent: :destroy
+  accepts_nested_attributes_for :lots, allow_destroy: true
 
   has_many_attached :photos
   has_many_attached :documents
@@ -16,6 +20,8 @@ class Property < ApplicationRecord
   validates :postal_code, presence: true
   validates :country, presence: true
   validates :acquisition_price_cents, presence: true, numericality: { greater_than: 0 }
+  validates :number_of_lots, numericality: { greater_than: 0, only_integer: true }, allow_nil: true
+  validates :number_of_lots, presence: true, if: :immeuble?
 
   scope :published, -> { where.not(status: :brouillon) }
   scope :by_city, ->(city) { where(city: city) if city.present? }

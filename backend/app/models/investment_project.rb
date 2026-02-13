@@ -1,7 +1,8 @@
 class InvestmentProject < ApplicationRecord
   include Auditable
 
-  belongs_to :property
+  has_many :investment_project_properties, dependent: :destroy
+  has_many :properties, through: :investment_project_properties
   belongs_to :owner, class_name: "User"
   belongs_to :reviewer, class_name: "User", foreign_key: :reviewed_by_id, optional: true
   has_many :investments, dependent: :restrict_with_error
@@ -34,6 +35,11 @@ class InvestmentProject < ApplicationRecord
   scope :pending_review, -> { where(review_status: :en_attente) }
   scope :approved, -> { where(review_status: :approuve) }
   scope :rejected, -> { where(review_status: :rejete) }
+
+  # Premier bien (pour affichage titre/ville/photos)
+  def primary_property
+    properties.first
+  end
 
   def funding_progress_percent
     return 0.0 if total_shares.zero?

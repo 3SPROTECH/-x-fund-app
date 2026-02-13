@@ -21,11 +21,15 @@ class InvestmentProjectSerializer
   end
 
   attribute :property_title do |project|
-    project.property.title
+    project.primary_property&.title
   end
 
   attribute :property_city do |project|
-    project.property.city
+    project.primary_property&.city
+  end
+
+  attribute :property_ids do |project|
+    project.properties.pluck(:id)
   end
 
   attribute :owner_id do |project|
@@ -60,9 +64,10 @@ class InvestmentProjectSerializer
   end
 
   attribute :property_photos do |project|
-    next [] unless project.property.photos.attached?
+    prop = project.primary_property
+    next [] unless prop&.photos&.attached?
 
-    project.property.photos.map { |photo|
+    prop.photos.map { |photo|
       begin
         {
           id: photo.id,

@@ -6,8 +6,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
+  --primary: #000000;
+  --primary-hover: #333333;
   --primary-light: #eef2ff;
   --primary-50: rgba(99,102,241,.06);
   --primary-100: rgba(99,102,241,.12);
@@ -380,8 +380,8 @@ a:hover { color: var(--primary-hover); }
 .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 .btn svg { width: 16px; height: 16px; }
 
-.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-.btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.btn-primary { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+.btn-primary:hover { background: transparent; color: var(--primary-hover); border-color: var(--primary-hover); }
 .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
 .btn-success:hover { background: var(--success-hover); border-color: var(--success-hover); }
 .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }

@@ -65,8 +65,9 @@ module Api
             :latitude, :longitude,
             :acquisition_price_cents, :estimated_value_cents,
             :estimated_annual_yield_percent, :investment_duration_months,
-            :surface_area_sqm,
-            photos: [], documents: []
+            :surface_area_sqm, :number_of_lots,
+            photos: [], documents: [],
+            lots_attributes: [:id, :lot_number, :surface_area_sqm, :description, :_destroy]
           )
         end
       end
