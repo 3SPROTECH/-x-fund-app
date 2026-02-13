@@ -16,17 +16,19 @@ export default function AdminInvestmentsPage() {
   const [investments, setInvestments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: '' });
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [selected, setSelected] = useState(null);
 
-  useEffect(() => { load(); }, [page, filters]);
+  useEffect(() => { load(); }, [page, filters, search]);
 
   const load = async () => {
     setLoading(true);
     try {
       const params = { page };
       if (filters.status) params.status = filters.status;
+      if (search) params.search = search;
       const res = await adminApi.getInvestments(params);
       setInvestments(res.data.data || []);
       setMeta(res.data.meta || {});
@@ -64,6 +66,9 @@ export default function AdminInvestmentsPage() {
           ]},
         ]}
         onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Rechercher un investissement..."
       />
 
       <div className="admin-layout">

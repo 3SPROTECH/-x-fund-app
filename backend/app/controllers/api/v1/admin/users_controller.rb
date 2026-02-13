@@ -9,6 +9,10 @@ module Api
           users = User.all
           users = users.where(role: params[:role]) if params[:role].present?
           users = users.where(kyc_status: params[:kyc_status]) if params[:kyc_status].present?
+          if params[:search].present?
+            q = "%#{params[:search]}%"
+            users = users.where("first_name ILIKE :q OR last_name ILIKE :q OR email ILIKE :q", q: q)
+          end
           users = paginate(users.order(created_at: :desc))
 
           render json: {

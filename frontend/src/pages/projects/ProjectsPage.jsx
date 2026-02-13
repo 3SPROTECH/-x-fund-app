@@ -21,16 +21,18 @@ export default function ProjectsPage() {
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState('');
 
   const canCreateProject = user?.role === 'porteur_de_projet' || user?.role === 'administrateur';
 
-  useEffect(() => { loadProjects(); }, [page, statusFilter]);
+  useEffect(() => { loadProjects(); }, [page, statusFilter, search]);
 
   const loadProjects = async () => {
     setLoading(true);
     try {
       const params = { page };
       if (statusFilter) params.status = statusFilter;
+      if (search) params.search = search;
       const res = await investmentProjectsApi.list(params);
       setProjects(res.data.data || []);
       setMeta(res.data.meta || {});
@@ -81,6 +83,9 @@ export default function ProjectsPage() {
           ]},
         ]}
         onFilterChange={(key, value) => { setStatusFilter(value); setPage(1); }}
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Rechercher un projet..."
       />
 
       {loading ? (

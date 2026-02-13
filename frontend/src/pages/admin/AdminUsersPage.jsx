@@ -15,6 +15,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ role: '', kyc_status: '' });
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [selectedUser, setSelectedUser] = useState(null);
@@ -22,7 +23,7 @@ export default function AdminUsersPage() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectUserId, setRejectUserId] = useState(null);
 
-  useEffect(() => { loadUsers(); }, [page, filters]);
+  useEffect(() => { loadUsers(); }, [page, filters, search]);
 
   const loadUsers = async () => {
     setLoading(true);
@@ -30,6 +31,7 @@ export default function AdminUsersPage() {
       const params = { page };
       if (filters.role) params.role = filters.role;
       if (filters.kyc_status) params.kyc_status = filters.kyc_status;
+      if (search) params.search = search;
       const res = await adminApi.getUsers(params);
       setUsers(res.data.data || []);
       setMeta(res.data.meta || {});
@@ -113,6 +115,9 @@ export default function AdminUsersPage() {
           ]},
         ]}
         onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Rechercher un utilisateur..."
       />
 
       <div className="admin-layout">

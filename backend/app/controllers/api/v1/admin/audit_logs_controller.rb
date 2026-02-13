@@ -9,6 +9,10 @@ module Api
           logs = logs.where(auditable_type: params[:resource_type]) if params[:resource_type].present?
           logs = logs.where(action: params[:action_type]) if params[:action_type].present?
           logs = logs.by_user(User.find(params[:user_id])) if params[:user_id].present?
+          if params[:search].present?
+            q = "%#{params[:search]}%"
+            logs = logs.joins(:user).where("users.first_name ILIKE :q OR users.last_name ILIKE :q OR audit_logs.action ILIKE :q", q: q)
+          end
           logs = paginate(logs)
 
           render json: {

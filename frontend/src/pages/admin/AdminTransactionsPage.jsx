@@ -24,11 +24,12 @@ export default function AdminTransactionsPage() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ transaction_type: '', status: '' });
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [selected, setSelected] = useState(null);
 
-  useEffect(() => { load(); }, [page, filters]);
+  useEffect(() => { load(); }, [page, filters, search]);
 
   const load = async () => {
     setLoading(true);
@@ -36,6 +37,7 @@ export default function AdminTransactionsPage() {
       const params = { page };
       if (filters.transaction_type) params.transaction_type = filters.transaction_type;
       if (filters.status) params.status = filters.status;
+      if (search) params.search = search;
       const res = await adminApi.getTransactions(params);
       setTransactions(res.data.data || []);
       setMeta(res.data.meta || {});
@@ -79,6 +81,9 @@ export default function AdminTransactionsPage() {
           ]},
         ]}
         onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Rechercher une transaction..."
       />
 
       <div className="admin-layout">

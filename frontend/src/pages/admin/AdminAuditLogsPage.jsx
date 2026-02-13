@@ -13,9 +13,10 @@ export default function AdminAuditLogsPage() {
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [filters, setFilters] = useState({ resource_type: '', action_type: '' });
+  const [search, setSearch] = useState('');
   const [selectedLog, setSelectedLog] = useState(null);
 
-  useEffect(() => { loadLogs(); }, [page, filters]);
+  useEffect(() => { loadLogs(); }, [page, filters, search]);
 
   const loadLogs = async () => {
     setLoading(true);
@@ -23,6 +24,7 @@ export default function AdminAuditLogsPage() {
       const params = { page };
       if (filters.resource_type) params.resource_type = filters.resource_type;
       if (filters.action_type) params.action_type = filters.action_type;
+      if (search) params.search = search;
       const res = await adminApi.getAuditLogs(params);
       setLogs(res.data.data || []);
       setMeta(res.data.meta || {});
@@ -59,6 +61,9 @@ export default function AdminAuditLogsPage() {
           ]},
         ]}
         onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Rechercher dans les logs..."
       />
 
       <div className="admin-layout">

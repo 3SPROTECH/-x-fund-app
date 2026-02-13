@@ -27,13 +27,14 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: '', review_status: '' });
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectId, setRejectId] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
 
-  useEffect(() => { load(); }, [page, filters]);
+  useEffect(() => { load(); }, [page, filters, search]);
 
   const load = async () => {
     setLoading(true);
@@ -41,6 +42,7 @@ export default function AdminProjectsPage() {
       const params = { page };
       if (filters.status) params.status = filters.status;
       if (filters.review_status) params.review_status = filters.review_status;
+      if (search) params.search = search;
       const res = await adminApi.getProjects(params);
       setProjects(res.data.data || []);
       setMeta(res.data.meta || {});
@@ -103,6 +105,9 @@ export default function AdminProjectsPage() {
           ]},
         ]}
         onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Rechercher un projet..."
       />
 
       <div className="admin-layout">
