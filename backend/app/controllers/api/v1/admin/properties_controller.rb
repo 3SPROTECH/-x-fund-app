@@ -10,6 +10,10 @@ module Api
           properties = properties.where(status: params[:status]) if params[:status].present?
           properties = properties.where(property_type: params[:property_type]) if params[:property_type].present?
           properties = properties.where(owner_id: params[:owner_id]) if params[:owner_id].present?
+          if params[:search].present?
+            q = "%#{params[:search]}%"
+            properties = properties.where("title ILIKE :q OR city ILIKE :q OR address_line1 ILIKE :q", q: q)
+          end
           properties = paginate(properties.order(created_at: :desc))
 
           render json: {

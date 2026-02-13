@@ -4,6 +4,10 @@ module Api
       def index
         investments = policy_scope(Investment).includes(:investment_project)
         investments = investments.where(status: params[:status]) if params[:status].present?
+        if params[:search].present?
+          q = "%#{params[:search]}%"
+          investments = investments.joins(:investment_project).where("investment_projects.title ILIKE :q", q: q)
+        end
         investments = paginate(investments.order(created_at: :desc))
 
         render json: {

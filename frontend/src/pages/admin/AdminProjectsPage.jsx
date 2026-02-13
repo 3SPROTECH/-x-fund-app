@@ -6,6 +6,7 @@ import {
   ChevronRight, Search, Plus, Eye, FileText,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import TableFilters from '../../components/TableFilters';
 
 const STATUS_LABELS = {
   brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé',
@@ -26,13 +27,14 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: '', review_status: '' });
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectId, setRejectId] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
 
-  useEffect(() => { load(); }, [page, filters]);
+  useEffect(() => { load(); }, [page, filters, search]);
 
   const load = async () => {
     setLoading(true);
@@ -40,6 +42,7 @@ export default function AdminProjectsPage() {
       const params = { page };
       if (filters.status) params.status = filters.status;
       if (filters.review_status) params.review_status = filters.review_status;
+      if (search) params.search = search;
       const res = await adminApi.getProjects(params);
       setProjects(res.data.data || []);
       setMeta(res.data.meta || {});
@@ -90,22 +93,22 @@ export default function AdminProjectsPage() {
         </div>
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Statut</label>
-          <select value={filters.status} onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}>
-            <option value="">Tous les statuts</option>
-            {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Validation</label>
-          <select value={filters.review_status} onChange={(e) => { setFilters({ ...filters, review_status: e.target.value }); setPage(1); }}>
-            <option value="">Toutes les validations</option>
-            {Object.entries(REVIEW_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'status', label: 'Statut', value: filters.status, options: [
+            { value: '', label: 'Tous les statuts' },
+            ...Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+          { key: 'review_status', label: 'Validation', value: filters.review_status, options: [
+            { value: '', label: 'Toutes les validations' },
+            ...Object.entries(REVIEW_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Rechercher un projet..."
+      />
 
       <div className="admin-layout">
         <div>

@@ -152,6 +152,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_100003) do
     t.bigint "amount_cents", null: false
     t.datetime "confirmed_at"
     t.datetime "created_at", null: false
+    t.bigint "fee_cents", default: 0, null: false
     t.datetime "invested_at", null: false
     t.bigint "investment_project_id", null: false
     t.integer "shares_count", null: false

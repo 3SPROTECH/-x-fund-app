@@ -9,6 +9,11 @@ module Api
           transactions = transactions.where(transaction_type: params[:transaction_type]) if params[:transaction_type].present?
           transactions = transactions.where(status: params[:status]) if params[:status].present?
           transactions = transactions.where(wallet_id: params[:wallet_id]) if params[:wallet_id].present?
+          if params[:search].present?
+            q = "%#{params[:search]}%"
+            transactions = transactions.joins(wallet: :user)
+              .where("users.first_name ILIKE :q OR users.last_name ILIKE :q OR users.email ILIKE :q OR transactions.reference ILIKE :q", q: q)
+          end
           transactions = paginate(transactions.order(created_at: :desc))
 
           render json: {

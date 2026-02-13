@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../api/client';
+import TableFilters from '../../components/TableFilters';
 
 const KYC_LABELS = { pending: 'En attente', submitted: 'Soumis', verified: 'Vérifié', rejected: 'Rejeté' };
 const ROLE_LABELS = { investisseur: 'Investisseur', porteur_de_projet: 'Porteur de projet', administrateur: 'Administrateur' };
@@ -14,6 +15,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ role: '', kyc_status: '' });
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [selectedUser, setSelectedUser] = useState(null);
@@ -21,7 +23,7 @@ export default function AdminUsersPage() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectUserId, setRejectUserId] = useState(null);
 
-  useEffect(() => { loadUsers(); }, [page, filters]);
+  useEffect(() => { loadUsers(); }, [page, filters, search]);
 
   const loadUsers = async () => {
     setLoading(true);
@@ -29,6 +31,7 @@ export default function AdminUsersPage() {
       const params = { page };
       if (filters.role) params.role = filters.role;
       if (filters.kyc_status) params.kyc_status = filters.kyc_status;
+      if (search) params.search = search;
       const res = await adminApi.getUsers(params);
       setUsers(res.data.data || []);
       setMeta(res.data.meta || {});
@@ -95,27 +98,27 @@ export default function AdminUsersPage() {
         <span className="badge"><Users size={12} /> {meta.total_count ?? users.length} utilisateur(s)</span>
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Rôle</label>
-          <select value={filters.role} onChange={(e) => { setFilters({ ...filters, role: e.target.value }); setPage(1); }}>
-            <option value="">Tous les rôles</option>
-            <option value="investisseur">Investisseur</option>
-            <option value="porteur_de_projet">Porteur de projet</option>
-            <option value="administrateur">Administrateur</option>
-          </select>
-        </div>
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Statut KYC</label>
-          <select value={filters.kyc_status} onChange={(e) => { setFilters({ ...filters, kyc_status: e.target.value }); setPage(1); }}>
-            <option value="">Tous les statuts</option>
-            <option value="pending">En attente</option>
-            <option value="submitted">Soumis</option>
-            <option value="verified">Vérifié</option>
-            <option value="rejected">Rejeté</option>
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'role', label: 'Rôle', value: filters.role, options: [
+            { value: '', label: 'Tous les rôles' },
+            { value: 'investisseur', label: 'Investisseur' },
+            { value: 'porteur_de_projet', label: 'Porteur de projet' },
+            { value: 'administrateur', label: 'Administrateur' },
+          ]},
+          { key: 'kyc_status', label: 'Statut KYC', value: filters.kyc_status, options: [
+            { value: '', label: 'Tous les statuts' },
+            { value: 'pending', label: 'En attente' },
+            { value: 'submitted', label: 'Soumis' },
+            { value: 'verified', label: 'Vérifié' },
+            { value: 'rejected', label: 'Rejeté' },
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Rechercher un utilisateur..."
+      />
 
       <div className="admin-layout">
         <div>

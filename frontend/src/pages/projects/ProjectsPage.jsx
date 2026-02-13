@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { TrendingUp, MapPin, ChevronLeft, ChevronRight, Plus, Calendar, Image as ImageIcon, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../api/client';
+import TableFilters from '../../components/TableFilters';
 
 const STATUS_LABELS = { brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé', cloture: 'Clôturé', annule: 'Annulé' };
 const STATUS_BADGE = { brouillon: 'badge-warning', ouvert: 'badge-success', finance: 'badge-info', cloture: '', annule: 'badge-danger' };
@@ -20,16 +21,18 @@ export default function ProjectsPage() {
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState('');
 
   const canCreateProject = user?.role === 'porteur_de_projet' || user?.role === 'administrateur';
 
-  useEffect(() => { loadProjects(); }, [page, statusFilter]);
+  useEffect(() => { loadProjects(); }, [page, statusFilter, search]);
 
   const loadProjects = async () => {
     setLoading(true);
     try {
       const params = { page };
       if (statusFilter) params.status = statusFilter;
+      if (search) params.search = search;
       const res = await investmentProjectsApi.list(params);
       setProjects(res.data.data || []);
       setMeta(res.data.meta || {});
@@ -70,17 +73,20 @@ export default function ProjectsPage() {
         )}
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Statut</label>
-          <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}>
-            <option value="">Tous</option>
-            <option value="ouvert">Ouvert</option>
-            <option value="finance">Financé</option>
-            <option value="cloture">Clôturé</option>
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'status', label: 'Statut', value: statusFilter, options: [
+            { value: '', label: 'Tous' },
+            { value: 'ouvert', label: 'Ouvert' },
+            { value: 'finance', label: 'Financé' },
+            { value: 'cloture', label: 'Clôturé' },
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setStatusFilter(value); setPage(1); }}
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Rechercher un projet..."
+      />
 
       {loading ? (
         <div className="page-loading"><div className="spinner" /></div>

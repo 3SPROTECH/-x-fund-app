@@ -9,6 +9,11 @@ module Api
           investments = investments.where(status: params[:status]) if params[:status].present?
           investments = investments.where(investment_project_id: params[:project_id]) if params[:project_id].present?
           investments = investments.where(user_id: params[:user_id]) if params[:user_id].present?
+          if params[:search].present?
+            q = "%#{params[:search]}%"
+            investments = investments.joins(:user, :investment_project)
+              .where("users.first_name ILIKE :q OR users.last_name ILIKE :q OR users.email ILIKE :q OR investment_projects.title ILIKE :q", q: q)
+          end
           investments = paginate(investments.order(created_at: :desc))
 
           render json: {

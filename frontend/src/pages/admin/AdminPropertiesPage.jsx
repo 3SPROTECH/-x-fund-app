@@ -5,6 +5,7 @@ import {
   Search, MapPin, Home, Plus, Pencil, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import TableFilters from '../../components/TableFilters';
 
 const STATUS_LABELS = {
   brouillon: 'Brouillon', en_financement: 'En financement', finance: 'Financé',
@@ -32,6 +33,7 @@ export default function AdminPropertiesPage() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: '', property_type: '' });
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [selected, setSelected] = useState(null);
@@ -42,7 +44,7 @@ export default function AdminPropertiesPage() {
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => { load(); }, [page, filters]);
+  useEffect(() => { load(); }, [page, filters, search]);
 
   const load = async () => {
     setLoading(true);
@@ -50,6 +52,7 @@ export default function AdminPropertiesPage() {
       const params = { page };
       if (filters.status) params.status = filters.status;
       if (filters.property_type) params.property_type = filters.property_type;
+      if (search) params.search = search;
       const res = await adminApi.getProperties(params);
       setProperties(res.data.data || []);
       setMeta(res.data.meta || {});
@@ -159,22 +162,22 @@ export default function AdminPropertiesPage() {
         </div>
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Statut</label>
-          <select value={filters.status} onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}>
-            <option value="">Tous les statuts</option>
-            {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Type</label>
-          <select value={filters.property_type} onChange={(e) => { setFilters({ ...filters, property_type: e.target.value }); setPage(1); }}>
-            <option value="">Tous les types</option>
-            {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'status', label: 'Statut', value: filters.status, options: [
+            { value: '', label: 'Tous les statuts' },
+            ...Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+          { key: 'property_type', label: 'Type', value: filters.property_type, options: [
+            { value: '', label: 'Tous les types' },
+            ...Object.entries(TYPE_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+        search={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Rechercher un bien..."
+      />
 
       <div className="admin-layout">
         <div>

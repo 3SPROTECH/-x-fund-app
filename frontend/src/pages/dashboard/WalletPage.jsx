@@ -5,7 +5,7 @@ import { adminApi } from '../../api/admin';
 import {
   Wallet, ArrowDownCircle, ArrowUpCircle, ChevronLeft,
   ChevronRight, TrendingUp, TrendingDown, ReceiptText,
-  Landmark, PiggyBank,
+  Landmark, PiggyBank, Briefcase,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -19,6 +19,8 @@ const FEE_TYPE_LABELS = {
   investment_commission: 'Commission investissement',
   dividend_commission: 'Commission dividendes',
 };
+
+const STATUS_LABELS = { en_cours: 'En cours', confirme: 'Confirmé', cloture: 'Clôturé', liquide: 'Liquidé', annule: 'Annulé' };
 
 export default function WalletPage() {
   const { user } = useAuth();
@@ -37,9 +39,9 @@ export default function WalletPage() {
   // Admin state
   const [platformWallet, setPlatformWallet] = useState(null);
   const [platformLoading, setPlatformLoading] = useState(false);
-  const [allTransactions, setAllTransactions] = useState([]);
-  const [allTxMeta, setAllTxMeta] = useState({});
-  const [allTxPage, setAllTxPage] = useState(1);
+  const [allInvestments, setAllInvestments] = useState([]);
+  const [allInvMeta, setAllInvMeta] = useState({});
+  const [allInvPage, setAllInvPage] = useState(1);
 
   useEffect(() => {
     if (isAdmin) {
@@ -54,8 +56,8 @@ export default function WalletPage() {
   }, [isAdmin, txPage]);
 
   useEffect(() => {
-    if (isAdmin) loadAllTransactions();
-  }, [isAdmin, allTxPage]);
+    if (isAdmin) loadAllInvestments();
+  }, [isAdmin, allInvPage]);
 
   const loadWallet = async () => {
     try {
@@ -89,12 +91,12 @@ export default function WalletPage() {
     }
   };
 
-  const loadAllTransactions = async () => {
+  const loadAllInvestments = async () => {
     try {
-      const res = await adminApi.getTransactions({ page: allTxPage });
-      setAllTransactions(res.data.data || []);
-      setAllTxMeta(res.data.meta || {});
-    } catch { /* no transactions yet */ }
+      const res = await adminApi.getInvestments({ page: allInvPage });
+      setAllInvestments(res.data.data || []);
+      setAllInvMeta(res.data.meta || {});
+    } catch { /* no investments yet */ }
   };
 
   const fmt = (cents) => {
@@ -135,7 +137,7 @@ export default function WalletPage() {
         <div className="page-header">
           <div>
             <h1>Portefeuille plateforme</h1>
-            <p className="text-muted">Revenus, commissions et historique des transactions</p>
+            <p className="text-muted">Revenus, commissions et historique des investissements</p>
           </div>
         </div>
 
@@ -191,54 +193,56 @@ export default function WalletPage() {
           </>
         )}
 
-        {/* All Platform Transactions */}
+        {/* Investments History */}
         <div className="card" style={{ marginTop: '1rem' }}>
           <div className="card-header">
-            <h3>Historique des transactions</h3>
-            <span className="badge"><ReceiptText size={12} /> {allTxMeta.total_count ?? allTransactions.length} transaction(s)</span>
+            <h3>Historique des investissements</h3>
+            <span className="badge"><Briefcase size={12} /> {allInvMeta.total_count ?? allInvestments.length} investissement(s)</span>
           </div>
-          {allTransactions.length === 0 ? (
+          {allInvestments.length === 0 ? (
             <div className="empty-state">
-              <ReceiptText size={40} />
-              <p>Aucune transaction pour le moment</p>
+              <Briefcase size={40} />
+              <p>Aucun investissement pour le moment</p>
             </div>
           ) : (
             <>
               <div className="table-container">
                 <table className="table">
                   <thead>
-                    <tr><th>Date</th><th>Utilisateur</th><th>Type</th><th>Description</th><th>Montant</th><th>Statut</th></tr>
+                    <tr><th>Date</th><th>Investisseur</th><th>Projet</th><th>Montant</th><th>Parts</th><th>Valeur actuelle</th><th>Statut</th></tr>
                   </thead>
                   <tbody>
-                    {allTransactions.map((tx) => {
-                      const a = tx.attributes || tx;
-                      const isCredit = TX_CREDIT.includes(a.transaction_type);
+                    {allInvestments.map((inv) => {
+                      const a = inv.attributes || inv;
+                      const feePercent = a.fee_cents > 0 && a.amount_cents > 0 ? (a.fee_cents / a.amount_cents * 100).toFixed(1).replace(/\.0$/, '') : null;
                       return (
-                        <tr key={tx.id}>
-                          <td>{new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
+                        <tr key={inv.id}>
+                          <td>{a.invested_at ? new Date(a.invested_at).toLocaleDateString('fr-FR') : '—'}</td>
                           <td>
                             <div style={{ lineHeight: 1.3 }}>
-                              <div style={{ fontWeight: 500 }}>{a.user_name}</div>
-                              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{a.user_email}</div>
+                              <div style={{ fontWeight: 500 }}>{a.investor_name}</div>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{a.investor_email}</div>
                             </div>
                           </td>
-                          <td><span className="badge">{TX_TYPE_LABELS[a.transaction_type] || a.transaction_type}</span></td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{a.description || a.reference || '—'}</td>
-                          <td className={isCredit ? 'amount-positive' : 'amount-negative'}>
-                            {isCredit ? '+' : '-'}{fmt(a.amount_cents)}
+                          <td style={{ fontWeight: 550 }}>{a.project_title || '—'}</td>
+                          <td>
+                            <div>{fmt(a.amount_cents)}</div>
+                            {feePercent && <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>incl. {feePercent}% frais</div>}
                           </td>
-                          <td><span className={`badge ${a.status === 'complete' || a.status === 'completed' ? 'badge-success' : a.status === 'pending' ? 'badge-warning' : ''}`}>{a.status}</span></td>
+                          <td>{a.shares_count}</td>
+                          <td style={{ fontWeight: 600 }}>{fmt(a.current_value_cents)}</td>
+                          <td><span className={`badge ${a.status === 'confirme' ? 'badge-success' : a.status === 'en_cours' ? 'badge-warning' : a.status === 'annule' ? 'badge-danger' : a.status === 'cloture' ? 'badge-info' : ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
               </div>
-              {allTxMeta.total_pages > 1 && (
+              {allInvMeta.total_pages > 1 && (
                 <div className="pagination">
-                  <button disabled={allTxPage <= 1} onClick={() => setAllTxPage(allTxPage - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
-                  <span>Page {allTxPage} / {allTxMeta.total_pages}</span>
-                  <button disabled={allTxPage >= allTxMeta.total_pages} onClick={() => setAllTxPage(allTxPage + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
+                  <button disabled={allInvPage <= 1} onClick={() => setAllInvPage(allInvPage - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
+                  <span>Page {allInvPage} / {allInvMeta.total_pages}</span>
+                  <button disabled={allInvPage >= allInvMeta.total_pages} onClick={() => setAllInvPage(allInvPage + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
                 </div>
               )}
             </>
