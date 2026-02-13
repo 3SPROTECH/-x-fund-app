@@ -74,7 +74,6 @@ export default function MyInvestmentsPage() {
                 <tr>
                   <th>Projet</th>
                   <th>Montant</th>
-                  <th>Frais</th>
                   <th>Parts</th>
                   <th>Valeur actuelle</th>
                   <th>Date</th>
@@ -84,11 +83,14 @@ export default function MyInvestmentsPage() {
               <tbody>
                 {investments.map(inv => {
                   const a = inv.attributes || inv;
+                  const feePercent = a.fee_cents > 0 && a.amount_cents > 0 ? (a.fee_cents / a.amount_cents * 100).toFixed(1).replace(/\.0$/, '') : null;
                   return (
                     <tr key={inv.id} style={{ cursor: 'pointer' }} onClick={() => a.investment_project_id && navigate(`/projects/${a.investment_project_id}`)}>
                       <td style={{ fontWeight: 550 }}>{a.project_title || '—'}</td>
-                      <td>{fmt(a.amount_cents)}</td>
-                      <td style={{ color: a.fee_cents > 0 ? '#EF4444' : 'var(--text-secondary)' }}>{a.fee_cents > 0 ? fmt(a.fee_cents) : '—'}</td>
+                      <td>
+                        <div>{fmt(a.amount_cents)}</div>
+                        {feePercent && <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>incl. {feePercent}% frais plateforme</div>}
+                      </td>
                       <td>{a.shares_count}</td>
                       <td style={{ fontWeight: 600 }}>{fmt(a.current_value_cents)}</td>
                       <td>{a.invested_at ? new Date(a.invested_at).toLocaleDateString('fr-FR') : '—'}</td>

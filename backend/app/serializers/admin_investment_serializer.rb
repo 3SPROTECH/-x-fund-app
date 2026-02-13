@@ -1,7 +1,7 @@
 class AdminInvestmentSerializer
   include JSONAPI::Serializer
 
-  attributes :id, :amount_cents, :shares_count, :status,
+  attributes :id, :amount_cents, :fee_cents, :shares_count, :status,
              :invested_at, :confirmed_at, :created_at
 
   attribute :project_title do |investment|
