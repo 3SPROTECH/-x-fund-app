@@ -110,5 +110,31 @@ module Wallets
         transaction
       end
     end
+
+    # Collect a platform fee into the platform wallet
+    def self.collect_fee(amount_cents:, fee_type:, reference:, description:)
+      return if amount_cents <= 0
+
+      platform_wallet = Wallet.platform_wallet
+      platform_wallet.lock!
+
+      new_balance = platform_wallet.balance_cents + amount_cents
+
+      platform_wallet.transactions.create!(
+        transaction_type: :frais,
+        amount_cents: amount_cents,
+        balance_after_cents: new_balance,
+        status: :complete,
+        reference: reference,
+        description: description,
+        metadata: { fee_type: fee_type },
+        processed_at: Time.current
+      )
+
+      platform_wallet.update!(
+        balance_cents: new_balance,
+        total_deposited_cents: platform_wallet.total_deposited_cents + amount_cents
+      )
+    end
   end
 end

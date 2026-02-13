@@ -34,6 +34,18 @@ module Investments
           reference: "INV-#{investment.id}-#{SecureRandom.hex(4).upcase}"
         )
 
+        # Collect platform commission on investment
+        commission_percent = Setting.get("platform_investment_commission_percent") || 0.0
+        if commission_percent > 0
+          fee_cents = (@amount_cents * commission_percent / 100.0).round
+          Wallets::WalletService.collect_fee(
+            amount_cents: fee_cents,
+            fee_type: "investment_commission",
+            reference: "FEE-INV-#{investment.id}-#{SecureRandom.hex(4).upcase}",
+            description: "Commission investissement - #{@project.title}"
+          )
+        end
+
         # Update project shares_sold (with lock)
         @project.lock!
         @project.increment!(:shares_sold, shares_count)

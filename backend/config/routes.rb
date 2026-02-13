@@ -89,6 +89,9 @@ Rails.application.routes.draw do
 
         resource :dashboard, only: [:show], controller: "dashboard"
 
+        # Platform wallet
+        resource :platform_wallet, only: [:show], controller: "platform_wallet"
+
         # Settings
         get "settings", to: "settings#index"
         patch "settings", to: "settings#update"

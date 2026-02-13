@@ -117,4 +117,9 @@ export const adminApi = {
   updateSettings(settings) {
     return client.patch('/admin/settings', { settings });
   },
+
+  // Platform Wallet
+  getPlatformWallet() {
+    return client.get('/admin/platform_wallet');
+  },
 };
