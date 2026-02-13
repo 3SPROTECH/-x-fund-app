@@ -113,7 +113,7 @@ module Api
 
         def admin_project_params
           params.require(:investment_project).permit(
-            :title, :description, :status, :total_amount_cents, :share_price_cents,
+            :title, :description, :status, :operation_type, :total_amount_cents, :share_price_cents,
             :total_shares, :min_investment_cents, :max_investment_cents,
             :funding_start_date, :funding_end_date, :management_fee_percent,
             :gross_yield_percent, :net_yield_percent,

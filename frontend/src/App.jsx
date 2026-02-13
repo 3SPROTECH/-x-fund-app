@@ -56,6 +56,7 @@ import AdminProjectsPage from './pages/admin/AdminProjectsPage';
 import AdminInvestmentsPage from './pages/admin/AdminInvestmentsPage';
 import AdminTransactionsPage from './pages/admin/AdminTransactionsPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import AdminMvpReportPage from './pages/admin/AdminMvpReportPage';
 
 export default function App() {
   return (
@@ -119,6 +120,14 @@ export default function App() {
               element={
                 <ProtectedRoute roles={['administrateur']}>
                   <AdminProjectsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/projects/:id/mvp-report"
+              element={
+                <ProtectedRoute roles={['administrateur']}>
+                  <AdminMvpReportPage />
                 </ProtectedRoute>
               }
             />

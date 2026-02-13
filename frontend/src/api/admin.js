@@ -68,6 +68,35 @@ export const adminApi = {
     return client.patch(`/admin/investment_projects/${id}/reject`, { comment });
   },
 
+  // MVP Reports
+  getMvpReports(projectId, params = {}) {
+    return client.get(`/admin/investment_projects/${projectId}/mvp_reports`, { params });
+  },
+
+  getMvpReport(projectId, reportId) {
+    return client.get(`/admin/investment_projects/${projectId}/mvp_reports/${reportId}`);
+  },
+
+  createMvpReport(projectId, data) {
+    return client.post(`/admin/investment_projects/${projectId}/mvp_reports`, { mvp_report: data });
+  },
+
+  updateMvpReport(projectId, reportId, data) {
+    return client.patch(`/admin/investment_projects/${projectId}/mvp_reports/${reportId}`, { mvp_report: data });
+  },
+
+  deleteMvpReport(projectId, reportId) {
+    return client.delete(`/admin/investment_projects/${projectId}/mvp_reports/${reportId}`);
+  },
+
+  validateMvpReport(projectId, reportId, comment = '') {
+    return client.patch(`/admin/investment_projects/${projectId}/mvp_reports/${reportId}/validate_report`, { comment });
+  },
+
+  rejectMvpReport(projectId, reportId, comment) {
+    return client.patch(`/admin/investment_projects/${projectId}/mvp_reports/${reportId}/reject_report`, { comment });
+  },
+
   // Investments
   getInvestments(params = {}) {
     return client.get('/admin/investments', { params });

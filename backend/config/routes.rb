@@ -42,6 +42,11 @@ Rails.application.routes.draw do
           resources :payments, only: [:index], controller: "dividend_payments"
         end
         resources :financial_statements, only: [:index, :show, :create, :update, :destroy]
+        resources :mvp_reports, only: [:index, :show, :create, :update, :destroy] do
+          member do
+            patch :submit
+          end
+        end
         resources :investors, only: [:index], controller: "project_investors"
         # Images management for projects
         member do
@@ -79,6 +84,12 @@ Rails.application.routes.draw do
           member do
             patch :approve
             patch :reject
+          end
+          resources :mvp_reports, only: [:index, :show, :create, :update, :destroy] do
+            member do
+              patch :validate_report
+              patch :reject_report
+            end
           end
         end
 

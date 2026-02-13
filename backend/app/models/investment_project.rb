@@ -9,6 +9,7 @@ class InvestmentProject < ApplicationRecord
   has_many :investors, through: :investments, source: :user
   has_many :dividends, dependent: :restrict_with_error
   has_many :financial_statements, dependent: :destroy
+  has_many :mvp_reports, dependent: :destroy
 
   has_one_attached :contrat_obligataire
   has_one_attached :fici_document
@@ -18,6 +19,14 @@ class InvestmentProject < ApplicationRecord
 
   enum :status, { brouillon: 0, ouvert: 1, finance: 2, cloture: 3, annule: 4 }
   enum :review_status, { en_attente: 0, approuve: 1, rejete: 2 }, prefix: :review
+  enum :operation_type, {
+    promotion_immobiliere: 0,
+    marchand_de_biens: 1,
+    rehabilitation_lourde: 2,
+    division_fonciere: 3,
+    immobilier_locatif: 4,
+    transformation_usage: 5
+  }, prefix: :op
 
   validates :title, presence: true
   validates :total_amount_cents, presence: true, numericality: { greater_than: 0 }

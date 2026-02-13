@@ -5,7 +5,7 @@ module Api
         before_action :require_admin!
 
         def index
-          investments = Investment.includes(:user, investment_project: { properties: :owner }).all
+          investments = Investment.includes(:user, :investment_project).all
           investments = investments.where(status: params[:status]) if params[:status].present?
           investments = investments.where(investment_project_id: params[:project_id]) if params[:project_id].present?
           investments = investments.where(user_id: params[:user_id]) if params[:user_id].present?

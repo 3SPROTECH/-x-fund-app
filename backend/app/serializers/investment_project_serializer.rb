@@ -1,7 +1,7 @@
 class InvestmentProjectSerializer
   include JSONAPI::Serializer
 
-  attributes :id, :title, :description, :total_amount_cents, :share_price_cents,
+  attributes :id, :title, :description, :operation_type, :total_amount_cents, :share_price_cents,
              :total_shares, :shares_sold, :min_investment_cents, :max_investment_cents,
              :funding_start_date, :funding_end_date, :status,
              :management_fee_percent, :gross_yield_percent, :net_yield_percent,
