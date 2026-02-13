@@ -225,7 +225,7 @@ export default function AdminMvpReportPage() {
   };
 
   const handleDelete = async (reportId) => {
-    if (!window.confirm('Supprimer ce rapport MVP ?')) return;
+    if (!window.confirm('Supprimer ce rapport ?')) return;
     try {
       await adminApi.deleteMvpReport(id, reportId);
       toast.success('Rapport supprime');
@@ -242,10 +242,10 @@ export default function AdminMvpReportPage() {
       const payload = formToApi(form);
       if (mode === 'create') {
         await adminApi.createMvpReport(id, payload);
-        toast.success('Rapport MVP cree');
+        toast.success('Rapport cree');
       } else {
         await adminApi.updateMvpReport(id, editingId, payload);
-        toast.success('Rapport MVP mis a jour');
+        toast.success('Rapport mis a jour');
       }
       setMode('list');
       loadReports();
@@ -377,7 +377,7 @@ export default function AdminMvpReportPage() {
           ) : reports.length === 0 ? (
             <div className="card">
               <div className="empty-state">
-                <p>Aucun rapport MVP pour ce projet</p>
+                <p>Aucun rapport pour ce projet</p>
                 <button className="btn btn-primary" onClick={handleCreate} style={{ marginTop: '1rem' }}>
                   <Plus size={16} /> Creer le premier rapport
                 </button>
@@ -559,7 +559,7 @@ export default function AdminMvpReportPage() {
         <form onSubmit={handleSubmit}>
           <div className="card mvp-report-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3>{mode === 'create' ? 'Nouveau rapport MVP' : 'Modifier le rapport'}</h3>
+              <h3>{mode === 'create' ? 'Nouveau rapport ' : 'Modifier le rapport'}</h3>
               <button type="button" className="btn btn-sm btn-ghost" onClick={() => setMode('list')}><X size={14} /> Annuler</button>
             </div>
 

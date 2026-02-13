@@ -29,9 +29,35 @@ const OPERATION_TYPE_ICONS = {
   division_fonciere: '\u{1F3D8}', immobilier_locatif: '\u{1F3E2}', transformation_usage: '\u{1F504}',
 };
 const OPERATION_STATUSES = {
-  acquisition_en_cours: 'Acquisition en cours', acte_signe: 'Acte signe', en_renovation: 'En renovation',
+  acquisition_en_cours: 'Acquisition en cours', acte_signe: 'Acte signé', en_renovation: 'En renovation',
   en_commercialisation: 'En commercialisation', sous_offre: 'Sous offre', sous_compromis: 'Sous compromis', vendu: 'Vendu',
 };
+// Libellés adaptés par type d'opération (affichage uniquement)
+const OPERATION_STATUS_LABELS_BY_TYPE = {
+  promotion_immobiliere: {
+    acquisition_en_cours: 'Acquisition terrain', acte_signe: 'Acte signé', en_renovation: 'Construction en cours',
+    en_commercialisation: 'Commercialisation', sous_offre: 'Sous offre', sous_compromis: 'Sous compromis', vendu: 'Livré / Vendu',
+  },
+  marchand_de_biens: null, // utilise OPERATION_STATUSES
+  rehabilitation_lourde: {
+    acquisition_en_cours: 'Acquisition en cours', acte_signe: 'Acte signé', en_renovation: 'Travaux en cours',
+    en_commercialisation: 'En commercialisation', sous_offre: 'Sous offre', sous_compromis: 'Sous compromis', vendu: 'Vendu',
+  },
+  division_fonciere: {
+    acquisition_en_cours: 'Étude / Acquisition', acte_signe: 'Acte signé', en_renovation: 'Division en cours',
+    en_commercialisation: 'Commercialisation lots', sous_offre: 'Sous offre', sous_compromis: 'Sous compromis', vendu: 'Vendu',
+  },
+  immobilier_locatif: {
+    acquisition_en_cours: 'Acquisition en cours', acte_signe: 'Acte signé', en_renovation: 'Travaux / Mise aux normes',
+    en_commercialisation: 'Mise en location', sous_offre: 'Locataire pressenti', sous_compromis: 'Bail signé', vendu: 'En gestion',
+  },
+  transformation_usage: {
+    acquisition_en_cours: 'Acquisition en cours', acte_signe: 'Acte signé', en_renovation: 'Travaux de transformation',
+    en_commercialisation: 'Commercialisation', sous_offre: 'Sous offre', sous_compromis: 'Sous compromis', vendu: 'Réalisé',
+  },
+};
+const getOperationStatusLabel = (operationType, status) =>
+  (OPERATION_STATUS_LABELS_BY_TYPE[operationType] && OPERATION_STATUS_LABELS_BY_TYPE[operationType][status]) || OPERATION_STATUSES[status] || status;
 const MVP_STATUS_BADGE = {
   acquisition_en_cours: 'badge-warning', acte_signe: 'badge-info', en_renovation: 'badge-warning',
   en_commercialisation: 'badge-info', sous_offre: 'badge-info', sous_compromis: 'badge-success', vendu: 'badge-success',
@@ -319,7 +345,7 @@ export default function ProjectDetailPage() {
   const handleMvpView = (report) => { setMvpViewReport(report); setMvpMode('view'); };
 
   const handleMvpDelete = async (reportId) => {
-    if (!window.confirm('Supprimer ce rapport MVP ?')) return;
+    if (!window.confirm('Supprimer ce rapport ?')) return;
     try {
       if (isAdmin) {
         await adminApi.deleteMvpReport(id, reportId);
@@ -342,14 +368,14 @@ export default function ProjectDetailPage() {
         } else {
           await mvpReportsApi.create(id, payload);
         }
-        toast.success('Rapport MVP cree');
+        toast.success('Rapport cree');
       } else {
         if (isAdmin) {
           await adminApi.updateMvpReport(id, mvpEditingId, payload);
         } else {
           await mvpReportsApi.update(id, mvpEditingId, payload);
         }
-        toast.success('Rapport MVP mis a jour');
+        toast.success('Rapport mis a jour');
       }
       setMvpMode('list');
       loadMvpReports();
@@ -373,7 +399,7 @@ export default function ProjectDetailPage() {
 
   // Admin: validate report
   const handleMvpValidate = async (reportId) => {
-    if (!window.confirm('Valider ce rapport MVP ? Le projet sera approuve et publie.')) return;
+    if (!window.confirm('Valider ce rapport ? Le projet sera approuve et publie.')) return;
     setMvpSubmitting(true);
     try {
       await adminApi.validateMvpReport(id, reportId);
@@ -1064,7 +1090,7 @@ export default function ProjectDetailPage() {
             <div style={{ marginTop: '2rem' }}>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                {mvpMode === 'list' && a.operation_type === 'marchand_de_biens' && !isAdmin && (
+                {mvpMode === 'list' && a.operation_type && !isAdmin && (
                   <button className="btn btn-sm btn-primary" onClick={handleMvpCreate}><Plus size={14} /> Nouveau rapport</button>
                 )}
                 {mvpMode !== 'list' && (
@@ -1108,27 +1134,18 @@ export default function ProjectDetailPage() {
                 </div>
               )}
 
-              {/* Not Marchand de Biens */}
-              {a.operation_type && a.operation_type !== 'marchand_de_biens' && (
-                <div className="card">
-                  <div className="empty-state">
-                    <p>Le template de rapport pour <strong>{OPERATION_TYPES[a.operation_type]}</strong> sera disponible prochainement.</p>
-                  </div>
-                </div>
-              )}
-
-              {/* === Marchand de Biens: LIST === */}
-              {a.operation_type === 'marchand_de_biens' && mvpMode === 'list' && (
+              {/* === LIST des rapports MVP (tous types d'opération) === */}
+              {a.operation_type && mvpMode === 'list' && (
                 <>
                   {loadingMvpReports ? (
                     <div className="page-loading"><div className="spinner" /></div>
                   ) : mvpReports.length === 0 ? (
                     <div className="card">
                       <div className="empty-state">
-                        <p>Aucun rapport MVP pour ce projet</p>
+                        <p>Aucun rapport pour ce projet</p>
                         {!isAdmin && (
                           <button className="btn btn-primary btn-sm" onClick={handleMvpCreate} style={{ marginTop: '.75rem' }}>
-                            <Plus size={14} /> Creer le premier rapport
+                            <Plus size={14} /> Créer le premier rapport
                           </button>
                         )}
                       </div>
@@ -1147,7 +1164,7 @@ export default function ProjectDetailPage() {
                             return (
                               <tr key={r.id}>
                                 <td>{fmtDate(ra.created_at)}</td>
-                                <td><span className={`badge ${MVP_STATUS_BADGE[ra.operation_status] || ''}`}>{OPERATION_STATUSES[ra.operation_status] || ra.operation_status}</span></td>
+                                <td><span className={`badge ${MVP_STATUS_BADGE[ra.operation_status] || ''}`}>{getOperationStatusLabel(a.operation_type, ra.operation_status)}</span></td>
                                 <td><span className={`badge ${REVIEW_STATUS_BADGE[ra.review_status] || ''}`}>{REVIEW_STATUS_LABELS[ra.review_status] || ra.review_status}</span></td>
                                 <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ra.summary || '\u2014'}</td>
                                 <td>{ra.author_name}</td>
@@ -1181,8 +1198,8 @@ export default function ProjectDetailPage() {
                 </>
               )}
 
-              {/* === Marchand de Biens: VIEW === */}
-              {a.operation_type === 'marchand_de_biens' && mvpMode === 'view' && mvpViewReport && (() => {
+              {/* === VIEW rapport MVP (tous types) === */}
+              {a.operation_type && mvpMode === 'view' && mvpViewReport && (() => {
                 const ra = mvpViewReport.attributes || mvpViewReport;
                 const viewIsWork = ra.operation_status === 'en_renovation';
                 const viewIsSale = ['en_commercialisation', 'sous_offre', 'sous_compromis'].includes(ra.operation_status);
@@ -1251,7 +1268,7 @@ export default function ProjectDetailPage() {
                         <div className="detail-row"><span>Montant leve</span><span>{fmt(a.amount_raised_cents)}</span></div>
                         <div className="detail-row"><span>Taux</span><span>{a.gross_yield_percent ?? '\u2014'} %</span></div>
                         <div className="detail-row"><span>Date remboursement previsionnelle</span><span>{fmtDate(ra.expected_repayment_date)}</span></div>
-                        <div className="detail-row"><span>Statut actuel</span><span className={`badge ${MVP_STATUS_BADGE[ra.operation_status] || ''}`}>{OPERATION_STATUSES[ra.operation_status] || ra.operation_status}</span></div>
+                        <div className="detail-row"><span>Statut actuel</span><span className={`badge ${MVP_STATUS_BADGE[ra.operation_status] || ''}`}>{getOperationStatusLabel(a.operation_type, ra.operation_status)}</span></div>
                       </div>
                     </div>
 
@@ -1327,11 +1344,16 @@ export default function ProjectDetailPage() {
                 );
               })()}
 
-              {/* === Marchand de Biens: CREATE / EDIT === */}
-              {a.operation_type === 'marchand_de_biens' && (mvpMode === 'create' || mvpMode === 'edit') && (
+              {/* === CREATE / EDIT rapport MVP (tous types) === */}
+              {a.operation_type && (mvpMode === 'create' || mvpMode === 'edit') && (
                 <form onSubmit={handleMvpSubmit}>
                   <div className="card mvp-report-card">
-                    <h3 style={{ marginBottom: '1.5rem' }}>{mvpMode === 'create' ? 'Nouveau rapport MVP' : 'Modifier le rapport'}</h3>
+                    <h3 style={{ marginBottom: '1.5rem' }}>{mvpMode === 'create' ? 'Nouveau rapport' : 'Modifier le rapport'}</h3>
+                    {a.operation_type !== 'marchand_de_biens' && (
+                      <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '.875rem' }}>
+                        Rapport de suivi pour <strong>{OPERATION_TYPES[a.operation_type]}</strong>. Utilisez les champs prévisionnel / réalisé pour les montants clés de votre opération (acquisition, travaux, objectifs de sortie, etc.).
+                      </p>
+                    )}
 
                     <div className="mvp-section">
                       <div className="mvp-section-header"><span className="section-letter">A</span> Informations Generales</div>
@@ -1344,7 +1366,7 @@ export default function ProjectDetailPage() {
                         <div className="form-group">
                           <label>Statut actuel</label>
                           <select value={mvpForm.operation_status} onChange={updateMvpField('operation_status')}>
-                            {Object.entries(OPERATION_STATUSES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                            {Object.keys(OPERATION_STATUSES).map((k) => <option key={k} value={k}>{getOperationStatusLabel(a.operation_type, k)}</option>)}
                           </select>
                         </div>
                         <div className="form-group">

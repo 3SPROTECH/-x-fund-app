@@ -43,7 +43,7 @@ module Api
 
         def destroy
           @report.destroy!
-          render json: { message: "Rapport MVP supprime." }
+          render json: { message: "Rapport supprime." }
         end
 
         # PATCH /admin/investment_projects/:id/mvp_reports/:report_id/validate_report
@@ -62,7 +62,7 @@ module Api
               review_status: :approuve,
               reviewed_by_id: current_user.id,
               reviewed_at: Time.current,
-              review_comment: "Rapport MVP valide - projet approuve.",
+              review_comment: "Rapport valide - projet approuve.",
               status: :ouvert
             )
           end

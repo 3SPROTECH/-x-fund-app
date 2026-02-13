@@ -51,7 +51,7 @@ module Api
         end
 
         @report.destroy!
-        render json: { message: "Rapport MVP supprime." }
+        render json: { message: "Rapport  supprime." }
       end
 
       # POST /investment_projects/:id/mvp_reports/:report_id/submit
