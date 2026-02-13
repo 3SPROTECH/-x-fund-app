@@ -5,6 +5,7 @@ import {
   Search, MapPin, Home, Plus, Pencil, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import TableFilters from '../../components/TableFilters';
 
 const STATUS_LABELS = {
   brouillon: 'Brouillon', en_financement: 'En financement', finance: 'Financé',
@@ -159,22 +160,19 @@ export default function AdminPropertiesPage() {
         </div>
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Statut</label>
-          <select value={filters.status} onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}>
-            <option value="">Tous les statuts</option>
-            {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Type</label>
-          <select value={filters.property_type} onChange={(e) => { setFilters({ ...filters, property_type: e.target.value }); setPage(1); }}>
-            <option value="">Tous les types</option>
-            {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'status', label: 'Statut', value: filters.status, options: [
+            { value: '', label: 'Tous les statuts' },
+            ...Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+          { key: 'property_type', label: 'Type', value: filters.property_type, options: [
+            { value: '', label: 'Tous les types' },
+            ...Object.entries(TYPE_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+      />
 
       <div className="admin-layout">
         <div>

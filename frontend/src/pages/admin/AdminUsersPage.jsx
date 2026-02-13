@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../api/client';
+import TableFilters from '../../components/TableFilters';
 
 const KYC_LABELS = { pending: 'En attente', submitted: 'Soumis', verified: 'Vérifié', rejected: 'Rejeté' };
 const ROLE_LABELS = { investisseur: 'Investisseur', porteur_de_projet: 'Porteur de projet', administrateur: 'Administrateur' };
@@ -95,27 +96,24 @@ export default function AdminUsersPage() {
         <span className="badge"><Users size={12} /> {meta.total_count ?? users.length} utilisateur(s)</span>
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Rôle</label>
-          <select value={filters.role} onChange={(e) => { setFilters({ ...filters, role: e.target.value }); setPage(1); }}>
-            <option value="">Tous les rôles</option>
-            <option value="investisseur">Investisseur</option>
-            <option value="porteur_de_projet">Porteur de projet</option>
-            <option value="administrateur">Administrateur</option>
-          </select>
-        </div>
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Statut KYC</label>
-          <select value={filters.kyc_status} onChange={(e) => { setFilters({ ...filters, kyc_status: e.target.value }); setPage(1); }}>
-            <option value="">Tous les statuts</option>
-            <option value="pending">En attente</option>
-            <option value="submitted">Soumis</option>
-            <option value="verified">Vérifié</option>
-            <option value="rejected">Rejeté</option>
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'role', label: 'Rôle', value: filters.role, options: [
+            { value: '', label: 'Tous les rôles' },
+            { value: 'investisseur', label: 'Investisseur' },
+            { value: 'porteur_de_projet', label: 'Porteur de projet' },
+            { value: 'administrateur', label: 'Administrateur' },
+          ]},
+          { key: 'kyc_status', label: 'Statut KYC', value: filters.kyc_status, options: [
+            { value: '', label: 'Tous les statuts' },
+            { value: 'pending', label: 'En attente' },
+            { value: 'submitted', label: 'Soumis' },
+            { value: 'verified', label: 'Vérifié' },
+            { value: 'rejected', label: 'Rejeté' },
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+      />
 
       <div className="admin-layout">
         <div>

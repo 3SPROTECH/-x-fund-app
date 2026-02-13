@@ -4,6 +4,7 @@ import {
   CreditCard, Eye, ChevronLeft, ChevronRight, Search,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import TableFilters from '../../components/TableFilters';
 
 const TYPE_LABELS = {
   depot: 'Dépôt', retrait: 'Retrait', investissement: 'Investissement',
@@ -66,22 +67,19 @@ export default function AdminTransactionsPage() {
         <span className="badge"><CreditCard size={12} /> {meta.total_count ?? transactions.length} transaction(s)</span>
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Type</label>
-          <select value={filters.transaction_type} onChange={(e) => { setFilters({ ...filters, transaction_type: e.target.value }); setPage(1); }}>
-            <option value="">Tous les types</option>
-            {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Statut</label>
-          <select value={filters.status} onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}>
-            <option value="">Tous les statuts</option>
-            {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'transaction_type', label: 'Type', value: filters.transaction_type, options: [
+            { value: '', label: 'Tous les types' },
+            ...Object.entries(TYPE_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+          { key: 'status', label: 'Statut', value: filters.status, options: [
+            { value: '', label: 'Tous les statuts' },
+            ...Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+      />
 
       <div className="admin-layout">
         <div>

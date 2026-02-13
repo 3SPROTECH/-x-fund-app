@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import { ScrollText, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import TableFilters from '../../components/TableFilters';
 
 const ACTION_BADGE = { create: 'badge-success', update: 'badge-info', delete: 'badge-danger' };
 const ACTION_LABELS = { create: 'Création', update: 'Modification', delete: 'Suppression' };
@@ -42,26 +43,23 @@ export default function AdminAuditLogsPage() {
         <span className="badge"><ScrollText size={12} /> {meta.total_count ?? logs.length} entrée(s)</span>
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Type de ressource</label>
-          <select value={filters.resource_type} onChange={e => { setFilters({ ...filters, resource_type: e.target.value }); setPage(1); }}>
-            <option value="">Tous</option>
-            <option value="Property">Bien immobilier</option>
-            <option value="InvestmentProject">Projet</option>
-            <option value="Investment">Investissement</option>
-          </select>
-        </div>
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Action</label>
-          <select value={filters.action_type} onChange={e => { setFilters({ ...filters, action_type: e.target.value }); setPage(1); }}>
-            <option value="">Toutes</option>
-            <option value="create">Création</option>
-            <option value="update">Modification</option>
-            <option value="delete">Suppression</option>
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'resource_type', label: 'Type de ressource', value: filters.resource_type, options: [
+            { value: '', label: 'Tous' },
+            { value: 'Property', label: 'Bien immobilier' },
+            { value: 'InvestmentProject', label: 'Projet' },
+            { value: 'Investment', label: 'Investissement' },
+          ]},
+          { key: 'action_type', label: 'Action', value: filters.action_type, options: [
+            { value: '', label: 'Toutes' },
+            { value: 'create', label: 'Création' },
+            { value: 'update', label: 'Modification' },
+            { value: 'delete', label: 'Suppression' },
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+      />
 
       <div className="admin-layout">
         <div>

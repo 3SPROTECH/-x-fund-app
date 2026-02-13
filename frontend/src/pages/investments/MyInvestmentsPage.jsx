@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { investmentsApi } from '../../api/investments';
 import { Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import TableFilters from '../../components/TableFilters';
 
 const STATUS_LABELS = { en_cours: 'En cours', confirme: 'Confirmé', cloture: 'Clôturé', liquide: 'Liquidé', annule: 'Annulé' };
 const STATUS_BADGE = { en_cours: 'badge-warning', confirme: 'badge-success', cloture: 'badge-info', liquide: '', annule: 'badge-danger' };
@@ -43,18 +44,18 @@ export default function MyInvestmentsPage() {
         </div>
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Statut</label>
-          <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}>
-            <option value="">Tous</option>
-            <option value="en_cours">En cours</option>
-            <option value="confirme">Confirmé</option>
-            <option value="cloture">Clôturé</option>
-            <option value="annule">Annulé</option>
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'status', label: 'Statut', value: statusFilter, options: [
+            { value: '', label: 'Tous' },
+            { value: 'en_cours', label: 'En cours' },
+            { value: 'confirme', label: 'Confirmé' },
+            { value: 'cloture', label: 'Clôturé' },
+            { value: 'annule', label: 'Annulé' },
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setStatusFilter(value); setPage(1); }}
+      />
 
       {loading ? (
         <div className="page-loading"><div className="spinner" /></div>

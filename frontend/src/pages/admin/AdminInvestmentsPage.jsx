@@ -4,6 +4,7 @@ import {
   TrendingUp, Eye, ChevronLeft, ChevronRight, Search,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import TableFilters from '../../components/TableFilters';
 
 const STATUS_LABELS = { en_cours: 'En cours', confirme: 'Confirmé', cloture: 'Clôturé', liquide: 'Liquidé', annule: 'Annulé' };
 const STATUS_BADGE = { en_cours: 'badge-info', confirme: 'badge-success', cloture: 'badge', liquide: 'badge-warning', annule: 'badge-danger' };
@@ -55,15 +56,15 @@ export default function AdminInvestmentsPage() {
         <span className="badge"><TrendingUp size={12} /> {meta.total_count ?? investments.length} investissement(s)</span>
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Statut</label>
-          <select value={filters.status} onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}>
-            <option value="">Tous les statuts</option>
-            {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'status', label: 'Statut', value: filters.status, options: [
+            { value: '', label: 'Tous les statuts' },
+            ...Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+      />
 
       <div className="admin-layout">
         <div>

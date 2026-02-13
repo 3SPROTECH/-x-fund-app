@@ -1,10 +1,10 @@
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { walletApi } from '../../api/wallet';
 import { adminApi } from '../../api/admin';
 import {
   Wallet, ArrowDownCircle, ArrowUpCircle, ChevronLeft,
-  ChevronRight, ChevronDown, TrendingUp, TrendingDown, ReceiptText,
+  ChevronRight, TrendingUp, TrendingDown, ReceiptText,
   Landmark, PiggyBank, Briefcase,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -42,7 +42,6 @@ export default function WalletPage() {
   const [allInvestments, setAllInvestments] = useState([]);
   const [allInvMeta, setAllInvMeta] = useState({});
   const [allInvPage, setAllInvPage] = useState(1);
-  const [expandedInvestors, setExpandedInvestors] = useState(new Set());
 
   useEffect(() => {
     if (isAdmin) {
@@ -194,7 +193,7 @@ export default function WalletPage() {
           </>
         )}
 
-        {/* Investments History — grouped by investor */}
+        {/* Investments History */}
         <div className="card" style={{ marginTop: '1rem' }}>
           <div className="card-header">
             <h3>Historique des investissements</h3>
@@ -205,103 +204,49 @@ export default function WalletPage() {
               <Briefcase size={40} />
               <p>Aucun investissement pour le moment</p>
             </div>
-          ) : (() => {
-            // Group investments by investor
-            const grouped = {};
-            allInvestments.forEach((inv) => {
-              const a = inv.attributes || inv;
-              const key = a.investor_id;
-              if (!grouped[key]) {
-                grouped[key] = { investor_name: a.investor_name, investor_email: a.investor_email, investor_id: key, investments: [] };
-              }
-              grouped[key].investments.push(inv);
-            });
-            const groups = Object.values(grouped);
-
-            const toggleInvestor = (id) => {
-              setExpandedInvestors(prev => {
-                const next = new Set(prev);
-                next.has(id) ? next.delete(id) : next.add(id);
-                return next;
-              });
-            };
-
-            const statusBadge = (s) => s === 'confirme' ? 'badge-success' : s === 'en_cours' ? 'badge-warning' : s === 'annule' ? 'badge-danger' : s === 'cloture' ? 'badge-info' : '';
-
-            return (
-              <>
-                <div className="table-container">
-                  <table className="table">
-                    <thead>
-                      <tr><th style={{ width: 30 }}></th><th>Investisseur</th><th>Investissements</th><th>Montant total</th><th>Parts totales</th><th>Valeur actuelle</th></tr>
-                    </thead>
-                    <tbody>
-                      {groups.map((g) => {
-                        const isExpanded = expandedInvestors.has(g.investor_id);
-                        const hasMultiple = g.investments.length > 1;
-                        const totalAmount = g.investments.reduce((s, i) => s + ((i.attributes || i).amount_cents || 0), 0);
-                        const totalShares = g.investments.reduce((s, i) => s + ((i.attributes || i).shares_count || 0), 0);
-                        const totalValue = g.investments.reduce((s, i) => s + ((i.attributes || i).current_value_cents || 0), 0);
-
-                        return (
-                          <Fragment key={g.investor_id}>
-                            <tr
-                              style={{ cursor: hasMultiple ? 'pointer' : 'default' }}
-                              onClick={() => hasMultiple && toggleInvestor(g.investor_id)}
-                            >
-                              <td style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                                {hasMultiple && <ChevronDown size={16} style={{ transition: 'transform .2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)' }} />}
-                              </td>
-                              <td>
-                                <div style={{ lineHeight: 1.3 }}>
-                                  <div style={{ fontWeight: 500 }}>{g.investor_name}</div>
-                                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{g.investor_email}</div>
-                                </div>
-                              </td>
-                              <td>
-                                <span className="badge">{g.investments.length}</span>
-                              </td>
-                              <td>{fmt(totalAmount)}</td>
-                              <td>{totalShares}</td>
-                              <td style={{ fontWeight: 600 }}>{fmt(totalValue)}</td>
-                            </tr>
-                            {isExpanded && g.investments.map((inv) => {
-                              const a = inv.attributes || inv;
-                              const feePercent = a.fee_cents > 0 && a.amount_cents > 0 ? (a.fee_cents / a.amount_cents * 100).toFixed(1).replace(/\.0$/, '') : null;
-                              return (
-                                <tr key={inv.id} style={{ background: 'var(--bg-secondary, #f9fafb)' }}>
-                                  <td></td>
-                                  <td style={{ fontSize: '.875rem', color: 'var(--text-muted)' }}>
-                                    {a.invested_at ? new Date(a.invested_at).toLocaleDateString('fr-FR') : '—'}
-                                  </td>
-                                  <td style={{ fontWeight: 550, fontSize: '.875rem' }}>{a.project_title || '—'}</td>
-                                  <td style={{ fontSize: '.875rem' }}>
-                                    <div>{fmt(a.amount_cents)}</div>
-                                    {feePercent && <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>incl. {feePercent}% frais</div>}
-                                  </td>
-                                  <td style={{ fontSize: '.875rem' }}>{a.shares_count}</td>
-                                  <td style={{ fontSize: '.875rem' }}>
-                                    <span className={`badge ${statusBadge(a.status)}`}>{STATUS_LABELS[a.status] || a.status}</span>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </Fragment>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+          ) : (
+            <>
+              <div className="table-container">
+                <table className="table">
+                  <thead>
+                    <tr><th>Date</th><th>Investisseur</th><th>Projet</th><th>Montant</th><th>Parts</th><th>Valeur actuelle</th><th>Statut</th></tr>
+                  </thead>
+                  <tbody>
+                    {allInvestments.map((inv) => {
+                      const a = inv.attributes || inv;
+                      const feePercent = a.fee_cents > 0 && a.amount_cents > 0 ? (a.fee_cents / a.amount_cents * 100).toFixed(1).replace(/\.0$/, '') : null;
+                      return (
+                        <tr key={inv.id}>
+                          <td>{a.invested_at ? new Date(a.invested_at).toLocaleDateString('fr-FR') : '—'}</td>
+                          <td>
+                            <div style={{ lineHeight: 1.3 }}>
+                              <div style={{ fontWeight: 500 }}>{a.investor_name}</div>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{a.investor_email}</div>
+                            </div>
+                          </td>
+                          <td style={{ fontWeight: 550 }}>{a.project_title || '—'}</td>
+                          <td>
+                            <div>{fmt(a.amount_cents)}</div>
+                            {feePercent && <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>incl. {feePercent}% frais</div>}
+                          </td>
+                          <td>{a.shares_count}</td>
+                          <td style={{ fontWeight: 600 }}>{fmt(a.current_value_cents)}</td>
+                          <td><span className={`badge ${a.status === 'confirme' ? 'badge-success' : a.status === 'en_cours' ? 'badge-warning' : a.status === 'annule' ? 'badge-danger' : a.status === 'cloture' ? 'badge-info' : ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {allInvMeta.total_pages > 1 && (
+                <div className="pagination">
+                  <button disabled={allInvPage <= 1} onClick={() => setAllInvPage(allInvPage - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
+                  <span>Page {allInvPage} / {allInvMeta.total_pages}</span>
+                  <button disabled={allInvPage >= allInvMeta.total_pages} onClick={() => setAllInvPage(allInvPage + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
                 </div>
-                {allInvMeta.total_pages > 1 && (
-                  <div className="pagination">
-                    <button disabled={allInvPage <= 1} onClick={() => setAllInvPage(allInvPage - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
-                    <span>Page {allInvPage} / {allInvMeta.total_pages}</span>
-                    <button disabled={allInvPage >= allInvMeta.total_pages} onClick={() => setAllInvPage(allInvPage + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
-                  </div>
-                )}
-              </>
-            );
-          })()}
+              )}
+            </>
+          )}
         </div>
       </div>
     );

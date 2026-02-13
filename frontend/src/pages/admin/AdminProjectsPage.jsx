@@ -6,6 +6,7 @@ import {
   ChevronRight, Search, Plus,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import TableFilters from '../../components/TableFilters';
 
 const STATUS_LABELS = {
   brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé',
@@ -90,22 +91,19 @@ export default function AdminProjectsPage() {
         </div>
       </div>
 
-      <div className="filters-bar">
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Statut</label>
-          <select value={filters.status} onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}>
-            <option value="">Tous les statuts</option>
-            {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-        <div className="form-group" style={{ minWidth: 180 }}>
-          <label>Validation</label>
-          <select value={filters.review_status} onChange={(e) => { setFilters({ ...filters, review_status: e.target.value }); setPage(1); }}>
-            <option value="">Toutes les validations</option>
-            {Object.entries(REVIEW_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-      </div>
+      <TableFilters
+        filters={[
+          { key: 'status', label: 'Statut', value: filters.status, options: [
+            { value: '', label: 'Tous les statuts' },
+            ...Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+          { key: 'review_status', label: 'Validation', value: filters.review_status, options: [
+            { value: '', label: 'Toutes les validations' },
+            ...Object.entries(REVIEW_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+        ]}
+        onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
+      />
 
       <div className="admin-layout">
         <div>
