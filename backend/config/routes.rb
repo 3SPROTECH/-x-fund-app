@@ -35,7 +35,12 @@ Rails.application.routes.draw do
       # === Investment Projects ===
       resources :investment_projects, only: [:index, :show, :update, :destroy] do
         resources :investments, only: [:create], controller: "project_investments"
-        resources :dividends, only: [:index, :show, :create, :update, :destroy]
+        resources :dividends, only: [:index, :show, :create, :update, :destroy] do
+          member do
+            post :distribute
+          end
+          resources :payments, only: [:index], controller: "dividend_payments"
+        end
         resources :financial_statements, only: [:index, :show, :create, :update, :destroy]
         resources :investors, only: [:index], controller: "project_investors"
         # Images management for projects

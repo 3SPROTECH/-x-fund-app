@@ -8,4 +8,12 @@ class DividendSerializer
   attribute :payments_count do |dividend|
     dividend.dividend_payments.count
   end
+
+  attribute :project_title do |dividend|
+    dividend.investment_project.title
+  end
+
+  attribute :project_id do |dividend|
+    dividend.investment_project_id
+  end
 end

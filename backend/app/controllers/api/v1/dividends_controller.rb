@@ -2,10 +2,10 @@ module Api
   module V1
     class DividendsController < ApplicationController
       before_action :set_investment_project
-      before_action :set_dividend, only: [:show, :update, :destroy]
+      before_action :set_dividend, only: [:show, :update, :destroy, :distribute]
 
       def index
-        dividends = @investment_project.dividends.order(distribution_date: :desc)
+        dividends = @investment_project.dividends.order(created_at: :desc)
         authorize Dividend
 
         render json: { data: dividends.map { |d| DividendSerializer.new(d).serializable_hash[:data] } }
@@ -19,7 +19,7 @@ module Api
       def create
         authorize Dividend
 
-        result = Dividends::DistributeDividendService.new(
+        result = Dividends::CreateDividendService.new(
           investment_project: @investment_project,
           total_amount_cents: params[:total_amount_cents].to_i,
           period_start: Date.parse(params[:period_start]),
@@ -28,6 +28,18 @@ module Api
 
         if result.success?
           render json: { data: DividendSerializer.new(result.dividend).serializable_hash[:data] }, status: :created
+        else
+          render json: { errors: result.errors }, status: :unprocessable_entity
+        end
+      end
+
+      def distribute
+        authorize @dividend
+
+        result = Dividends::DistributeDividendService.new(dividend: @dividend).call
+
+        if result.success?
+          render json: { data: DividendSerializer.new(result.dividend.reload).serializable_hash[:data] }
         else
           render json: { errors: result.errors }, status: :unprocessable_entity
         end

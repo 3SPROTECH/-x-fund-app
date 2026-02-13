@@ -20,7 +20,7 @@ const TYPE_LABELS = {
 const EMPTY_PROPERTY = {
   title: '', description: '', property_type: 'appartement', address_line1: '', address_line2: '',
   city: '', postal_code: '', country: 'France', surface_area_sqm: '', acquisition_price_cents: '',
-  estimated_value_cents: '', estimated_annual_yield_percent: '', investment_duration_months: '',
+  estimated_value_cents: '',
 };
 
 
@@ -126,8 +126,6 @@ export default function PropertiesPage() {
       city: a.city || '', postal_code: a.postal_code || '', country: a.country || 'France',
       surface_area_sqm: a.surface_area_sqm || '', acquisition_price_cents: a.acquisition_price_cents ? a.acquisition_price_cents / 100 : '',
       estimated_value_cents: a.estimated_value_cents ? a.estimated_value_cents / 100 : '',
-      estimated_annual_yield_percent: a.estimated_annual_yield_percent || '',
-      investment_duration_months: a.investment_duration_months || '',
     });
     setShowPropertyModal(true);
   };
@@ -142,8 +140,6 @@ export default function PropertiesPage() {
           acquisition_price_cents: Math.round(parseFloat(propertyForm.acquisition_price_cents) * 100) || 0,
           estimated_value_cents: Math.round(parseFloat(propertyForm.estimated_value_cents) * 100) || 0,
           surface_area_sqm: parseFloat(propertyForm.surface_area_sqm) || 0,
-          estimated_annual_yield_percent: parseFloat(propertyForm.estimated_annual_yield_percent) || 0,
-          investment_duration_months: parseInt(propertyForm.investment_duration_months) || 0,
         },
       };
       if (editingProperty) {
@@ -229,8 +225,13 @@ export default function PropertiesPage() {
                 <div className="detail-row"><span>Surface</span><span>{a.surface_area_sqm} m²</span></div>
                 <div className="detail-row"><span>Prix d'acquisition</span><span>{fmt(a.acquisition_price_cents)}</span></div>
                 <div className="detail-row"><span>Valeur estimée</span><span>{fmt(a.estimated_value_cents)}</span></div>
-                <div className="detail-row"><span>Rendement annuel</span><span className="text-success">{a.estimated_annual_yield_percent}%</span></div>
-                <div className="detail-row"><span>Durée d'investissement</span><span>{a.investment_duration_months} mois</span></div>
+                {pa && <div className="detail-row"><span>Rendement net annuel</span><span className="text-success">{pa.net_yield_percent ?? '—'}%</span></div>}
+                {pa && pa.funding_start_date && pa.funding_end_date && (
+                  <div className="detail-row">
+                    <span>Période de financement</span>
+                    <span>{new Date(pa.funding_start_date).toLocaleDateString('fr-FR')} - {new Date(pa.funding_end_date).toLocaleDateString('fr-FR')}</span>
+                  </div>
+                )}
               </div>
               {a.description && (
                 <>
@@ -309,7 +310,7 @@ export default function PropertiesPage() {
                 <div className="detail-row"><span>ID</span><span className="font-mono" style={{ fontSize: '.8rem' }}>{selected.id}</span></div>
                 <div className="detail-row"><span>Statut</span><span className={`badge badge-${a.status === 'en_gestion' ? 'success' : 'info'}`}>{STATUS_LABELS[a.status] || a.status}</span></div>
                 <div className="detail-row"><span>Type</span><span>{TYPE_LABELS[a.property_type] || a.property_type}</span></div>
-                <div className="detail-row"><span>Rendement</span><span className="text-success">{a.estimated_annual_yield_percent}%</span></div>
+                {pa && <div className="detail-row"><span>Rendement net</span><span className="text-success">{pa.net_yield_percent ?? '—'}%</span></div>}
               </div>
             </div>
           </div>
@@ -371,8 +372,8 @@ export default function PropertiesPage() {
                       <span>{fmt(a.estimated_value_cents)}</span>
                     </div>
                     <div className="property-card-stat">
-                      <label>Rendement</label>
-                      <span className="yield">{a.estimated_annual_yield_percent}%</span>
+                      <label>Statut</label>
+                      <span className={`badge badge-${a.status === 'en_gestion' ? 'success' : 'info'}`}>{STATUS_LABELS[a.status] || a.status}</span>
                     </div>
                   </div>
                 </div>
@@ -443,10 +444,9 @@ export default function PropertiesPage() {
                   <div className="form-group"><label>Prix d'acquisition (EUR)</label><input type="number" step="0.01" value={propertyForm.acquisition_price_cents} onChange={setPF('acquisition_price_cents')} required /></div>
                   <div className="form-group"><label>Valeur estimée (EUR)</label><input type="number" step="0.01" value={propertyForm.estimated_value_cents} onChange={setPF('estimated_value_cents')} required /></div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group"><label>Rendement annuel (%)</label><input type="number" step="0.01" value={propertyForm.estimated_annual_yield_percent} onChange={setPF('estimated_annual_yield_percent')} /></div>
-                  <div className="form-group"><label>Durée investissement (mois)</label><input type="number" value={propertyForm.investment_duration_months} onChange={setPF('investment_duration_months')} /></div>
-                </div>
+                <p style={{ fontSize: '.875rem', color: 'var(--text-secondary)', marginTop: '.5rem' }}>
+                  💡 Le rendement et la durée d'investissement seront définis lors de la création du projet d'investissement.
+                </p>
               </div>
               </div>
               <div className="modal-actions">

@@ -180,8 +180,6 @@ export default function AdminPropertiesPage() {
                 <div className="detail-row"><span>Surface</span><span>{a.surface_area_sqm ? `${a.surface_area_sqm} m²` : '—'}</span></div>
                 <div className="detail-row"><span>Prix d'acquisition</span><span>{fmt(a.acquisition_price_cents)}</span></div>
                 <div className="detail-row"><span>Valeur estimée</span><span>{fmt(a.estimated_value_cents)}</span></div>
-                <div className="detail-row"><span>Rendement annuel</span><span className="text-success">{a.estimated_annual_yield_percent}%</span></div>
-                <div className="detail-row"><span>Durée</span><span>{a.investment_duration_months} mois</span></div>
                 <div className="detail-row"><span>Projet lié</span><span>{a.has_investment_project ? 'Oui' : 'Non'}</span></div>
                 <div className="detail-row"><span>Créé le</span><span>{new Date(a.created_at).toLocaleDateString('fr-FR')}</span></div>
               </div>

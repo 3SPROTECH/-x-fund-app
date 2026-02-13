@@ -38,6 +38,7 @@ import PropertiesPage from './pages/dashboard/PropertiesPage';
 // Projects & Investments
 import ProjectsPage from './pages/projects/ProjectsPage';
 import ProjectDetailPage from './pages/projects/ProjectDetailPage';
+import DividendDetailPage from './pages/projects/DividendDetailPage';
 import CreateProjectPage from './pages/projects/CreateProjectPage';
 import EditProjectPage from './pages/projects/EditProjectPage';
 import MyInvestmentsPage from './pages/investments/MyInvestmentsPage';
@@ -81,6 +82,7 @@ export default function App() {
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/new" element={<CreateProjectPage />} />
             <Route path="/projects/:id/edit" element={<EditProjectPage />} />
+            <Route path="/projects/:projectId/dividends/:dividendId" element={<DividendDetailPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/investments" element={<MyInvestmentsPage />} />
             <Route path="/profile" element={<ProfilePage />} />

@@ -16,9 +16,6 @@ class Property < ApplicationRecord
   validates :postal_code, presence: true
   validates :country, presence: true
   validates :acquisition_price_cents, presence: true, numericality: { greater_than: 0 }
-  validates :estimated_annual_yield_percent, presence: true,
-            numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 999.99 }
-  validates :investment_duration_months, presence: true, numericality: { greater_than: 0 }
 
   scope :published, -> { where.not(status: :brouillon) }
   scope :by_city, ->(city) { where(city: city) if city.present? }

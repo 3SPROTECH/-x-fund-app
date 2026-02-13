@@ -4,7 +4,7 @@ import { investmentProjectsApi, investmentsApi, projectInvestorsApi } from '../.
 import { dividendsApi } from '../../api/dividends';
 import { financialStatementsApi } from '../../api/financialStatements';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, TrendingUp, FileText, DollarSign, AlertCircle, CheckCircle, Image as ImageIcon, Calendar, Upload, X, Trash2, Edit, Users } from 'lucide-react';
+import { ArrowLeft, TrendingUp, FileText, DollarSign, AlertCircle, CheckCircle, Image as ImageIcon, Calendar, Upload, X, Trash2, Edit, Users, Eye, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { walletApi } from '../../api/wallet';
 import { projectImagesApi } from '../../api/images';
@@ -99,7 +99,7 @@ export default function ProjectDetailPage() {
         period_start: divForm.period_start,
         period_end: divForm.period_end,
       });
-      toast.success('Dividende distribué');
+      toast.success('Dividende créé avec succès');
       setDivForm({ total_amount_cents: '', period_start: '', period_end: '' });
       loadAll();
     } catch (err) {
@@ -174,6 +174,18 @@ export default function ProjectDetailPage() {
       loadAll();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Erreur lors de la suppression');
+    }
+  };
+
+  const handleDistributeDividend = async (dividendId) => {
+    if (!confirm('Voulez-vous vraiment distribuer ce dividende ? Cette action est irréversible et créditera immédiatement les portefeuilles des investisseurs.')) return;
+
+    try {
+      await dividendsApi.distribute(id, dividendId);
+      toast.success('Dividende distribué avec succès !');
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.join(', ') || err.response?.data?.error || 'Erreur lors de la distribution');
     }
   };
 
@@ -629,7 +641,7 @@ export default function ProjectDetailPage() {
         <div>
           {isAdmin && (
             <div className="card" style={{ marginBottom: '1rem' }}>
-              <h3>Distribuer un dividende</h3>
+              <h3>Créer un dividende</h3>
               <form onSubmit={handleCreateDividend}>
                 <div className="form-row">
                   <div className="form-group">
@@ -645,37 +657,45 @@ export default function ProjectDetailPage() {
                     <input type="date" required value={divForm.period_end} onChange={e => setDivForm({ ...divForm, period_end: e.target.value })} />
                   </div>
                 </div>
-                <button type="submit" className="btn btn-success" disabled={submitting}>{submitting ? '...' : 'Distribuer'}</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? '...' : 'Créer le dividende'}</button>
               </form>
             </div>
           )}
           {dividends.length === 0 ? (
-            <div className="card"><div className="empty-state"><DollarSign size={48} /><p>Aucun dividende distribué</p></div></div>
+            <div className="card"><div className="empty-state"><DollarSign size={48} /><p>Aucun dividende</p></div></div>
           ) : (
             <div className="table-container">
               <table className="table">
                 <thead>
-                  <tr><th>Date distribution</th><th>Période</th><th>Montant total</th><th>Par part</th><th>Statut</th>{isAdmin && <th>Actions</th>}</tr>
+                  <tr><th>Date création</th><th>Période</th><th>Montant total</th><th>Par part</th><th>Statut</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
                   {dividends.map(d => {
                     const da = d.attributes || d;
                     return (
                       <tr key={d.id}>
-                        <td>{fmtDate(da.distribution_date)}</td>
+                        <td>{fmtDate(da.created_at)}</td>
                         <td>{fmtDate(da.period_start)} — {fmtDate(da.period_end)}</td>
                         <td>{fmt(da.total_amount_cents)}</td>
                         <td>{fmt(da.amount_per_share_cents)}</td>
                         <td><span className={`badge ${da.status === 'distribue' ? 'badge-success' : da.status === 'annule' ? 'badge-danger' : 'badge-warning'}`}>{DIV_STATUS[da.status] || da.status}</span></td>
-                        {isAdmin && (
-                          <td>
-                            <div className="actions-cell">
+                        <td>
+                          <div className="actions-cell">
+                            <button className="btn-icon" title="Voir les détails" onClick={() => navigate(`/projects/${id}/dividends/${d.id}`)}>
+                              <Eye size={16} />
+                            </button>
+                            {isAdmin && da.status === 'planifie' && (
+                              <button className="btn-icon btn-success" title="Distribuer" onClick={() => handleDistributeDividend(d.id)}>
+                                <Send size={16} />
+                              </button>
+                            )}
+                            {isAdmin && (
                               <button className="btn-icon btn-danger" title="Supprimer" onClick={() => handleDeleteDividend(d.id)}>
                                 <Trash2 size={16} />
                               </button>
-                            </div>
-                          </td>
-                        )}
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}

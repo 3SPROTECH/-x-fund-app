@@ -18,4 +18,8 @@ class DividendPolicy < ApplicationPolicy
   def destroy?
     admin?
   end
+
+  def distribute?
+    admin?
+  end
 end

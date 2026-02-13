@@ -16,4 +16,10 @@ export const dividendsApi = {
   delete(projectId, id) {
     return client.delete(`/investment_projects/${projectId}/dividends/${id}`);
   },
+  distribute(projectId, dividendId) {
+    return client.post(`/investment_projects/${projectId}/dividends/${dividendId}/distribute`);
+  },
+  listPayments(projectId, dividendId, params = {}) {
+    return client.get(`/investment_projects/${projectId}/dividends/${dividendId}/payments`, { params });
+  },
 };

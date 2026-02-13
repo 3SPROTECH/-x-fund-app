@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_12_104058) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_13_082831) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -76,7 +76,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_104058) do
   create_table "dividends", force: :cascade do |t|
     t.bigint "amount_per_share_cents", null: false
     t.datetime "created_at", null: false
-    t.date "distribution_date", null: false
+    t.date "distribution_date"
     t.bigint "investment_project_id", null: false
     t.date "period_end", null: false
     t.date "period_start", null: false
@@ -167,9 +167,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_104058) do
     t.string "country", default: "FR", null: false
     t.datetime "created_at", null: false
     t.text "description"
-    t.decimal "estimated_annual_yield_percent", precision: 8, scale: 2, null: false
     t.bigint "estimated_value_cents"
-    t.integer "investment_duration_months", null: false
     t.decimal "latitude", precision: 10, scale: 8
     t.decimal "longitude", precision: 11, scale: 8
     t.bigint "owner_id", null: false

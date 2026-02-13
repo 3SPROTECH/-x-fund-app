@@ -6,7 +6,7 @@ class Dividend < ApplicationRecord
 
   validates :total_amount_cents, presence: true, numericality: { greater_than: 0 }
   validates :amount_per_share_cents, presence: true, numericality: { greater_than: 0 }
-  validates :distribution_date, presence: true
+  validates :distribution_date, presence: true, if: :distribue?
   validates :period_start, presence: true
   validates :period_end, presence: true
   validate :end_after_start
