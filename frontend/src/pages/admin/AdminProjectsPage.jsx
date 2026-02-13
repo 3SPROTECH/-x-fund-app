@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../../api/admin';
 import {
-  Briefcase, Eye, CheckCircle, XCircle, ChevronLeft,
-  ChevronRight, Search, Clock, ShieldCheck, ShieldX,
+  Briefcase, CheckCircle, XCircle, ChevronLeft,
+  ChevronRight, Search, Plus,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -21,12 +22,12 @@ const fmt = (cents) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100);
 
 export default function AdminProjectsPage() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: '', review_status: '' });
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
-  const [selected, setSelected] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectId, setRejectId] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
@@ -55,7 +56,6 @@ export default function AdminProjectsPage() {
       await adminApi.approveProject(id);
       toast.success('Projet approuvé et ouvert aux investisseurs');
       load();
-      if (selected?.id === String(id)) loadDetail(id);
     } catch (err) {
       toast.error(err.response?.data?.errors?.[0] || err.response?.data?.error || 'Erreur lors de l\'approbation');
     }
@@ -70,18 +70,8 @@ export default function AdminProjectsPage() {
       setRejectComment('');
       setRejectId(null);
       load();
-      if (selected?.id === String(rejectId)) loadDetail(rejectId);
     } catch (err) {
       toast.error(err.response?.data?.errors?.[0] || err.response?.data?.error || 'Erreur lors du rejet');
-    }
-  };
-
-  const loadDetail = async (id) => {
-    try {
-      const res = await adminApi.getProject(id);
-      setSelected(res.data.data || null);
-    } catch {
-      toast.error('Erreur lors du chargement');
     }
   };
 
@@ -92,7 +82,12 @@ export default function AdminProjectsPage() {
           <h1>Gestion des Projets d'Investissement</h1>
           <p className="text-muted">Examinez, approuvez ou rejetez les projets soumis</p>
         </div>
-        <span className="badge"><Briefcase size={12} /> {meta.total_count ?? projects.length} projet(s)</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+          <span className="badge"><Briefcase size={12} /> {meta.total_count ?? projects.length} projet(s)</span>
+          <button className="btn btn-primary" onClick={() => navigate('/projects/new')}>
+            <Plus size={16} /> Créer un projet
+          </button>
+        </div>
       </div>
 
       <div className="filters-bar">
@@ -138,7 +133,7 @@ export default function AdminProjectsPage() {
                       const a = p.attributes || p;
                       const progress = a.funding_progress_percent || 0;
                       return (
-                        <tr key={p.id} className={selected?.id === p.id ? 'row-selected' : ''}>
+                        <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/projects/${p.id}`)}>
                           <td style={{ fontWeight: 550 }}>{a.title}</td>
                           <td>{a.property_title || '—'}</td>
                           <td>{a.owner_name || '—'}</td>
@@ -154,8 +149,7 @@ export default function AdminProjectsPage() {
                             </div>
                           </td>
                           <td>
-                            <div className="actions-cell">
-                              <button className="btn-icon" title="Voir" onClick={() => loadDetail(p.id)}><Eye size={16} /></button>
+                            <div className="actions-cell" onClick={(e) => e.stopPropagation()}>
                               {a.review_status === 'en_attente' && (
                                 <>
                                   <button className="btn-icon btn-success" title="Approuver" onClick={() => handleApprove(p.id)}><CheckCircle size={16} /></button>
@@ -182,79 +176,6 @@ export default function AdminProjectsPage() {
           )}
         </div>
 
-        {selected && (() => {
-          const a = selected.attributes || selected;
-          const progress = a.funding_progress_percent || 0;
-          return (
-            <div className="card user-detail-panel">
-              <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                <div className="stat-icon stat-icon-primary" style={{ margin: '0 auto .5rem', width: 48, height: 48 }}>
-                  <Briefcase size={24} />
-                </div>
-                <h3 style={{ marginBottom: '.15rem' }}>{a.title}</h3>
-                <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                  <span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span>
-                  <span className={`badge ${REVIEW_BADGE[a.review_status] || ''}`}>{REVIEW_LABELS[a.review_status] || a.review_status}</span>
-                </div>
-              </div>
-              <div className="divider" />
-
-              <div style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.8rem', color: 'var(--text-muted)', marginBottom: '.25rem' }}>
-                  <span>Progression du financement</span>
-                  <span>{progress}%</span>
-                </div>
-                <div className="progress-bar-container">
-                  <div className="progress-bar" style={{ width: `${Math.min(progress, 100)}%` }} />
-                </div>
-                <div className="progress-info">
-                  <span>{fmt(a.amount_raised_cents)}</span>
-                  <span>{fmt(a.total_amount_cents)}</span>
-                </div>
-              </div>
-
-              <div className="detail-grid">
-                <div className="detail-row"><span>ID</span><span className="font-mono" style={{ fontSize: '.8rem' }}>{selected.id}</span></div>
-                <div className="detail-row"><span>Propriété</span><span>{a.property_title} ({a.property_city})</span></div>
-                <div className="detail-row"><span>Porteur</span><span>{a.owner_name || '—'}</span></div>
-                <div className="detail-row"><span>Prix de part</span><span>{fmt(a.share_price_cents)}</span></div>
-                <div className="detail-row"><span>Parts vendues</span><span>{a.shares_sold} / {a.total_shares}</span></div>
-                <div className="detail-row"><span>Invest. min</span><span>{fmt(a.min_investment_cents)}</span></div>
-                {a.max_investment_cents && <div className="detail-row"><span>Invest. max</span><span>{fmt(a.max_investment_cents)}</span></div>}
-                <div className="detail-row"><span>Frais de gestion</span><span>{a.management_fee_percent}%</span></div>
-                {a.gross_yield_percent && <div className="detail-row"><span>Rendement brut</span><span className="text-success">{a.gross_yield_percent}%</span></div>}
-                {a.net_yield_percent && <div className="detail-row"><span>Rendement net</span><span className="text-success">{a.net_yield_percent}%</span></div>}
-                <div className="detail-row"><span>Début financement</span><span>{a.funding_start_date ? new Date(a.funding_start_date).toLocaleDateString('fr-FR') : '—'}</span></div>
-                <div className="detail-row"><span>Fin financement</span><span>{a.funding_end_date ? new Date(a.funding_end_date).toLocaleDateString('fr-FR') : '—'}</span></div>
-                <div className="detail-row"><span>Créé le</span><span>{new Date(a.created_at).toLocaleDateString('fr-FR')}</span></div>
-              </div>
-
-              {a.review_comment && (
-                <>
-                  <div className="divider" />
-                  <div>
-                    <span style={{ fontSize: '.78rem', fontWeight: 600, color: 'var(--text-muted)' }}>Commentaire de validation</span>
-                    <p style={{ fontSize: '.85rem', marginTop: '.25rem', color: a.review_status === 'rejete' ? 'var(--danger)' : 'var(--text)' }}>
-                      {a.review_comment}
-                    </p>
-                    {a.reviewer_name && <span style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>Par {a.reviewer_name} le {a.reviewed_at ? new Date(a.reviewed_at).toLocaleDateString('fr-FR') : ''}</span>}
-                  </div>
-                </>
-              )}
-
-              {a.review_status === 'en_attente' && (
-                <div className="detail-actions">
-                  <button className="btn btn-success btn-sm" onClick={() => handleApprove(selected.id)}>
-                    <ShieldCheck size={14} /> Approuver
-                  </button>
-                  <button className="btn btn-danger btn-sm" onClick={() => { setRejectId(selected.id); setShowRejectModal(true); }}>
-                    <ShieldX size={14} /> Rejeter
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })()}
       </div>
 
       {showRejectModal && (

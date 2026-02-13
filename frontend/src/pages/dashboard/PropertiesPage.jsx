@@ -316,6 +316,83 @@ export default function PropertiesPage() {
           </div>
         </div>
 
+        {/* Create/Edit Property Modal */}
+        {showPropertyModal && (
+          <div className="modal-overlay" onClick={() => setShowPropertyModal(false)}>
+            <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <h3 style={{ margin: 0 }}>{editingProperty ? 'Modifier le bien' : 'Ajouter un bien immobilier'}</h3>
+                <button type="button" className="btn-icon" onClick={() => setShowPropertyModal(false)} aria-label="Fermer"><X size={18} /></button>
+              </div>
+              <form onSubmit={handleSaveProperty} style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <div className="modal-body">
+                <div className="form-section">
+                  <div className="form-section-title">Informations générales</div>
+                  <div className="form-group" style={{ marginBottom: '.75rem' }}>
+                    <label>Titre</label>
+                    <input value={propertyForm.title} onChange={setPF('title')} required placeholder="Ex: Appartement T3 Lyon" />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Type de bien</label>
+                      <select value={propertyForm.property_type} onChange={setPF('property_type')}>
+                        <option value="appartement">Appartement</option>
+                        <option value="maison">Maison</option>
+                        <option value="immeuble">Immeuble</option>
+                        <option value="commercial">Commercial</option>
+                        <option value="terrain">Terrain</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Surface (m²)</label>
+                      <input type="number" step="0.1" value={propertyForm.surface_area_sqm} onChange={setPF('surface_area_sqm')} required />
+                    </div>
+                  </div>
+                  <div className="form-group" style={{ marginTop: '.75rem' }}>
+                    <label>Description</label>
+                    <textarea value={propertyForm.description} onChange={setPF('description')} placeholder="Description du bien..." />
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <div className="form-section-title">Adresse</div>
+                  <div className="form-group" style={{ marginBottom: '.75rem' }}>
+                    <label>Adresse ligne 1</label>
+                    <input value={propertyForm.address_line1} onChange={setPF('address_line1')} required />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '.75rem' }}>
+                    <label>Adresse ligne 2</label>
+                    <input value={propertyForm.address_line2} onChange={setPF('address_line2')} />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group"><label>Ville</label><input value={propertyForm.city} onChange={setPF('city')} required /></div>
+                    <div className="form-group"><label>Code postal</label><input value={propertyForm.postal_code} onChange={setPF('postal_code')} required /></div>
+                    <div className="form-group"><label>Pays</label><input value={propertyForm.country} onChange={setPF('country')} /></div>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <div className="form-section-title">Financier</div>
+                  <div className="form-row">
+                    <div className="form-group"><label>Prix d'acquisition (EUR)</label><input type="number" step="0.01" value={propertyForm.acquisition_price_cents} onChange={setPF('acquisition_price_cents')} required /></div>
+                    <div className="form-group"><label>Valeur estimée (EUR)</label><input type="number" step="0.01" value={propertyForm.estimated_value_cents} onChange={setPF('estimated_value_cents')} required /></div>
+                  </div>
+                  <p style={{ fontSize: '.875rem', color: 'var(--text-secondary)', marginTop: '.5rem' }}>
+                    💡 Le rendement et la durée d'investissement seront définis lors de la création du projet d'investissement.
+                  </p>
+                </div>
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn" onClick={() => setShowPropertyModal(false)}>Annuler</button>
+                  <button type="submit" className="btn btn-primary" disabled={submitting}>
+                    {submitting ? 'Enregistrement...' : editingProperty ? 'Mettre à jour' : 'Créer le bien'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       </div>
     );
   }

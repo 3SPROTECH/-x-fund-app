@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import {
-  Building, Eye, Trash2, ChevronLeft, ChevronRight,
-  Search, MapPin, Home,
+  Building, Trash2, ChevronLeft, ChevronRight,
+  Search, MapPin, Home, Plus, Pencil, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -19,6 +19,12 @@ const TYPE_LABELS = {
   commercial: 'Commercial', terrain: 'Terrain',
 };
 
+const EMPTY_PROPERTY = {
+  title: '', description: '', property_type: 'appartement', address_line1: '', address_line2: '',
+  city: '', postal_code: '', country: 'France', surface_area_sqm: '', acquisition_price_cents: '',
+  estimated_value_cents: '', status: 'brouillon',
+};
+
 const fmt = (cents) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100);
 
@@ -29,6 +35,12 @@ export default function AdminPropertiesPage() {
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [selected, setSelected] = useState(null);
+
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({ ...EMPTY_PROPERTY });
+  const [editingId, setEditingId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => { load(); }, [page, filters]);
 
@@ -69,16 +81,68 @@ export default function AdminPropertiesPage() {
     }
   };
 
-  const handleStatusChange = async (id, status) => {
+  const openCreateModal = () => {
+    setEditingId(null);
+    setEditForm({ ...EMPTY_PROPERTY });
+    setShowEditModal(true);
+  };
+
+  const openEditModal = (property) => {
+    const a = property.attributes || property;
+    setEditingId(property.id);
+    setEditForm({
+      title: a.title || '',
+      description: a.description || '',
+      property_type: a.property_type || 'appartement',
+      address_line1: a.address_line1 || '',
+      address_line2: a.address_line2 || '',
+      city: a.city || '',
+      postal_code: a.postal_code || '',
+      country: a.country || 'France',
+      surface_area_sqm: a.surface_area_sqm || '',
+      acquisition_price_cents: a.acquisition_price_cents ? a.acquisition_price_cents / 100 : '',
+      estimated_value_cents: a.estimated_value_cents ? a.estimated_value_cents / 100 : '',
+      status: a.status || 'brouillon',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const payload = {
+      title: editForm.title,
+      description: editForm.description,
+      property_type: editForm.property_type,
+      address_line1: editForm.address_line1,
+      address_line2: editForm.address_line2,
+      city: editForm.city,
+      postal_code: editForm.postal_code,
+      country: editForm.country,
+      surface_area_sqm: parseFloat(editForm.surface_area_sqm) || 0,
+      acquisition_price_cents: Math.round(parseFloat(editForm.acquisition_price_cents) * 100) || 0,
+      estimated_value_cents: Math.round(parseFloat(editForm.estimated_value_cents) * 100) || 0,
+      status: editForm.status,
+    };
     try {
-      await adminApi.updateProperty(id, { status });
-      toast.success('Statut mis à jour');
+      if (editingId) {
+        await adminApi.updateProperty(editingId, payload);
+        toast.success('Bien mis à jour');
+        if (selected?.id === String(editingId)) loadDetail(editingId);
+      } else {
+        await adminApi.createProperty(payload);
+        toast.success('Bien créé avec succès');
+      }
+      setShowEditModal(false);
       load();
-      if (selected?.id === String(id)) loadDetail(id);
     } catch (err) {
-      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la mise à jour');
+      toast.error(err.response?.data?.errors?.[0] || (editingId ? 'Erreur lors de la mise à jour' : 'Erreur lors de la création'));
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  const setEF = (field) => (e) => setEditForm({ ...editForm, [field]: e.target.value });
 
   return (
     <div className="page">
@@ -87,7 +151,12 @@ export default function AdminPropertiesPage() {
           <h1>Gestion des Biens Immobiliers</h1>
           <p className="text-muted">Visualisez et gérez tous les biens de la plateforme</p>
         </div>
-        <span className="badge"><Building size={12} /> {meta.total_count ?? properties.length} bien(s)</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+          <span className="badge"><Building size={12} /> {meta.total_count ?? properties.length} bien(s)</span>
+          <button className="btn btn-primary" onClick={() => openCreateModal()}>
+            <Plus size={16} /> Ajouter un bien
+          </button>
+        </div>
       </div>
 
       <div className="filters-bar">
@@ -129,7 +198,7 @@ export default function AdminPropertiesPage() {
                     {properties.map((p) => {
                       const a = p.attributes || p;
                       return (
-                        <tr key={p.id} className={selected?.id === p.id ? 'row-selected' : ''}>
+                        <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => loadDetail(p.id)}>
                           <td style={{ fontWeight: 550 }}>{a.title}</td>
                           <td>{a.owner_name || '—'}</td>
                           <td><span style={{ display: 'flex', alignItems: 'center', gap: '.3rem' }}><MapPin size={13} />{a.city}</span></td>
@@ -137,8 +206,8 @@ export default function AdminPropertiesPage() {
                           <td><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
                           <td>{fmt(a.acquisition_price_cents)}</td>
                           <td>
-                            <div className="actions-cell">
-                              <button className="btn-icon" title="Voir" onClick={() => loadDetail(p.id)}><Eye size={16} /></button>
+                            <div className="actions-cell" onClick={(e) => e.stopPropagation()}>
+                              <button className="btn-icon" title="Modifier" onClick={() => openEditModal(p)}><Pencil size={16} /></button>
                               <button className="btn-icon btn-danger" title="Supprimer" onClick={() => handleDelete(p.id)}><Trash2 size={16} /></button>
                             </div>
                           </td>
@@ -185,16 +254,94 @@ export default function AdminPropertiesPage() {
               </div>
 
               <div className="divider" />
-              <div className="form-group">
-                <label>Changer le statut</label>
-                <select value={a.status} onChange={(e) => handleStatusChange(selected.id, e.target.value)}>
-                  {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
+              <div className="detail-actions">
+                <button className="btn btn-sm btn-primary" onClick={() => openEditModal(selected)}>
+                  <Pencil size={14} /> Modifier
+                </button>
+                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(selected.id)}>
+                  <Trash2 size={14} /> Supprimer
+                </button>
               </div>
             </div>
           );
         })()}
       </div>
+
+      {/* Edit Property Modal */}
+      {showEditModal && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <h3 style={{ margin: 0 }}>{editingId ? 'Modifier le bien' : 'Ajouter un bien immobilier'}</h3>
+              <button type="button" className="btn-icon" onClick={() => setShowEditModal(false)} aria-label="Fermer"><X size={18} /></button>
+            </div>
+            <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <div className="modal-body">
+                <div className="form-section">
+                  <div className="form-section-title">Informations générales</div>
+                  <div className="form-group" style={{ marginBottom: '.75rem' }}>
+                    <label>Titre</label>
+                    <input value={editForm.title} onChange={setEF('title')} required placeholder="Ex: Appartement T3 Lyon" />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Type de bien</label>
+                      <select value={editForm.property_type} onChange={setEF('property_type')}>
+                        {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Surface (m²)</label>
+                      <input type="number" step="0.1" value={editForm.surface_area_sqm} onChange={setEF('surface_area_sqm')} required />
+                    </div>
+                    <div className="form-group">
+                      <label>Statut</label>
+                      <select value={editForm.status} onChange={setEF('status')}>
+                        {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-group" style={{ marginTop: '.75rem' }}>
+                    <label>Description</label>
+                    <textarea value={editForm.description} onChange={setEF('description')} placeholder="Description du bien..." />
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <div className="form-section-title">Adresse</div>
+                  <div className="form-group" style={{ marginBottom: '.75rem' }}>
+                    <label>Adresse ligne 1</label>
+                    <input value={editForm.address_line1} onChange={setEF('address_line1')} required />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '.75rem' }}>
+                    <label>Adresse ligne 2</label>
+                    <input value={editForm.address_line2} onChange={setEF('address_line2')} />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group"><label>Ville</label><input value={editForm.city} onChange={setEF('city')} required /></div>
+                    <div className="form-group"><label>Code postal</label><input value={editForm.postal_code} onChange={setEF('postal_code')} required /></div>
+                    <div className="form-group"><label>Pays</label><input value={editForm.country} onChange={setEF('country')} /></div>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <div className="form-section-title">Financier</div>
+                  <div className="form-row">
+                    <div className="form-group"><label>Prix d'acquisition (EUR)</label><input type="number" step="0.01" value={editForm.acquisition_price_cents} onChange={setEF('acquisition_price_cents')} required /></div>
+                    <div className="form-group"><label>Valeur estimée (EUR)</label><input type="number" step="0.01" value={editForm.estimated_value_cents} onChange={setEF('estimated_value_cents')} required /></div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn" onClick={() => setShowEditModal(false)}>Annuler</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? 'Enregistrement...' : (editingId ? 'Mettre à jour' : 'Créer le bien')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -22,6 +22,7 @@ class User < ApplicationRecord
   validates :last_name, presence: true
   validates :role, presence: true
 
+  before_save :auto_verify_kyc_for_admin
   after_create :create_wallet!
 
   def full_name
@@ -33,6 +34,13 @@ class User < ApplicationRecord
   end
 
   private
+
+  def auto_verify_kyc_for_admin
+    if administrateur? && !kyc_verified?
+      self.kyc_status = :verified
+      self.kyc_verified_at = Time.current
+    end
+  end
 
   def create_wallet!
     Wallet.create!(user: self)

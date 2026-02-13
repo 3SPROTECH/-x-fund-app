@@ -35,6 +35,10 @@ export const adminApi = {
     return client.get(`/admin/properties/${id}`);
   },
 
+  createProperty(data) {
+    return client.post('/admin/properties', { property: data });
+  },
+
   updateProperty(id, data) {
     return client.patch(`/admin/properties/${id}`, { property: data });
   },

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { kycApi } from '../../api/kyc';
 import { useAuth } from '../../context/AuthContext';
 import { ShieldCheck, ShieldAlert, Clock, FileUp, Upload } from 'lucide-react';
@@ -20,6 +21,10 @@ export default function KycPage() {
   const [proofOfAddress, setProofOfAddress] = useState(null);
 
   useEffect(() => { loadKyc(); }, []);
+
+  if (user?.role === 'administrateur') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
 
   const loadKyc = async () => {
     try {

@@ -19,8 +19,8 @@ module Dashboards
         investisseurs: User.investisseur.count,
         porteurs_de_projet: User.porteur_de_projet.count,
         administrateurs: User.administrateur.count,
-        kyc_pending: User.where(kyc_status: :submitted).count,
-        kyc_verified: User.where(kyc_status: :verified).count
+        kyc_pending: User.where(kyc_status: :submitted).where.not(role: :administrateur).count,
+        kyc_verified: User.where(kyc_status: :verified).where.not(role: :administrateur).count
       }
     end
 

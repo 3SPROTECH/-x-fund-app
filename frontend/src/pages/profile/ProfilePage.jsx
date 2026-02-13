@@ -135,12 +135,14 @@ export default function ProfilePage() {
             <div className="divider" />
             <div className="detail-grid">
               <div className="detail-row"><span>Email</span><span>{user?.email}</span></div>
-              <div className="detail-row">
-                <span>KYC</span>
-                <span className={`badge kyc-${user?.kyc_status || 'pending'}`}>
-                  {{ pending: 'En attente', submitted: 'Soumis', verified: 'Vérifié', rejected: 'Rejeté' }[user?.kyc_status] || 'En attente'}
-                </span>
-              </div>
+              {user?.role !== 'administrateur' && (
+                <div className="detail-row">
+                  <span>KYC</span>
+                  <span className={`badge kyc-${user?.kyc_status || 'pending'}`}>
+                    {{ pending: 'En attente', submitted: 'Soumis', verified: 'Vérifié', rejected: 'Rejeté' }[user?.kyc_status] || 'En attente'}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
