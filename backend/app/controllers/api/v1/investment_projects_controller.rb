@@ -4,7 +4,7 @@ module Api
       before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image]
 
       def index
-        projects = policy_scope(InvestmentProject).includes(:property)
+        projects = policy_scope(InvestmentProject).includes(:properties)
         projects = projects.where(status: params[:status]) if params[:status].present?
         projects = paginate(projects.order(created_at: :desc))
 
@@ -20,11 +20,21 @@ module Api
       end
 
       def create
-        property = Property.find(params[:property_id])
-        authorize property, :create_project?
+        property_ids = Array(params[:property_ids]).presence || (params[:property_id].present? ? [params[:property_id]] : nil)
+        if property_ids.blank?
+          return render json: { errors: ["Veuillez sélectionner au moins un bien"] }, status: :unprocessable_entity
+        end
 
-        if property.investment_project.present?
-          return render json: { errors: ["Ce bien a déjà un projet d'investissement"] }, status: :unprocessable_entity
+        props = Property.where(id: property_ids)
+        if props.count != property_ids.size
+          return render json: { errors: ["Un ou plusieurs biens sont introuvables"] }, status: :unprocessable_entity
+        end
+
+        props.each do |property|
+          authorize property, :create_project?
+          if property.investment_project.present?
+            return render json: { errors: ["Le bien « #{property.title} » a déjà un projet d'investissement"] }, status: :unprocessable_entity
+          end
         end
 
         share_price = (project_params[:share_price_cents].presence || 0).to_i
@@ -32,10 +42,9 @@ module Api
           return render json: { errors: ["Le prix par part doit être supérieur à 0"] }, status: :unprocessable_entity
         end
 
-        @investment_project = property.build_investment_project(project_params)
+        @investment_project = InvestmentProject.new(project_params)
         @investment_project.owner = current_user
         @investment_project.management_fee_percent = (@investment_project.management_fee_percent || 0).to_d
-        # Définition des parts : soit total_shares fourni, soit dérivé de total_amount / share_price
         if project_params[:total_shares].to_i.positive?
           @investment_project.total_shares = project_params[:total_shares].to_i
           @investment_project.share_price_cents = share_price
@@ -54,7 +63,10 @@ module Api
         end
 
         if @investment_project.save
-          property.update!(status: :en_financement) if property.brouillon?
+          property_ids.each do |pid|
+            InvestmentProjectProperty.create!(investment_project_id: @investment_project.id, property_id: pid)
+          end
+          props.each { |p| p.update!(status: :en_financement) if p.brouillon? }
           render json: { data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data] }, status: :created
         else
           render json: { errors: @investment_project.errors.full_messages }, status: :unprocessable_entity

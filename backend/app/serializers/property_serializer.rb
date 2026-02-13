@@ -5,7 +5,19 @@ class PropertySerializer
              :address_line1, :address_line2, :city, :postal_code, :country,
              :latitude, :longitude, :surface_area_sqm,
              :acquisition_price_cents, :estimated_value_cents,
+             :number_of_lots,
              :created_at, :updated_at
+
+  attribute :lots do |property|
+    property.lots.order(:lot_number).map do |lot|
+      {
+        id: lot.id,
+        lot_number: lot.lot_number,
+        surface_area_sqm: lot.surface_area_sqm,
+        description: lot.description
+      }
+    end
+  end
 
   attribute :owner_name do |property|
     property.owner.full_name

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_13_082831) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_13_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -105,6 +105,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_082831) do
     t.index ["investment_project_id"], name: "index_financial_statements_on_investment_project_id"
   end
 
+  create_table "investment_project_properties", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "investment_project_id", null: false
+    t.bigint "property_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["investment_project_id", "property_id"], name: "idx_ipp_on_project_and_property", unique: true
+    t.index ["investment_project_id"], name: "index_investment_project_properties_on_investment_project_id"
+    t.index ["property_id"], name: "idx_ipp_on_property_unique", unique: true
+    t.index ["property_id"], name: "index_investment_project_properties_on_property_id"
+  end
+
   create_table "investment_projects", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -116,7 +127,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_082831) do
     t.bigint "min_investment_cents", null: false
     t.decimal "net_yield_percent", precision: 5, scale: 2
     t.bigint "owner_id", null: false
-    t.bigint "property_id", null: false
     t.text "review_comment"
     t.integer "review_status", default: 0, null: false
     t.datetime "reviewed_at"
@@ -131,7 +141,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_082831) do
     t.index ["funding_end_date"], name: "index_investment_projects_on_funding_end_date"
     t.index ["funding_start_date"], name: "index_investment_projects_on_funding_start_date"
     t.index ["owner_id"], name: "index_investment_projects_on_owner_id"
-    t.index ["property_id"], name: "index_investment_projects_on_property_id", unique: true
     t.index ["review_status"], name: "index_investment_projects_on_review_status"
     t.index ["reviewed_by_id"], name: "index_investment_projects_on_reviewed_by_id"
     t.index ["status"], name: "index_investment_projects_on_status"
@@ -159,6 +168,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_082831) do
     t.index ["jti"], name: "index_jwt_denylist_on_jti"
   end
 
+  create_table "lots", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "description"
+    t.integer "lot_number", null: false
+    t.bigint "property_id", null: false
+    t.decimal "surface_area_sqm", precision: 10, scale: 2
+    t.datetime "updated_at", null: false
+    t.index ["property_id", "lot_number"], name: "index_lots_on_property_id_and_lot_number", unique: true
+    t.index ["property_id"], name: "index_lots_on_property_id"
+  end
+
   create_table "properties", force: :cascade do |t|
     t.bigint "acquisition_price_cents", null: false
     t.string "address_line1", null: false
@@ -170,6 +190,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_082831) do
     t.bigint "estimated_value_cents"
     t.decimal "latitude", precision: 10, scale: 8
     t.decimal "longitude", precision: 11, scale: 8
+    t.integer "number_of_lots"
     t.bigint "owner_id", null: false
     t.string "postal_code", null: false
     t.integer "property_type", default: 0, null: false
@@ -257,11 +278,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_082831) do
   add_foreign_key "dividend_payments", "users"
   add_foreign_key "dividends", "investment_projects"
   add_foreign_key "financial_statements", "investment_projects"
-  add_foreign_key "investment_projects", "properties"
+  add_foreign_key "investment_project_properties", "investment_projects"
+  add_foreign_key "investment_project_properties", "properties"
   add_foreign_key "investment_projects", "users", column: "owner_id"
   add_foreign_key "investment_projects", "users", column: "reviewed_by_id"
   add_foreign_key "investments", "investment_projects"
   add_foreign_key "investments", "users"
+  add_foreign_key "lots", "properties"
   add_foreign_key "properties", "users", column: "owner_id"
   add_foreign_key "transactions", "investments"
   add_foreign_key "transactions", "wallets"

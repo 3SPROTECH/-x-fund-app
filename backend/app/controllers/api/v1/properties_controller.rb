@@ -89,7 +89,9 @@ module Api
           :address_line1, :address_line2, :city, :postal_code, :country,
           :latitude, :longitude, :surface_area_sqm,
           :acquisition_price_cents, :estimated_value_cents,
-          :status, photos: [], documents: []
+          :number_of_lots,
+          :status, photos: [], documents: [],
+          lots_attributes: [:id, :lot_number, :surface_area_sqm, :description, :_destroy]
         )
       end
     end

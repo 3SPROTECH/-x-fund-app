@@ -6,7 +6,7 @@ module Api
         before_action :set_project, only: [:show, :update, :destroy, :approve, :reject]
 
         def index
-          projects = InvestmentProject.includes(property: :owner).all
+          projects = InvestmentProject.includes(properties: :owner).all
           projects = projects.where(status: params[:status]) if params[:status].present?
           projects = projects.where(review_status: params[:review_status]) if params[:review_status].present?
           projects = paginate(projects.order(created_at: :desc))
@@ -22,8 +22,23 @@ module Api
         end
 
         def create
-          property = Property.find(params[:property_id])
-          @project = property.build_investment_project(admin_project_params)
+          property_ids = Array(params[:property_ids]).presence || (params[:property_id].present? ? [params[:property_id]] : nil)
+          if property_ids.blank?
+            return render json: { errors: ["Veuillez sélectionner au moins un bien"] }, status: :unprocessable_entity
+          end
+
+          props = Property.where(id: property_ids)
+          if props.count != property_ids.size
+            return render json: { errors: ["Un ou plusieurs biens sont introuvables"] }, status: :unprocessable_entity
+          end
+
+          props.each do |property|
+            if property.investment_project.present?
+              return render json: { errors: ["Le bien « #{property.title} » a déjà un projet"] }, status: :unprocessable_entity
+            end
+          end
+
+          @project = InvestmentProject.new(admin_project_params)
           if admin_project_params[:total_shares].to_i.positive?
             @project.total_shares = admin_project_params[:total_shares].to_i
             @project.total_amount_cents = @project.total_shares * @project.share_price_cents
@@ -32,7 +47,8 @@ module Api
           end
 
           if @project.save
-            property.update!(status: :en_financement) if property.brouillon?
+            property_ids.each { |pid| InvestmentProjectProperty.create!(investment_project_id: @project.id, property_id: pid) }
+            props.each { |p| p.update!(status: :en_financement) if p.brouillon? }
             render json: { data: InvestmentProjectSerializer.new(@project).serializable_hash[:data] }, status: :created
           else
             render json: { errors: @project.errors.full_messages }, status: :unprocessable_entity
