@@ -5,6 +5,7 @@ import { investmentProjectsApi } from '../../api/investments';
 import { useAuth } from '../../context/AuthContext';
 import { projectImagesApi } from '../../api/images';
 import { ArrowLeft, ArrowRight, Check, Building, TrendingUp, Calendar, Euro, ImagePlus, X } from 'lucide-react';
+import FormSelect from '../../components/FormSelect';
 import toast from 'react-hot-toast';
 
 const STEPS = [
@@ -290,24 +291,19 @@ export default function CreateProjectPage() {
 
             <div className="form-group">
               <label>Biens immobiliers *</label>
-              <select
+              <FormSelect
                 value=""
                 onChange={(e) => { if (e.target.value) togglePropertyId(e.target.value); }}
                 className={errors.property_ids ? 'error' : ''}
                 style={{ marginTop: '0.5rem' }}
-              >
-                <option value="">-- Sélectionner un bien à ajouter --</option>
-                {properties
+                placeholder="-- Sélectionner un bien à ajouter --"
+                options={properties
                   .filter(p => !(formData.property_ids || []).includes(String(p.id)))
                   .map(prop => {
                     const a = prop.attributes || prop;
-                    return (
-                      <option key={prop.id} value={prop.id}>
-                        {a.title} — {a.city} ({a.property_type})
-                      </option>
-                    );
+                    return { value: String(prop.id), label: `${a.title} — ${a.city} (${a.property_type})` };
                   })}
-              </select>
+              />
               {errors.property_ids && <span className="error-message">{errors.property_ids}</span>}
             </div>
 

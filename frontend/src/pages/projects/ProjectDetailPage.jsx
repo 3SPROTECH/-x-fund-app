@@ -10,6 +10,7 @@ import { walletApi } from '../../api/wallet';
 import { projectImagesApi } from '../../api/images';
 import { getImageUrl } from '../../api/client';
 import { adminApi } from '../../api/admin';
+import FormSelect from '../../components/FormSelect';
 
 const STATUS_LABELS = { brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé', cloture: 'Clôturé', annule: 'Annulé' };
 const STATUS_BADGE = { ouvert: 'badge-success', finance: 'badge-info', cloture: '', annule: 'badge-danger', brouillon: 'badge-warning' };
@@ -992,11 +993,17 @@ export default function ProjectDetailPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Type de Rapport *</label>
-                    <select value={stmtForm.statement_type} onChange={e => setStmtForm({ ...stmtForm, statement_type: e.target.value })} required>
-                      <option value="trimestriel">Trimestriel</option>
-                      <option value="semestriel">Semestriel</option>
-                      <option value="annuel">Annuel</option>
-                    </select>
+                    <FormSelect
+                      value={stmtForm.statement_type}
+                      onChange={e => setStmtForm({ ...stmtForm, statement_type: e.target.value })}
+                      name="statement_type"
+                      required
+                      options={[
+                        { value: 'trimestriel', label: 'Trimestriel' },
+                        { value: 'semestriel', label: 'Semestriel' },
+                        { value: 'annuel', label: 'Annuel' },
+                      ]}
+                    />
                   </div>
                   <div className="form-group">
                     <label>Date de début *</label>
@@ -1365,9 +1372,15 @@ export default function ProjectDetailPage() {
                       <div className="form-row">
                         <div className="form-group">
                           <label>Statut actuel</label>
-                          <select value={mvpForm.operation_status} onChange={updateMvpField('operation_status')}>
-                            {Object.keys(OPERATION_STATUSES).map((k) => <option key={k} value={k}>{getOperationStatusLabel(a.operation_type, k)}</option>)}
-                          </select>
+                          <FormSelect
+                            value={mvpForm.operation_status}
+                            onChange={updateMvpField('operation_status')}
+                            name="operation_status"
+                            options={Object.keys(OPERATION_STATUSES).map((k) => ({
+                              value: k,
+                              label: getOperationStatusLabel(a.operation_type, k),
+                            }))}
+                          />
                         </div>
                         <div className="form-group">
                           <label>Date previsionnelle remboursement</label>

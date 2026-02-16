@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
+import FormSelect from '../../components/FormSelect';
 
 const STATUS_LABELS = {
   brouillon: 'Brouillon', en_financement: 'En financement', finance: 'Financé',
@@ -349,9 +350,12 @@ export default function AdminPropertiesPage() {
                   <div className="form-row">
                     <div className="form-group">
                       <label>Type de bien</label>
-                      <select value={editForm.property_type} onChange={setEF('property_type')}>
-                        {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                      </select>
+                      <FormSelect
+                        value={editForm.property_type}
+                        onChange={setEF('property_type')}
+                        name="property_type"
+                        options={Object.entries(TYPE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+                      />
                     </div>
                     <div className="form-group">
                       <label>Surface (m²)</label>
@@ -359,9 +363,12 @@ export default function AdminPropertiesPage() {
                     </div>
                     <div className="form-group">
                       <label>Statut</label>
-                      <select value={editForm.status} onChange={setEF('status')}>
-                        {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                      </select>
+                      <FormSelect
+                        value={editForm.status}
+                        onChange={setEF('status')}
+                        name="status"
+                        options={Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+                      />
                     </div>
                     {editForm.property_type === 'immeuble' && (
                       <div className="form-group">

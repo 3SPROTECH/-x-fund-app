@@ -7,6 +7,7 @@ import {
   Building, MapPin, ArrowLeft, Plus, Pencil, Trash2, TrendingUp, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import FormSelect from '../../components/FormSelect';
 
 const STATUS_LABELS = {
   brouillon: 'Brouillon', en_financement: 'En financement', finance: 'Financé',
@@ -398,13 +399,18 @@ export default function PropertiesPage() {
                   <div className="form-row">
                     <div className="form-group">
                       <label>Type de bien</label>
-                      <select value={propertyForm.property_type} onChange={setPF('property_type')}>
-                        <option value="appartement">Appartement</option>
-                        <option value="maison">Maison</option>
-                        <option value="immeuble">Immeuble</option>
-                        <option value="commercial">Commercial</option>
-                        <option value="terrain">Terrain</option>
-                      </select>
+                      <FormSelect
+                        value={propertyForm.property_type}
+                        onChange={setPF('property_type')}
+                        name="property_type"
+                        options={[
+                          { value: 'appartement', label: 'Appartement' },
+                          { value: 'maison', label: 'Maison' },
+                          { value: 'immeuble', label: 'Immeuble' },
+                          { value: 'commercial', label: 'Commercial' },
+                          { value: 'terrain', label: 'Terrain' },
+                        ]}
+                      />
                     </div>
                     <div className="form-group">
                       <label>Surface (m²)</label>
@@ -542,13 +548,18 @@ export default function PropertiesPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Type de bien</label>
-                    <select value={propertyForm.property_type} onChange={setPF('property_type')}>
-                      <option value="appartement">Appartement</option>
-                      <option value="maison">Maison</option>
-                      <option value="immeuble">Immeuble</option>
-                      <option value="commercial">Commercial</option>
-                      <option value="terrain">Terrain</option>
-                    </select>
+                    <FormSelect
+                      value={propertyForm.property_type}
+                      onChange={setPF('property_type')}
+                      name="property_type"
+                      options={[
+                        { value: 'appartement', label: 'Appartement' },
+                        { value: 'maison', label: 'Maison' },
+                        { value: 'immeuble', label: 'Immeuble' },
+                        { value: 'commercial', label: 'Commercial' },
+                        { value: 'terrain', label: 'Terrain' },
+                      ]}
+                    />
                   </div>
                   <div className="form-group">
                     <label>Surface (m²)</label>

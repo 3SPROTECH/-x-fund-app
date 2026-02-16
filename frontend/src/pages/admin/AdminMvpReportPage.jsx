@@ -5,6 +5,7 @@ import {
   ArrowLeft, Plus, Pencil, Trash2, Eye, ChevronLeft, ChevronRight, Save, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import FormSelect from '../../components/FormSelect';
 
 const OPERATION_TYPES = {
   promotion_immobiliere: 'Promotion immobiliere (construction neuve)',
@@ -575,11 +576,12 @@ export default function AdminMvpReportPage() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Statut actuel</label>
-                  <select value={form.operation_status} onChange={updateField('operation_status')}>
-                    {Object.entries(OPERATION_STATUSES).map(([k, v]) => (
-                      <option key={k} value={k}>{v}</option>
-                    ))}
-                  </select>
+                  <FormSelect
+                    value={form.operation_status}
+                    onChange={updateField('operation_status')}
+                    name="operation_status"
+                    options={Object.entries(OPERATION_STATUSES).map(([k, v]) => ({ value: k, label: v }))}
+                  />
                 </div>
                 <div className="form-group">
                   <label>Date previsionnelle remboursement</label>

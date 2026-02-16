@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { UserPlus } from 'lucide-react';
+import FormSelect from '../../components/FormSelect';
 
 export default function RegisterPage() {
   const { signUp } = useAuth();
@@ -64,11 +65,16 @@ export default function RegisterPage() {
             </div>
             <div className="form-group">
               <label>Type de compte</label>
-              <select value={form.role} onChange={set('role')}>
-                <option value="investisseur">Investisseur</option>
-                <option value="porteur_de_projet">Porteur de projet</option>
-                <option value="administrateur">Administrateur</option>
-              </select>
+              <FormSelect
+                value={form.role}
+                onChange={set('role')}
+                name="role"
+                options={[
+                  { value: 'investisseur', label: 'Investisseur' },
+                  { value: 'porteur_de_projet', label: 'Porteur de projet' },
+                  { value: 'administrateur', label: 'Administrateur' },
+                ]}
+              />
             </div>
           </div>
           <div className="form-row">
