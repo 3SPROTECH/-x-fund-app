@@ -4,6 +4,14 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
+/** Redirige un admin vers la page admin équivalente */
+function AdminRedirect({ adminPath, children }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user?.role === 'administrateur') return <Navigate to={adminPath} replace />;
+  return children;
+}
+
 /** Redirige vers le tableau de bord adapté au rôle après login / accès à / */
 function DashboardRedirect() {
   const { user, loading } = useAuth();
@@ -77,15 +85,15 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<AdminRedirect adminPath="/admin/dashboard"><DashboardPage /></AdminRedirect>} />
             <Route path="/wallet" element={<WalletPage />} />
-            <Route path="/properties" element={<PropertiesPage />} />
-            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/properties" element={<AdminRedirect adminPath="/admin/properties"><PropertiesPage /></AdminRedirect>} />
+            <Route path="/projects" element={<AdminRedirect adminPath="/admin/projects"><ProjectsPage /></AdminRedirect>} />
             <Route path="/projects/new" element={<CreateProjectPage />} />
             <Route path="/projects/:id/edit" element={<EditProjectPage />} />
             <Route path="/projects/:projectId/dividends/:dividendId" element={<DividendDetailPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
-            <Route path="/investments" element={<MyInvestmentsPage />} />
+            <Route path="/investments" element={<AdminRedirect adminPath="/admin/investments"><MyInvestmentsPage /></AdminRedirect>} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/kyc" element={<KycPage />} />
 

@@ -54,7 +54,7 @@ export default function EditProjectPage() {
       });
     } catch (err) {
       toast.error('Erreur lors du chargement du projet');
-      navigate('/projects');
+      navigate(user?.role === 'administrateur' ? '/admin/projects' : '/projects');
     } finally {
       setLoading(false);
     }
