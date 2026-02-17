@@ -48,6 +48,8 @@ const INITIAL_FINANCE = {
   bank_name: '',
   bank_loan_status: '',
   gross_yield_percent: '',
+  management_fee_percent: '2.5',
+  net_yield_percent: '',
   duration_months: '',
   payment_frequency: '',
 };

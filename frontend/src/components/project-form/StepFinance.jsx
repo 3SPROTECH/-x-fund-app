@@ -55,6 +55,67 @@ export default function StepFinance() {
     }
   };
 
+  // Yield bidirectional handlers
+  const handleGrossYieldChange = (value) => {
+    updateFinance('gross_yield_percent', value);
+    const gross = parseFloat(value) || 0;
+    const fee = parseFloat(finance.management_fee_percent) || 0;
+    updateFinance('net_yield_percent', String(parseFloat((gross - fee).toFixed(2))));
+  };
+
+  const handleFeeChange = (value) => {
+    updateFinance('management_fee_percent', value);
+    const gross = parseFloat(finance.gross_yield_percent) || 0;
+    const fee = parseFloat(value) || 0;
+    updateFinance('net_yield_percent', String(parseFloat((gross - fee).toFixed(2))));
+  };
+
+  const handleNetYieldChange = (value) => {
+    updateFinance('net_yield_percent', value);
+    const net = parseFloat(value) || 0;
+    const fee = parseFloat(finance.management_fee_percent) || 0;
+    updateFinance('gross_yield_percent', String(parseFloat((net + fee).toFixed(2))));
+  };
+
+  // Yield summary calculations
+  const yieldSummary = (() => {
+    const gross = parseFloat(finance.gross_yield_percent) || 0;
+    const fee = parseFloat(finance.management_fee_percent) || 0;
+    const net = parseFloat(finance.net_yield_percent) || 0;
+    const months = parseInt(finance.duration_months) || 0;
+    const freq = finance.payment_frequency;
+    const hasData = totalAmount > 0 && gross > 0 && months > 0;
+
+    if (!hasData) return { hasData: false };
+
+    const durationYears = months / 12;
+    const totalGrossReturn = totalAmount * (gross / 100) * durationYears;
+    const totalFees = totalAmount * (fee / 100) * durationYears;
+    const totalNetReturn = totalAmount * (net / 100) * durationYears;
+
+    // Per-share return
+    const shares = totalShares || (sharePrice > 0 ? Math.floor(totalAmount / sharePrice) : 0);
+    const perShare = shares > 0 ? totalNetReturn / shares : 0;
+
+    // Coupon per period
+    const periodsPerYear = { mensuel: 12, trimestriel: 4, annuel: 1, in_fine: 0 }[freq] || 0;
+    const numberOfPayments = periodsPerYear > 0 ? Math.round(durationYears * periodsPerYear) : 1;
+    const couponPerPeriod = periodsPerYear > 0 && shares > 0
+      ? (totalNetReturn / shares) / numberOfPayments
+      : perShare; // in_fine = single payment at maturity
+
+    return {
+      hasData: true,
+      totalAmount,
+      totalGrossReturn,
+      totalFees,
+      totalNetReturn,
+      perShare,
+      couponPerPeriod,
+      numberOfPayments,
+    };
+  })();
+
   const minInvestWarning = (() => {
     if (minInvestment > 0 && sharePrice > 0 && minInvestment < sharePrice) {
       return `L'investissement minimum doit être ≥ au prix d'une part (${sharePrice.toLocaleString('fr-FR')} €)`;
@@ -316,31 +377,64 @@ export default function StepFinance() {
 
       <div className="divider" />
 
-      {/* Investor Proposition */}
+      {/* Investor Proposition — Yield & Terms */}
       <div className="form-section">
-        <div className="form-section-title">Proposition aux Investisseurs</div>
+        <div className="form-section-title">Proposition aux Investisseurs (Obligation)</div>
+        <p className="text-muted" style={{ fontSize: '0.8rem', marginBottom: '1rem' }}>
+          Conditions de l'emprunt obligataire proposé aux investisseurs.
+        </p>
+
         <div className="form-row" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
           <div className="form-group">
-            <label>Taux Annuel (%)</label>
+            <label>Taux Annuel Brut (%) *</label>
             <input
               type="number"
               step="0.1"
+              min="0"
               value={finance.gross_yield_percent}
-              onChange={(e) => updateFinance('gross_yield_percent', e.target.value)}
+              onChange={(e) => handleGrossYieldChange(e.target.value)}
               placeholder="10.0"
             />
           </div>
           <div className="form-group">
-            <label>Durée (Mois)</label>
+            <label>Frais Plateforme (%)</label>
             <input
               type="number"
+              step="0.1"
+              min="0"
+              max="100"
+              value={finance.management_fee_percent}
+              disabled
+              placeholder="2.5"
+            />
+            <span className="form-hint">Commission prélevée par la plateforme</span>
+          </div>
+          <div className="form-group">
+            <label>Taux Net Investisseur (%)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={finance.net_yield_percent}
+              disabled
+              placeholder="Auto-calculé"
+            />
+            <span className="form-hint">Taux affiché aux investisseurs</span>
+          </div>
+        </div>
+
+        <div className="form-row" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          <div className="form-group">
+            <label>Durée (Mois) *</label>
+            <input
+              type="number"
+              min="1"
               value={finance.duration_months}
               onChange={(e) => updateFinance('duration_months', e.target.value)}
               placeholder="24"
             />
           </div>
           <div className="form-group">
-            <label>Périodicité</label>
+            <label>Périodicité de versement</label>
             <FormSelect
               value={finance.payment_frequency}
               onChange={(e) => updateFinance('payment_frequency', e.target.value)}
@@ -350,6 +444,67 @@ export default function StepFinance() {
             />
           </div>
         </div>
+
+        {/* Yield summary */}
+        {yieldSummary.hasData && (
+          <div style={{ background: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)', marginTop: '1rem' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>
+              Simulation du rendement
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', textAlign: 'center' }}>
+              <div>
+                <div className="text-muted" style={{ fontSize: '0.7rem', marginBottom: '0.25rem' }}>Montant levé</div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                  {yieldSummary.totalAmount.toLocaleString('fr-FR')} €
+                </div>
+              </div>
+              <div>
+                <div className="text-muted" style={{ fontSize: '0.7rem', marginBottom: '0.25rem' }}>Intérêts bruts totaux</div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--primary)' }}>
+                  {yieldSummary.totalGrossReturn.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                </div>
+              </div>
+              <div>
+                <div className="text-muted" style={{ fontSize: '0.7rem', marginBottom: '0.25rem' }}>Frais plateforme</div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--danger, #e74c3c)' }}>
+                  −{yieldSummary.totalFees.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                </div>
+              </div>
+              <div>
+                <div className="text-muted" style={{ fontSize: '0.7rem', marginBottom: '0.25rem' }}>Intérêts nets investisseurs</div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--success, #27ae60)' }}>
+                  {yieldSummary.totalNetReturn.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                </div>
+              </div>
+            </div>
+
+            {yieldSummary.perShare > 0 && (
+              <>
+                <div className="divider" style={{ margin: '0.75rem 0' }} />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', textAlign: 'center' }}>
+                  <div>
+                    <div className="text-muted" style={{ fontSize: '0.7rem', marginBottom: '0.25rem' }}>Rendement net / part</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                      {yieldSummary.perShare.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} €
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted" style={{ fontSize: '0.7rem', marginBottom: '0.25rem' }}>Coupon par période</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                      {yieldSummary.couponPerPeriod.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} € / part
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted" style={{ fontSize: '0.7rem', marginBottom: '0.25rem' }}>Nombre de versements</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                      {yieldSummary.numberOfPayments}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

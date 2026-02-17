@@ -204,6 +204,8 @@ export default function ProjectSubmissionForm() {
         bank_name: finance.bank_name || undefined,
         bank_loan_status: finance.bank_loan_status || undefined,
         gross_yield_percent: finance.gross_yield_percent ? parseFloat(finance.gross_yield_percent) : undefined,
+        management_fee_percent: finance.management_fee_percent ? parseFloat(finance.management_fee_percent) : undefined,
+        net_yield_percent: finance.net_yield_percent ? parseFloat(finance.net_yield_percent) : undefined,
         duration_months: finance.duration_months ? parseInt(finance.duration_months) : undefined,
         payment_frequency: finance.payment_frequency || undefined,
 
