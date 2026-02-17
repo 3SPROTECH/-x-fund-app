@@ -22,6 +22,11 @@ Rails.application.routes.draw do
       resource :profile, only: [:show, :update], controller: "profile"
       resource :kyc, only: [:show, :create, :update], controller: "kyc"
 
+      # === Company (operator info) ===
+      resource :company, only: [:show], controller: "companies" do
+        put :create_or_update, on: :collection, path: "/"
+      end
+
       # === Properties ===
       resources :properties do
         resources :investment_projects, only: [:create], controller: "investment_projects"

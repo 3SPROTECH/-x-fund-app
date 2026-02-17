@@ -135,7 +135,21 @@ module Api
           :min_investment_cents, :max_investment_cents,
           :funding_start_date, :funding_end_date,
           :management_fee_percent, :gross_yield_percent, :net_yield_percent,
-          :status, :operation_type, :contrat_obligataire, :fici_document, :pv_decision, :note_operation,
+          :status, :operation_type,
+          # Finance fields
+          :notary_fees_cents, :works_budget_cents, :financial_fees_cents,
+          :equity_cents, :bank_loan_cents, :projected_revenue_cents, :projected_margin_cents,
+          :bank_name, :bank_loan_status, :duration_months, :payment_frequency,
+          # Guarantee fields
+          :has_first_rank_mortgage, :has_share_pledge, :has_fiducie,
+          :has_interest_escrow, :has_works_escrow, :has_personal_guarantee,
+          :has_gfa, :has_open_banking, :risk_description,
+          # Commercialization fields
+          :pre_commercialization_percent, :exit_price_per_sqm_cents, :exit_scenario,
+          :planned_acquisition_date, :planned_delivery_date, :planned_repayment_date,
+          # File attachments
+          :contrat_obligataire, :fici_document, :pv_decision, :note_operation,
+          :price_grid, :block_buyer_loi, :sale_agreement, :projected_balance_sheet,
           additional_documents: []
         )
       end
