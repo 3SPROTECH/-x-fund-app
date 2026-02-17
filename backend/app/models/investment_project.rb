@@ -16,6 +16,10 @@ class InvestmentProject < ApplicationRecord
   has_one_attached :pv_decision
   has_one_attached :note_operation
   has_many_attached :additional_documents
+  has_one_attached :price_grid
+  has_one_attached :block_buyer_loi
+  has_one_attached :sale_agreement
+  has_one_attached :projected_balance_sheet
 
   enum :status, { brouillon: 0, ouvert: 1, finance: 2, cloture: 3, annule: 4 }
   enum :review_status, { en_attente: 0, approuve: 1, rejete: 2 }, prefix: :review
@@ -25,8 +29,13 @@ class InvestmentProject < ApplicationRecord
     rehabilitation_lourde: 2,
     division_fonciere: 3,
     immobilier_locatif: 4,
-    transformation_usage: 5
+    transformation_usage: 5,
+    refinancement: 6,
+    amenagement_foncier: 7
   }, prefix: :op
+  enum :bank_loan_status, { en_negociation: 0, accord_principe: 1, offre_editee: 2, offre_signee: 3 }, prefix: :bank
+  enum :payment_frequency, { mensuel: 0, trimestriel: 1, annuel: 2, in_fine: 3 }, prefix: :freq
+  enum :exit_scenario, { unit_sale: 0, block_sale: 1, refinance_exit: 2 }, prefix: :exit
 
   validates :title, presence: true
   validates :total_amount_cents, presence: true, numericality: { greater_than: 0 }

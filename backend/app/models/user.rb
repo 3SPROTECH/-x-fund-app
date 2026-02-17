@@ -9,6 +9,7 @@ class User < ApplicationRecord
   enum :kyc_status, { pending: 0, submitted: 1, verified: 2, rejected: 3 }, prefix: :kyc
 
   has_one :wallet, dependent: :destroy
+  has_one :company, dependent: :destroy
   has_many :properties, foreign_key: :owner_id, dependent: :restrict_with_error, inverse_of: :owner
   has_many :investments, dependent: :restrict_with_error
   has_many :invested_projects, through: :investments, source: :investment_project
