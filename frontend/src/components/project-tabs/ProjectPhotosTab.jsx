@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { projectImagesApi } from '../../../api/images';
-import { getImageUrl } from '../../../api/client';
+import { projectImagesApi } from '../../api/images';
+import { getImageUrl } from '../../api/client';
 import { Image as ImageIcon, Upload, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 

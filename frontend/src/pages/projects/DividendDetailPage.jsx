@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { dividendsApi } from '../../api/dividends';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, DollarSign, Calendar, Users, Send } from 'lucide-react';
+import { ArrowLeft, DollarSign, Calendar, Users, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { formatCents as fmt, formatDate as fmtDate, DIVIDEND_STATUS_LABELS as STATUS_LABELS, DIVIDEND_STATUS_BADGES as STATUS_BADGE, PAYMENT_STATUS_LABELS as PAYMENT_STATUS } from '../../utils';
+import { formatCents as fmt, formatDate as fmtDate, DIVIDEND_STATUS_LABELS as STATUS_LABELS, DIVIDEND_STATUS_BADGES as STATUS_BADGE, PAYMENT_STATUS_LABELS as PAYMENT_STATUS, withRolePath } from '../../utils';
 import { LoadingSpinner, EmptyState } from '../../components/ui';
 
 export default function DividendDetailPage() {
@@ -68,7 +68,7 @@ export default function DividendDetailPage() {
 
   return (
     <div className="page">
-      <button className="btn btn-ghost" onClick={() => navigate(`/projects/${projectId}`)} style={{ marginBottom: '1rem' }}>
+      <button className="btn btn-ghost" onClick={() => navigate(withRolePath(user?.role, `projects/${projectId}`))} style={{ marginBottom: '1rem' }}>
         <ArrowLeft size={16} /> Retour au projet
       </button>
 

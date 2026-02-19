@@ -1,5 +1,5 @@
 import { Users } from 'lucide-react';
-import { formatCents as fmt, formatDate as fmtDate } from '../../../utils';
+import { formatCents as fmt, formatDate as fmtDate } from '../../utils';
 
 export default function ProjectInvestorsTab({ investors, investorsMeta, canViewInvestors }) {
   return (

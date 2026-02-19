@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dividendsApi } from '../../../api/dividends';
+import { dividendsApi } from '../../api/dividends';
 import { DollarSign, Eye, Send, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
   formatCents as fmt, formatDate as fmtDate,
   FREQ_MONTHS, FREQ_LABELS, DIVIDEND_STATUS_LABELS as DIV_STATUS,
-} from '../../../utils';
+} from '../../utils';
 
 export default function ProjectDividendsTab({ project, projectId, dividends, isAdmin, onRefresh }) {
   const navigate = useNavigate();

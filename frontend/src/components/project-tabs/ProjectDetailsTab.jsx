@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { investmentsApi } from '../../../api/investments';
+import { investmentsApi } from '../../api/investments';
 import { TrendingUp, DollarSign, Calendar, AlertCircle, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { formatCents as fmt, formatDate as fmtDate } from '../../../utils';
+import { formatCents as fmt, formatDate as fmtDate } from '../../utils';
 
 export default function ProjectDetailsTab({ project, projectId, wallet, user, onRefresh }) {
   const navigate = useNavigate();

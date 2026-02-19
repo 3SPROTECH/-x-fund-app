@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { investmentProjectsApi, mvpReportsApi } from '../../../api/investments';
-import { adminApi } from '../../../api/admin';
+import { investmentProjectsApi, mvpReportsApi } from '../../api/investments';
+import { adminApi } from '../../api/admin';
 import { Plus, X, Eye, Pencil, Send, Check, XCircle, Trash2, Save, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -8,8 +8,8 @@ import {
   OPERATION_TYPES, OPERATION_TYPE_ICONS, OPERATION_STATUSES, getOperationStatusLabel,
   MVP_STATUS_BADGES as MVP_STATUS_BADGE, REVIEW_STATUS_LABELS, REVIEW_STATUS_BADGES as REVIEW_STATUS_BADGE,
   EMPTY_MVP_FORM,
-} from '../../../utils';
-import { LoadingSpinner } from '../../../components/ui';
+} from '../../utils';
+import { LoadingSpinner } from '../../components/ui';
 
 function mvpApiToForm(data) {
   const r = data.attributes || data;

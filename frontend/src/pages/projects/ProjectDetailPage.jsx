@@ -60,7 +60,7 @@ export default function ProjectDetailPage() {
     try {
       await investmentProjectsApi.delete(id);
       toast.success('Projet supprimé avec succès');
-      navigate(user?.role === 'administrateur' ? '/admin/projects' : '/projects');
+      navigate('/porteur/projects');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Erreur lors de la suppression');
     }
@@ -78,7 +78,7 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="page">
-      <button className="btn btn-ghost" onClick={() => navigate(user?.role === 'administrateur' ? '/admin/projects' : '/projects')} style={{ marginBottom: '1rem' }}>
+      <button className="btn btn-ghost" onClick={() => navigate('/porteur/projects')} style={{ marginBottom: '1rem' }}>
         <ArrowLeft size={16} /> Retour aux projets
       </button>
 
@@ -92,7 +92,7 @@ export default function ProjectDetailPage() {
           {canEdit && (
             <button
               className="btn btn-sm"
-              onClick={() => navigate(`/projects/${id}/edit`)}
+              onClick={() => navigate(`/porteur/projects/${id}/edit`)}
               title="Modifier le projet"
             >
               <Edit size={16} /> Modifier

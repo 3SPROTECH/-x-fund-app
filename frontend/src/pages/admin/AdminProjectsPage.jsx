@@ -111,7 +111,7 @@ export default function AdminProjectsPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
           <span className="badge"><Briefcase size={12} /> {meta.total_count ?? projects.length} projet(s)</span>
-          <button className="btn btn-primary" onClick={() => navigate('/projects/new')}>
+          <button className="btn btn-primary" onClick={() => navigate('/admin/projects/new')}>
             <Plus size={16} /> Créer un projet
           </button>
         </div>
@@ -156,7 +156,7 @@ export default function AdminProjectsPage() {
                       const a = p.attributes || p;
                       const progress = a.funding_progress_percent || 0;
                       return (
-                        <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/projects/${p.id}`)}>
+                        <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/projects/${p.id}`)}>
                           <td data-label="Titre" style={{ fontWeight: 550 }}>{a.title}</td>
                           <td data-label="Propriété">{a.property_title || '—'}</td>
                           <td data-label="Porteur">{a.owner_name || '—'}</td>
@@ -172,7 +172,7 @@ export default function AdminProjectsPage() {
                           </td>
                           <td data-label="Actions">
                             <div className="actions-cell" onClick={(e) => e.stopPropagation()}>
-                              <button className="btn-icon" title="Voir le détail" onClick={() => navigate(`/projects/${p.id}`)}><Eye size={16} /></button>
+                              <button className="btn-icon" title="Voir le détail" onClick={() => navigate(`/admin/projects/${p.id}`)}><Eye size={16} /></button>
                               <button className="btn-icon" title="Rapport MVP" onClick={() => navigate(`/admin/projects/${p.id}/mvp-report`)}><FileText size={16} /></button>
                               {a.status === 'pending_analysis' && (
                                 <>

@@ -50,14 +50,14 @@ export default function PorteurDashboardPage() {
       </div>
 
       <div className="stats-grid">
-        <div className="stat-card" onClick={() => navigate('/properties')} style={{ cursor: 'pointer' }}>
+        <div className="stat-card" onClick={() => navigate('/porteur/properties')} style={{ cursor: 'pointer' }}>
           <div className="stat-icon stat-icon-primary"><Building size={20} /></div>
           <div className="stat-content">
             <span className="stat-value">{props.total ?? 0}</span>
             <span className="stat-label">Biens immobiliers</span>
           </div>
         </div>
-        <div className="stat-card" onClick={() => navigate('/projects')} style={{ cursor: 'pointer' }}>
+        <div className="stat-card" onClick={() => navigate('/porteur/projects')} style={{ cursor: 'pointer' }}>
           <div className="stat-icon stat-icon-success"><TrendingUp size={20} /></div>
           <div className="stat-content">
             <span className="stat-value">{proj.total ?? 0}</span>
@@ -85,7 +85,7 @@ export default function PorteurDashboardPage() {
           <div className="card">
             <div className="card-header">
               <h3>Projets récents</h3>
-              <button type="button" className="btn btn-sm btn-ghost" onClick={() => navigate('/projects')}>
+              <button type="button" className="btn btn-sm btn-ghost" onClick={() => navigate('/porteur/projects')}>
                 Voir tout <ArrowRight size={14} />
               </button>
             </div>
@@ -99,7 +99,7 @@ export default function PorteurDashboardPage() {
                   </thead>
                   <tbody>
                     {recentProj.map((p) => (
-                      <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/projects/${p.id}`)}>
+                      <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/porteur/projects/${p.id}`)}>
                         <td data-label="Projet">{p.title}</td>
                         <td data-label="Statut"><span className="badge">{STATUS_LABELS[p.status] || p.status}</span></td>
                         <td data-label="Avancement">{p.funding_progress_percent?.toFixed(0) ?? 0}%</td>
@@ -114,7 +114,7 @@ export default function PorteurDashboardPage() {
           <div className="card">
             <div className="card-header">
               <h3>Biens récents</h3>
-              <button type="button" className="btn btn-sm btn-ghost" onClick={() => navigate('/properties')}>
+              <button type="button" className="btn btn-sm btn-ghost" onClick={() => navigate('/porteur/properties')}>
                 Voir tout <ArrowRight size={14} />
               </button>
             </div>
@@ -123,7 +123,7 @@ export default function PorteurDashboardPage() {
             ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {recentProps.map((p) => (
-                  <li key={p.id} style={{ padding: '.5rem 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => navigate('/properties')}>
+                  <li key={p.id} style={{ padding: '.5rem 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => navigate('/porteur/properties')}>
                     <strong>{p.title}</strong> — {p.city} <span className="badge" style={{ marginLeft: '.5rem' }}>{p.status}</span>
                   </li>
                 ))}
@@ -135,13 +135,13 @@ export default function PorteurDashboardPage() {
           <div className="card">
             <h3>Actions rapides</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
-              <button type="button" className="btn btn-block" onClick={() => navigate('/properties')} style={{ justifyContent: 'flex-start' }}>
+              <button type="button" className="btn btn-block" onClick={() => navigate('/porteur/properties')} style={{ justifyContent: 'flex-start' }}>
                 <Building size={16} /> Mes biens immobiliers
               </button>
-              <button type="button" className="btn btn-block" onClick={() => navigate('/projects')} style={{ justifyContent: 'flex-start' }}>
+              <button type="button" className="btn btn-block" onClick={() => navigate('/porteur/projects')} style={{ justifyContent: 'flex-start' }}>
                 <TrendingUp size={16} /> Projets
               </button>
-              <button type="button" className="btn btn-block" onClick={() => navigate('/wallet')} style={{ justifyContent: 'flex-start' }}>
+              <button type="button" className="btn btn-block" onClick={() => navigate('/porteur/wallet')} style={{ justifyContent: 'flex-start' }}>
                 <Wallet size={16} /> Portefeuille
               </button>
             </div>
@@ -150,7 +150,7 @@ export default function PorteurDashboardPage() {
             <div className="card" style={{ borderLeft: '3px solid var(--warning)' }}>
               <h3>KYC</h3>
               <p className="text-muted" style={{ fontSize: '.9rem' }}>Complétez votre vérification si nécessaire.</p>
-              <button type="button" className="btn btn-sm btn-primary" onClick={() => navigate('/kyc')}>Compléter le KYC</button>
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => navigate('/porteur/kyc')}>Compléter le KYC</button>
             </div>
           )}
         </div>

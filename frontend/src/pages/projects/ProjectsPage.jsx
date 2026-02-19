@@ -85,7 +85,7 @@ export default function ProjectsPage() {
           <p className="text-muted">Découvrez les opportunités et suivez l'avancement du financement</p>
         </div>
         {canCreateProject && (
-          <button type="button" className="btn gold-color" onClick={() => navigate('/projects/new')}>
+          <button type="button" className="btn gold-color" onClick={() => navigate('/porteur/projects/new')}>
             <Plus size={16} /> Créer un projet
           </button>
         )}
@@ -121,7 +121,7 @@ export default function ProjectsPage() {
               const updatedAt = draft.updated_at ? new Date(draft.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
 
               return (
-                <div key={`draft-${draft.id}`} className="project-card" onClick={() => navigate(`/projects/new?draft=${draft.id}`)} style={{ cursor: 'pointer' }}>
+                <div key={`draft-${draft.id}`} className="project-card" onClick={() => navigate(`/porteur/projects/new?draft=${draft.id}`)} style={{ cursor: 'pointer' }}>
                   <div style={{
                     width: '100%',
                     aspectRatio: '16/9',
@@ -168,7 +168,7 @@ export default function ProjectsPage() {
         <div className="card">
           <EmptyState icon={TrendingUp} message="Aucun projet disponible">
             {canCreateProject && (
-              <button type="button" className="btn btn-primary" onClick={() => navigate('/properties')}>
+              <button type="button" className="btn btn-primary" onClick={() => navigate('/porteur/properties')}>
                 <Plus size={16} /> Créer un projet depuis Mes biens
               </button>
             )}
@@ -189,8 +189,8 @@ export default function ProjectsPage() {
               // Navigate to read-only form for owner's draft or pending_analysis projects
               const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis');
               const cardHref = showForm
-                ? `/projects/new?project=${p.id}`
-                : `/projects/${p.id}`;
+                ? `/porteur/projects/new?project=${p.id}`
+                : `/porteur/projects/${p.id}`;
 
               return (
                 <div key={p.id} className="project-card" onClick={() => navigate(cardHref)}>

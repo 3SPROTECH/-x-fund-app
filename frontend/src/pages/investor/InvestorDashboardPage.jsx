@@ -69,7 +69,7 @@ export default function InvestorDashboardPage() {
                   <span>{completionSteps} étape sur 2</span>
                 </div>
               </div>
-              <button className="btn-alert" onClick={() => navigate(user?.kyc_status !== 'verified' ? '/kyc' : '/projects')}>
+              <button className="btn-alert" onClick={() => navigate(user?.kyc_status !== 'verified' ? '/investor/kyc' : '/investor/projects')}>
                 Compléter mon profil →
               </button>
             </div>
@@ -99,7 +99,7 @@ export default function InvestorDashboardPage() {
               </div>
               <p className="chart-message">Vos données seront disponibles après votre premier investissement.</p>
             </div>
-            <button className="btn-secondary" onClick={() => navigate('/projects')}>
+            <button className="btn-secondary" onClick={() => navigate('/investor/projects')}>
               Voir nos projets
             </button>
           </div>
@@ -115,7 +115,7 @@ export default function InvestorDashboardPage() {
                 {featuredProjects.slice(0, 4).map((project) => {
                   const p = project.attributes || project;
                   return (
-                    <div key={project.id} className="project-item-simple" onClick={() => navigate(`/projects/${project.id}`)}>
+                    <div key={project.id} className="project-item-simple" onClick={() => navigate(`/investor/projects/${project.id}`)}>
                       <div className="project-info-simple">
                         <h4>{p.title}</h4>
                         <span className="project-location-simple">📍 {p.property_city || 'France'}</span>
@@ -128,7 +128,7 @@ export default function InvestorDashboardPage() {
                 })}
               </div>
             )}
-            <button className="btn-link-simple" onClick={() => navigate('/projects')}>
+            <button className="btn-link-simple" onClick={() => navigate('/investor/projects')}>
               Voir tous les projets
             </button>
           </div>

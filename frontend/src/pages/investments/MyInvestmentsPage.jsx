@@ -95,7 +95,7 @@ export default function MyInvestmentsPage() {
       ) : investments.length === 0 ? (
         <div className="card">
           <EmptyState icon={Briefcase} message="Aucun investissement pour le moment">
-            <button className="btn btn-primary" onClick={() => navigate('/projects')}>Découvrir les projets</button>
+            <button className="btn btn-primary" onClick={() => navigate('/investor/projects')}>Découvrir les projets</button>
           </EmptyState>
         </div>
       ) : (
@@ -118,7 +118,7 @@ export default function MyInvestmentsPage() {
                   const a = inv.attributes || inv;
                   const feePercent = a.fee_cents > 0 && a.amount_cents > 0 ? (a.fee_cents / a.amount_cents * 100).toFixed(1).replace(/\.0$/, '') : null;
                   return (
-                    <tr key={inv.id} style={{ cursor: 'pointer' }} onClick={() => a.investment_project_id && navigate(`/projects/${a.investment_project_id}`)}>
+                    <tr key={inv.id} style={{ cursor: 'pointer' }} onClick={() => a.investment_project_id && navigate(`/investor/projects/${a.investment_project_id}`)}>
                       <td data-label="Projet" style={{ fontWeight: 550 }}>{a.project_title || '—'}</td>
                       <td data-label="Montant">
                         <div>{fmt(a.amount_cents)}</div>

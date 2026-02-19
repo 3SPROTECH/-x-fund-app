@@ -139,7 +139,7 @@ export default function PorteurPropertiesPage() {
       toast.error('Erreur: ID du bien non valide');
       return;
     }
-    navigate(`/projects/new?propertyId=${propertyId}`);
+    navigate(`/porteur/projects/new?propertyId=${propertyId}`);
   };
 
   if (loading) return <LoadingSpinner />;
