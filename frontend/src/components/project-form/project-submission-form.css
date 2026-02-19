@@ -15,11 +15,43 @@
 .pf-app-container {
   display: flex;
   flex-direction: column;
-  width: calc(100% + 5rem);
-  height: 100vh;
   background: var(--bg-card);
-  margin: -2rem -2.5rem;
   overflow: hidden;
+  /* Full-screen overlay below navbar */
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+}
+
+/* ==================== BACK BAR ==================== */
+.pf-back-bar {
+  flex-shrink: 0;
+  padding: 10px max(2.5rem, calc(50% - 600px));
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.pf-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.pf-back-btn:hover {
+  color: var(--primary);
+  background: var(--border);
 }
 
 /* ==================== MACRO NAV ==================== */
@@ -27,7 +59,7 @@
   display: flex;
   background: #fafafa;
   border-bottom: 2px solid var(--border);
-  padding: 0 40px;
+  padding: 0 max(2.5rem, calc(50% - 600px));
   flex-shrink: 0;
 }
 
@@ -86,11 +118,12 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 30px 60px;
-  max-width: 1200px;
+  padding: 30px 2.5rem 0;
+  max-width: 1280px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
+  min-height: 0;
 }
 
 /* ==================== MICRO NAV (Progress Bar Tabs) ==================== */
@@ -742,12 +775,13 @@
 /* ==================== FORM FOOTER ==================== */
 .pf-form-footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  padding-top: 20px;
-  padding-bottom: 30px;
+  padding: 16px 0;
   flex-shrink: 0;
   background: var(--bg-card);
   border-top: 1px solid var(--border);
+  margin-top: auto;
 }
 
 .pf-nav-btn {

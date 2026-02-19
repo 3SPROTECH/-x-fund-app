@@ -1529,9 +1529,9 @@ textarea.error:focus {
 }
 
 .navbar-container {
-  max-width: 1320px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 2.5rem;
   display: flex;
   align-items: center;
   gap: 10.5rem;
@@ -3041,11 +3041,11 @@ textarea.error:focus {
   transform: translateY(-2px);
 }
 
-/* Top row: badge only, right-aligned */
+/* Top row: badge only, left-aligned */
 .pcard-top {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 /* Info block */

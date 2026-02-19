@@ -1,8 +1,9 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle, ChevronLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-import useProjectFormStore, { MACRO_STEPS, STEP_CONFIG } from '../../stores/useProjectFormStore';
+import useProjectFormStore, { MACRO_STEPS, STEP_CONFIG, createEmptyLot } from '../../stores/useProjectFormStore';
 import { projectDraftsApi } from '../../api/projectDrafts';
 import { companiesApi } from '../../api/companies';
 import { investmentProjectsApi } from '../../api/investments';
@@ -53,6 +54,7 @@ const SUB_FLOW_LABELS = [
 ];
 
 export default function ProjectSubmissionForm({ initialDraftId = null, initialProjectId = null }) {
+  const navigate = useNavigate();
   const scrollRef = useRef(null);
   const autoSaveTimer = useRef(null);
 
@@ -367,6 +369,104 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
     }
   };
 
+  // ── TEST: Auto-populate current step ──
+  const handleTestFill = () => {
+    const s = store;
+    switch (globalStepIndex) {
+      case 0: // Presentation
+        s.updatePresentation('title', 'Résidence Les Oliviers - Marseille 8e');
+        s.updatePresentation('propertyType', 'immeuble');
+        s.updatePresentation('operationType', 'marchand_de_biens');
+        s.updatePresentation('pitch', 'Réhabilitation d\'un immeuble de 6 lots en plein centre de Marseille.');
+        s.updatePresentation('valBefore', '450000');
+        s.updatePresentation('valAfter', '820000');
+        s.updatePresentation('expertName', 'Cabinet Durand Expertise');
+        s.updatePresentation('expertDate', '2026-01-15');
+        s.updatePresentation('durationMonths', '18');
+        s.updatePresentation('exploitationStrategy', 'revente_lots');
+        s.updatePresentation('marketSegment', 'residentiel_standing');
+        s.updatePresentation('projectedRevenue', '820000');
+        s.updatePresentation('revenuePeriod', 'fin_projet');
+        s.updatePresentation('additionalInfo', 'Quartier en pleine revalorisation, proximité métro.');
+        break;
+      case 1: // Location
+        s.updateLocation('address', '24 Rue du Rouet');
+        s.updateLocation('postalCode', '13008');
+        s.updateLocation('city', 'Marseille');
+        s.updateLocation('neighborhood', 'Rouet - Menpenti');
+        s.updateLocation('zoneTypology', 'urbain_dense');
+        s.updateLocation('transportAccess', ['metro', 'bus', 'tramway']);
+        s.updateLocation('nearbyAmenities', ['commerces', 'ecoles', 'sante']);
+        s.updateLocation('strategicAdvantages', 'Quartier en forte revalorisation, proche du Prado et du Vélodrome.');
+        break;
+      case 2: // Project Owner
+        s.updateProjectOwner('structure', 'sas');
+        s.updateProjectOwner('companyName', 'Immo Sud Développement SAS');
+        s.updateProjectOwner('linkedinUrl', 'https://linkedin.com/company/immo-sud-dev');
+        s.updateProjectOwner('yearsExperience', '8');
+        s.updateProjectOwner('coreExpertise', 'Réhabilitation d\'immeubles anciens en centre-ville');
+        s.updateProjectOwner('completedProjects', '12');
+        s.updateProjectOwner('businessVolume', '6500000');
+        s.updateProjectOwner('geoExperience', 'Marseille, Aix-en-Provence, Toulon');
+        s.updateProjectOwner('certifications', 'RGE, Qualibat');
+        s.updateProjectOwner('teamDescription', 'Équipe de 5 personnes : 2 chefs de projet, 1 architecte partenaire, 1 comptable, 1 commercial.');
+        s.updateProjectOwner('additionalInfo', 'Partenariat bancaire avec CIC et Crédit Agricole.');
+        break;
+      case 3: // Financial Structure
+        s.updateFinancialStructure('totalFunding', '650000');
+        s.updateFinancialStructure('grossMargin', '12.5');
+        s.updateFinancialStructure('netYield', '9.2');
+        s.updateFinancialStructure('yieldJustification', 'Marge basée sur le différentiel acquisition/revente après travaux, dans un marché marseillais en hausse.');
+        s.updateFinancialStructure('commercializationStrategy', ['vente_lots', 'mandat_agence']);
+        s.updateFinancialStructure('financialDossierStatus', ['business_plan_valide', 'financement_bancaire_obtenu']);
+        s.updateFinancialStructure('additionalInfo', 'Pré-commercialisation de 2 lots sur 6 déjà engagée.');
+        break;
+      case 5: { // Asset Details
+        const ai = s.selectedAssetIndex;
+        if (ai !== null) {
+          s.updateAssetDetails('isRefinancing', false);
+          s.updateAssetDetails('signatureDate', '2026-03-01');
+          s.updateAssetDetails('lotCount', '4');
+          s.updateAssetDetails('worksNeeded', true);
+          s.updateAssetDetails('worksDuration', '10');
+        }
+        break;
+      }
+      case 6: { // Expense Plan
+        const ai2 = s.selectedAssetIndex;
+        if (ai2 !== null) {
+          const asset = s.assets[ai2];
+          asset.costs.items.forEach((item) => {
+            if (item.label.includes('acquisition')) s.updateCostItem(item.id, 'amount', '450000');
+            else if (item.label.includes('notaire')) s.updateCostItem(item.id, 'amount', '35000');
+            else if (item.label.includes('agence')) s.updateCostItem(item.id, 'amount', '15000');
+            else if (item.label.includes('Architecte')) s.updateCostItem(item.id, 'amount', '12000');
+            else if (item.label.includes('Bureau')) s.updateCostItem(item.id, 'amount', '5000');
+            else if (item.label.includes('Géomètre')) s.updateCostItem(item.id, 'amount', '3000');
+          });
+        }
+        break;
+      }
+      case 7: { // Sales Plan / Lots
+        const ai3 = s.selectedAssetIndex;
+        if (ai3 !== null) {
+          const asset = s.assets[ai3];
+          asset.lots.forEach((lot) => {
+            s.updateLot(lot.id, 'surface', String(35 + Math.floor(Math.random() * 40)));
+          });
+        }
+        break;
+      }
+      case 9: // Contribution
+        s.updateProjections('contributionPct', 25);
+        s.updateProjections('durationMonths', 18);
+        break;
+      default:
+        toast('Pas de données test pour cette étape', { icon: 'ℹ️' });
+    }
+    toast.success('Données test injectées !');
+  };
+
   // ── Button labels ──
   const isSubmitStep = globalStepIndex === SUBMIT_STEP;
   const isEndOfSubFlow = globalStepIndex === SUB_FLOW_END;
@@ -397,6 +497,13 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
 
   return (
     <div className="pf-app-container">
+      {/* ── Back to previous page ── */}
+      <div className="pf-back-bar">
+        <button type="button" className="pf-back-btn" onClick={() => navigate(-1)}>
+          <ChevronLeft size={18} /> Retour
+        </button>
+      </div>
+
       {/* ── Macro Navigation ── */}
       <nav className="pf-macro-nav">
         {MACRO_STEPS.map((macro, idx) => {
@@ -466,6 +573,26 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
           {globalStepIndex > 0 && (
             <button type="button" className="pf-nav-btn pf-btn-prev" onClick={handlePrev} disabled={submitting}>
               <ArrowLeft size={16} /> {prevLabel}
+            </button>
+          )}
+          <div style={{ flex: 1 }} />
+          {!submitted && (
+            <button
+              type="button"
+              onClick={handleTestFill}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '0.75rem',
+                background: 'repeating-linear-gradient(45deg, #fff3cd, #fff3cd 10px, #fff9e6 10px, #fff9e6 20px)',
+                color: '#856404',
+                border: '2px dashed #ffc107',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                letterSpacing: '0.03em',
+              }}
+            >
+              TEST: Remplir cette étape
             </button>
           )}
           <div style={{ flex: 1 }} />
