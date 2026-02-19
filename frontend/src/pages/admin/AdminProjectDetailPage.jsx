@@ -3,21 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { investmentProjectsApi, projectInvestorsApi } from '../../api/investments';
 import { dividendsApi } from '../../api/dividends';
 import { financialStatementsApi } from '../../api/financialStatements';
-import { useAuth } from '../../context/AuthContext';
 import useWalletStore from '../../stores/useWalletStore';
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { PROJECT_DETAIL_STATUS_LABELS as STATUS_LABELS, PROJECT_DETAIL_STATUS_BADGES as STATUS_BADGE } from '../../utils';
 import { LoadingSpinner } from '../../components/ui';
-import ProjectDetailsTab from './tabs/ProjectDetailsTab';
-import ProjectPhotosTab from './tabs/ProjectPhotosTab';
-import ProjectDividendsTab from './tabs/ProjectDividendsTab';
-import ProjectReportsTab from './tabs/ProjectReportsTab';
-import ProjectInvestorsTab from './tabs/ProjectInvestorsTab';
+import ProjectDetailsTab from '../../components/project-tabs/ProjectDetailsTab';
+import ProjectPhotosTab from '../../components/project-tabs/ProjectPhotosTab';
+import ProjectDividendsTab from '../../components/project-tabs/ProjectDividendsTab';
+import ProjectReportsTab from '../../components/project-tabs/ProjectReportsTab';
+import ProjectInvestorsTab from '../../components/project-tabs/ProjectInvestorsTab';
 
-export default function ProjectDetailPage() {
+export default function AdminProjectDetailPage() {
   const { id } = useParams();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { wallet, fetchWallet } = useWalletStore();
   const [project, setProject] = useState(null);
@@ -60,7 +58,7 @@ export default function ProjectDetailPage() {
     try {
       await investmentProjectsApi.delete(id);
       toast.success('Projet supprimé avec succès');
-      navigate(user?.role === 'administrateur' ? '/admin/projects' : '/projects');
+      navigate('/admin/projects');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Erreur lors de la suppression');
     }
@@ -70,15 +68,14 @@ export default function ProjectDetailPage() {
   if (!project) return <div className="page"><div className="card"><p>Projet introuvable</p></div></div>;
 
   const a = project.attributes || project;
-  const isAdmin = user?.role === 'administrateur';
-  const isOwner = user?.id === a.owner_id;
-  const canEdit = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
-  const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
-  const canViewInvestors = isAdmin || (user?.role === 'porteur_de_projet' && isOwner);
+  const isAdmin = true;
+  const canEdit = true;
+  const canDelete = true;
+  const canViewInvestors = true;
 
   return (
     <div className="page">
-      <button className="btn btn-ghost" onClick={() => navigate(user?.role === 'administrateur' ? '/admin/projects' : '/projects')} style={{ marginBottom: '1rem' }}>
+      <button className="btn btn-ghost" onClick={() => navigate('/admin/projects')} style={{ marginBottom: '1rem' }}>
         <ArrowLeft size={16} /> Retour aux projets
       </button>
 
@@ -92,7 +89,7 @@ export default function ProjectDetailPage() {
           {canEdit && (
             <button
               className="btn btn-sm"
-              onClick={() => navigate(`/projects/${id}/edit`)}
+              onClick={() => navigate(`/admin/projects/${id}/edit`)}
               title="Modifier le projet"
             >
               <Edit size={16} /> Modifier
@@ -118,11 +115,11 @@ export default function ProjectDetailPage() {
         <button className={`tab${tab === 'investors' ? ' active' : ''}`} onClick={() => setTab('investors')}>Associés ({investorsMeta?.total_investors || 0})</button>
       </div>
 
-      {tab === 'details' && <ProjectDetailsTab project={project} projectId={id} wallet={wallet} user={user} onRefresh={loadAll} />}
-      {tab === 'photos' && <ProjectPhotosTab project={project} projectId={id} isAdmin={isAdmin} onRefresh={loadAll} />}
-      {tab === 'dividends' && <ProjectDividendsTab project={project} projectId={id} dividends={dividends} isAdmin={isAdmin} onRefresh={loadAll} />}
-      {tab === 'statements' && <ProjectReportsTab project={project} projectId={id} isAdmin={isAdmin} isOwner={isOwner} user={user} setProject={setProject} onRefresh={loadAll} />}
-      {tab === 'investors' && <ProjectInvestorsTab investors={investors} investorsMeta={investorsMeta} canViewInvestors={canViewInvestors} />}
+      {tab === 'details' && <ProjectDetailsTab project={project} projectId={id} wallet={wallet} isAdmin={true} basePath="/admin" onRefresh={loadAll} />}
+      {tab === 'photos' && <ProjectPhotosTab project={project} projectId={id} isAdmin={true} onRefresh={loadAll} />}
+      {tab === 'dividends' && <ProjectDividendsTab project={project} projectId={id} dividends={dividends} isAdmin={true} basePath="/admin" onRefresh={loadAll} />}
+      {tab === 'statements' && <ProjectReportsTab project={project} projectId={id} isAdmin={true} isOwner={false} setProject={setProject} onRefresh={loadAll} />}
+      {tab === 'investors' && <ProjectInvestorsTab investors={investors} investorsMeta={investorsMeta} canViewInvestors={true} />}
     </div>
   );
 }

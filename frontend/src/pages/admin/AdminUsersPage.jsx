@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import {
-  ShieldCheck, ShieldX, Trash2, Eye, ChevronLeft,
-  ChevronRight, Users, UserCheck, UserX, Search, FileText, Download, X,
+  ShieldCheck, ShieldX, Trash2, Eye,
+  Users, UserCheck, UserX, Search, FileText, Download, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../api/client';
 import TableFilters from '../../components/TableFilters';
-
-const KYC_LABELS = { pending: 'En attente', submitted: 'Soumis', verified: 'Vérifié', rejected: 'Rejeté' };
-const ROLE_LABELS = { investisseur: 'Investisseur', porteur_de_projet: 'Porteur de projet', administrateur: 'Administrateur' };
+import { ROLE_LABELS, KYC_STATUS_LABELS as KYC_LABELS } from '../../utils';
+import { LoadingSpinner, Pagination, EmptyState } from '../../components/ui';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
@@ -123,13 +122,10 @@ export default function AdminUsersPage() {
       <div className="admin-layout">
         <div>
           {loading ? (
-            <div className="page-loading"><div className="spinner" /></div>
+            <LoadingSpinner />
           ) : users.length === 0 ? (
             <div className="card">
-              <div className="empty-state">
-                <Search size={48} />
-                <p>Aucun utilisateur trouvé</p>
-              </div>
+              <EmptyState icon={Search} message="Aucun utilisateur trouvé" />
             </div>
           ) : (
             <>
@@ -172,13 +168,7 @@ export default function AdminUsersPage() {
                 </table>
               </div>
 
-              {meta.total_pages > 1 && (
-                <div className="pagination">
-                  <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
-                  <span>Page {page} / {meta.total_pages}</span>
-                  <button disabled={page >= meta.total_pages} onClick={() => setPage(page + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
-                </div>
-              )}
+              <Pagination page={page} totalPages={meta.total_pages} onPageChange={setPage} />
             </>
           )}
         </div>

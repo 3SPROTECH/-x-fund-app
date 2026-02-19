@@ -7,6 +7,7 @@ import {
   Menu, X,
 } from 'lucide-react';
 import Navbar from './Navbar';
+import { ROLE_LABELS } from '../utils';
 
 export default function Layout() {
   const { user, signOut } = useAuth();
@@ -21,12 +22,6 @@ export default function Layout() {
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
-  };
-
-  const roleLabel = {
-    investisseur: 'Investisseur',
-    porteur_de_projet: 'Porteur de projet',
-    administrateur: 'Administrateur',
   };
 
   const isAdmin = user?.role === 'administrateur';
@@ -95,7 +90,7 @@ export default function Layout() {
           <div className="sidebar-footer">
             <div className="user-info user-info-clickable" onClick={() => navigate('/profile')} title="Voir le profil">
               <span className="user-name">{user?.first_name} {user?.last_name}</span>
-              <span className="user-role">{roleLabel[user?.role] || user?.role}</span>
+              <span className="user-role">{ROLE_LABELS[user?.role] || user?.role}</span>
             </div>
             <button onClick={handleSignOut} className="btn-icon" title="Se déconnecter" style={{ color: '#DAA520' }}>
               <LogOut size={18} />
@@ -132,7 +127,7 @@ export default function Layout() {
             </NavLink>
             <div className="admin-mobile-item admin-mobile-user" onClick={() => { navigate('/profile'); setShowAdminMobileMenu(false); }}>
               <User size={20} />
-              <div><span>{user?.first_name} {user?.last_name}</span><small>{roleLabel[user?.role]}</small></div>
+              <div><span>{user?.first_name} {user?.last_name}</span><small>{ROLE_LABELS[user?.role]}</small></div>
             </div>
             <button className="admin-mobile-item admin-mobile-logout" onClick={handleSignOut}>
               <LogOut size={20} /><span>Deconnexion</span>
@@ -213,7 +208,7 @@ export default function Layout() {
         <div className="sidebar-footer">
           <div className="user-info">
             <span className="user-name">{user?.first_name} {user?.last_name}</span>
-            <span className="user-role">{roleLabel[user?.role] || user?.role}</span>
+            <span className="user-role">{ROLE_LABELS[user?.role] || user?.role}</span>
           </div>
           <button onClick={handleSignOut} className="btn-icon" title="Se déconnecter" style={{ color: '#DAA520' }}>
             <LogOut size={18} />
@@ -244,7 +239,7 @@ export default function Layout() {
           </NavLink>
           <div className="admin-mobile-item admin-mobile-user" onClick={() => { navigate('/profile'); setShowPorteurMobileMenu(false); }}>
             <User size={20} />
-            <div><span>{user?.first_name} {user?.last_name}</span><small>{roleLabel[user?.role]}</small></div>
+            <div><span>{user?.first_name} {user?.last_name}</span><small>{ROLE_LABELS[user?.role]}</small></div>
           </div>
           <button className="admin-mobile-item admin-mobile-logout" onClick={handleSignOut}>
             <LogOut size={20} /><span>Déconnexion</span>

@@ -85,9 +85,9 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/dashboard" element={<AdminRedirect adminPath="/admin/dashboard"><DashboardPage /></AdminRedirect>} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/wallet" element={<WalletPage />} />
-            <Route path="/properties" element={<AdminRedirect adminPath="/admin/properties"><PropertiesPage /></AdminRedirect>} />
+            <Route path="/properties" element={<PropertiesPage />} />
             <Route path="/projects" element={<AdminRedirect adminPath="/admin/projects"><ProjectsPage /></AdminRedirect>} />
             <Route path="/projects/new" element={<CreateProjectPage />} />
             <Route path="/projects/:id/edit" element={<EditProjectPage />} />
@@ -130,14 +130,6 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-            {/* <Route
-              path="/admin/projects/:id/mvp-report"
-              element={
-                <ProtectedRoute roles={['administrateur']}>
-                  <AdminMvpReportPage />
-                </ProtectedRoute>
-              }
-            /> */}
             <Route
               path="/admin/investments"
               element={

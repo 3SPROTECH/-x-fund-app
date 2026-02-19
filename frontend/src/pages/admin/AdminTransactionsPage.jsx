@@ -1,24 +1,12 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import {
-  CreditCard, Eye, ChevronLeft, ChevronRight, Search, X,
+  CreditCard, Eye, Search, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
-
-const TYPE_LABELS = {
-  depot: 'Dépôt', retrait: 'Retrait', investissement: 'Investissement',
-  dividende: 'Dividende', remboursement: 'Remboursement', frais: 'Frais',
-};
-const TYPE_BADGE = {
-  depot: 'badge-success', retrait: 'badge-danger', investissement: 'badge-info',
-  dividende: 'badge-success', remboursement: 'badge-warning', frais: 'badge-danger',
-};
-const STATUS_LABELS = { en_attente: 'En attente', complete: 'Complété', echoue: 'Échoué', annule: 'Annulé' };
-const STATUS_BADGE = { en_attente: 'badge-warning', complete: 'badge-success', echoue: 'badge-danger', annule: 'badge' };
-
-const fmt = (cents) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100);
+import { formatBalance as fmt, TX_TYPE_LABELS as TYPE_LABELS, TX_TYPE_BADGES as TYPE_BADGE, TRANSACTION_STATUS_LABELS as STATUS_LABELS, TRANSACTION_STATUS_BADGES as STATUS_BADGE } from '../../utils';
+import { LoadingSpinner, Pagination, EmptyState } from '../../components/ui';
 
 export default function AdminTransactionsPage() {
   const [transactions, setTransactions] = useState([]);
@@ -89,13 +77,10 @@ export default function AdminTransactionsPage() {
       <div className="admin-layout">
         <div>
           {loading ? (
-            <div className="page-loading"><div className="spinner" /></div>
+            <LoadingSpinner />
           ) : transactions.length === 0 ? (
             <div className="card">
-              <div className="empty-state">
-                <Search size={48} />
-                <p>Aucune transaction trouvée</p>
-              </div>
+              <EmptyState icon={Search} message="Aucune transaction trouvée" />
             </div>
           ) : (
             <>
@@ -138,13 +123,7 @@ export default function AdminTransactionsPage() {
                 </table>
               </div>
 
-              {meta.total_pages > 1 && (
-                <div className="pagination">
-                  <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
-                  <span>Page {page} / {meta.total_pages}</span>
-                  <button disabled={page >= meta.total_pages} onClick={() => setPage(page + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
-                </div>
-              )}
+              <Pagination page={page} totalPages={meta.total_pages} onPageChange={setPage} />
             </>
           )}
         </div>

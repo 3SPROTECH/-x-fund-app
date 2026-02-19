@@ -4,6 +4,7 @@ import { kycApi } from '../../api/kyc';
 import { useAuth } from '../../context/AuthContext';
 import { ShieldCheck, ShieldAlert, Clock, FileUp, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { LoadingSpinner } from '../../components/ui';
 
 const STATUS_CONFIG = {
   pending: { icon: Clock, label: 'En attente', color: 'status-pending', badge: 'badge-warning', description: 'Veuillez soumettre vos documents KYC pour vérification.' },
@@ -61,7 +62,7 @@ export default function KycPage() {
     }
   };
 
-  if (loading) return <div className="page-loading"><div className="spinner" /></div>;
+  if (loading) return <LoadingSpinner />;
 
   const status = kycData?.kyc_status || user?.kyc_status || 'pending';
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;

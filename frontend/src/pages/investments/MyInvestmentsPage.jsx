@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { investmentsApi } from '../../api/investments';
-import { Briefcase, ChevronLeft, ChevronRight, TrendingUp, DollarSign, Wallet } from 'lucide-react';
+import { Briefcase, TrendingUp, DollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
-
-const STATUS_LABELS = { en_cours: 'En cours', confirme: 'Confirmé', cloture: 'Clôturé', liquide: 'Liquidé', annule: 'Annulé' };
-const STATUS_BADGE = { en_cours: 'badge-warning', confirme: 'badge-success', cloture: 'badge-info', liquide: '', annule: 'badge-danger' };
-
-const fmt = (c) => c == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(c / 100);
+import { formatCents as fmt, INVESTMENT_STATUS_LABELS as STATUS_LABELS, INVESTMENT_STATUS_BADGES as STATUS_BADGE } from '../../utils';
+import { LoadingSpinner, EmptyState, Pagination } from '../../components/ui';
 
 export default function MyInvestmentsPage() {
   const navigate = useNavigate();
@@ -94,14 +91,12 @@ export default function MyInvestmentsPage() {
       })()}
 
       {loading ? (
-        <div className="page-loading"><div className="spinner" /></div>
+        <LoadingSpinner />
       ) : investments.length === 0 ? (
         <div className="card">
-          <div className="empty-state">
-            <Briefcase size={48} />
-            <p>Aucun investissement pour le moment</p>
+          <EmptyState icon={Briefcase} message="Aucun investissement pour le moment">
             <button className="btn btn-primary" onClick={() => navigate('/projects')}>Découvrir les projets</button>
-          </div>
+          </EmptyState>
         </div>
       ) : (
         <>
@@ -140,13 +135,7 @@ export default function MyInvestmentsPage() {
               </tbody>
             </table>
           </div>
-          {meta.total_pages > 1 && (
-            <div className="pagination">
-              <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
-              <span>Page {page} / {meta.total_pages}</span>
-              <button disabled={page >= meta.total_pages} onClick={() => setPage(page + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
-            </div>
-          )}
+          <Pagination page={page} totalPages={meta.total_pages} onPageChange={setPage} />
         </>
       )}
     </div>

@@ -5,6 +5,8 @@ import {
   Briefcase, Percent, Bell, Lock, RotateCcw,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatBalance as fmtCents } from '../../utils';
+import { LoadingSpinner } from '../../components/ui';
 
 const CATEGORY_META = {
   platform:      { label: 'Plateforme',          icon: Globe,       color: 'var(--primary)' },
@@ -18,9 +20,6 @@ const CATEGORY_META = {
 };
 
 const CATEGORY_ORDER = ['platform', 'investment', 'kyc', 'wallet', 'project', 'commissions', 'notifications', 'security'];
-
-const fmtCents = (cents) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState({});
@@ -158,7 +157,7 @@ export default function AdminSettingsPage() {
     );
   };
 
-  if (loading) return <div className="page-loading"><div className="spinner" /></div>;
+  if (loading) return <LoadingSpinner />;
 
   const changed = hasChanges();
 

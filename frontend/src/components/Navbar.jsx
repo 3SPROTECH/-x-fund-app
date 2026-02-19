@@ -5,7 +5,8 @@ import {
   LayoutDashboard, TrendingUp, Briefcase, User, LogOut, FileCheck, ChevronDown, Plus, Wallet, Menu, X
 } from 'lucide-react';
 import WalletRechargeModal from './WalletRechargeModal';
-import { walletApi } from '../api/wallet';
+import useWalletStore from '../stores/useWalletStore';
+import { formatBalance, ROLE_LABELS } from '../utils';
 
 export default function Navbar() {
   const { user, signOut } = useAuth();
@@ -14,7 +15,8 @@ export default function Navbar() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
-  const [walletBalance, setWalletBalance] = useState(0);
+  const { wallet, fetchWallet } = useWalletStore();
+  const walletBalance = wallet?.balance_cents || 0;
   const profileRef = useRef(null);
 
   // Fermer le menu mobile lors du changement de page
@@ -34,45 +36,18 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    loadWalletBalance();
+    fetchWallet();
   }, []);
-
-  const loadWalletBalance = async () => {
-    try {
-      const res = await walletApi.getWallet();
-      const wallet = res.data.data?.attributes || res.data;
-      setWalletBalance(wallet.balance_cents || 0);
-    } catch (err) {
-      console.error('Erreur chargement wallet:', err);
-    }
-  };
-
-  const handleWalletRechargeSuccess = () => {
-    loadWalletBalance();
-  };
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
   };
 
-  const roleLabel = {
-    investisseur: 'Investisseur',
-    porteur_de_projet: 'Porteur de projet',
-    administrateur: 'Administrateur',
-  };
-
   const getInitials = () => {
     const first = user?.first_name?.charAt(0) || '';
     const last = user?.last_name?.charAt(0) || '';
     return (first + last).toUpperCase() || 'U';
-  };
-
-  const formatBalance = (cents) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format((cents || 0) / 100);
   };
 
   return (
@@ -152,7 +127,7 @@ export default function Navbar() {
                     <div className="profile-header-info">
                       <h4>{user?.first_name} {user?.last_name}</h4>
                       <p>{user?.email}</p>
-                      <span className="role-badge">{roleLabel[user?.role]}</span>
+                      <span className="role-badge">{ROLE_LABELS[user?.role]}</span>
                     </div>
                   </div>
 
@@ -253,7 +228,6 @@ export default function Navbar() {
       <WalletRechargeModal
         isOpen={showWalletModal}
         onClose={() => setShowWalletModal(false)}
-        onSuccess={handleWalletRechargeSuccess}
       />
     </>
   );

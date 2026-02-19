@@ -4,6 +4,7 @@ import { investmentProjectsApi } from '../../api/investments';
 import { useAuth } from '../../context/AuthContext';
 import { ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { LoadingSpinner } from '../../components/ui';
 
 export default function EditProjectPage() {
   const { id } = useParams();
@@ -148,13 +149,7 @@ export default function EditProjectPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="page-loading">
-        <div className="spinner" />
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="page">

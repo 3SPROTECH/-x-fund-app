@@ -7,11 +7,8 @@ import {
   Wallet, CheckCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const fmt = (cents) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100);
-
-const ACTION_LABELS = { create: 'Création', update: 'Modification', delete: 'Suppression' };
+import { formatBalance as fmt, ACTION_LABELS } from '../../utils';
+import { LoadingSpinner } from '../../components/ui';
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState(null);
@@ -50,7 +47,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  if (loading) return <div className="page-loading"><div className="spinner" /></div>;
+  if (loading) return <LoadingSpinner />;
 
   const users = data?.users || {};
   const properties = data?.properties || {};
