@@ -134,7 +134,7 @@ textarea:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0f0e2a 0%, #1a1942 40%, #2d1b69 100%);
+  background: #000000;
   padding: 1rem;
   position: relative;
   overflow: hidden;
@@ -146,8 +146,8 @@ textarea:focus {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(ellipse at 30% 20%, rgba(99,102,241,.15) 0%, transparent 50%),
-              radial-gradient(ellipse at 70% 80%, rgba(139,92,246,.1) 0%, transparent 50%);
+  background: radial-gradient(ellipse at 30% 20%, rgba(218,165,32,.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 80%, rgba(218,165,32,.05) 0%, transparent 50%);
   pointer-events: none;
 }
 .auth-card {
@@ -160,6 +160,18 @@ textarea:focus {
   position: relative;
   z-index: 1;
   animation: fadeUp .4s ease-out;
+}
+.auth-logo-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+.auth-card .logo {
+  font-size: 2.35rem;
+  font-weight: 800;
+  letter-spacing: -.5px;
+  color: var(--text);
 }
 .auth-card-wide { max-width: 560px; }
 .auth-title {
@@ -1312,7 +1324,7 @@ textarea:focus {
 @media (max-width: 768px) {
   .sidebar { width: var(--sidebar-w-mobile); }
   .sidebar-header { padding: .75rem; justify-content: center; }
-  .logo, .nav-link span, .nav-section, .user-info { display: none; }
+  .sidebar .logo, .nav-link span, .nav-section, .user-info { display: none; }
   .nav-link { justify-content: center; padding: .75rem; margin: 1px 4px; }
   .sidebar-footer { padding: .75rem; justify-content: center; }
   .sidebar-footer .btn-icon { margin: 0; }
@@ -1518,6 +1530,8 @@ textarea.error:focus {
   .stat-value { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .stat-label { font-size: .65rem; }
   .auth-card { padding: 1.75rem; }
+  .auth-logo-header { margin-bottom: 0.35rem; }
+  .auth-card .logo { font-size: 2rem; font-weight: 800; letter-spacing: -.5px; color: var(--text); }
 
   .wizard-steps {
     flex-direction: column;
