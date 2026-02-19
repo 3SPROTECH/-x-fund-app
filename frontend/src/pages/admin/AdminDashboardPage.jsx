@@ -70,22 +70,8 @@ export default function AdminDashboardPage() {
 
       {data ? (
         <>
-          {/* Main KPIs */}
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-primary"><Users size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{users.total ?? '—'}</span>
-                <span className="stat-label">Utilisateurs</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-warning"><ShieldCheck size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{users.kyc_pending ?? '—'}</span>
-                <span className="stat-label">KYC en attente</span>
-              </div>
-            </div>
+          {/* KPIs */}
+          <div className="stats-grid stats-grid-3">
             <div className="stat-card">
               <div className="stat-icon stat-icon-info"><Building size={20} /></div>
               <div className="stat-content">
@@ -100,10 +86,6 @@ export default function AdminDashboardPage() {
                 <span className="stat-label">Investissements</span>
               </div>
             </div>
-          </div>
-
-          {/* Projects & Financial KPIs */}
-          <div className="stats-grid">
             <div className="stat-card">
               <div className="stat-icon stat-icon-primary"><Briefcase size={20} /></div>
               <div className="stat-content">
@@ -112,30 +94,12 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon stat-icon-warning"><Clock size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{projects.pending_analysis ?? '—'}</span>
-                <span className="stat-label">En attente d'analyse</span>
-              </div>
-            </div>
-            <div className="stat-card">
               <div className="stat-icon stat-icon-success"><Activity size={20} /></div>
               <div className="stat-content">
-                <span className="stat-value">{projects.funding_active ?? '—'}</span>
-                <span className="stat-label">En Collecte</span>
+                <span className="stat-value">{projects.ouvert ?? '—'}</span>
+                <span className="stat-label">Projets ouverts</span>
               </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-info"><CheckCircle size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{projects.funded ?? '—'}</span>
-                <span className="stat-label">Projets financés</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Financial summary */}
-          <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
             <div className="stat-card">
               <div className="stat-icon stat-icon-success"><DollarSign size={20} /></div>
               <div className="stat-content">
@@ -150,27 +114,20 @@ export default function AdminDashboardPage() {
                 <span className="stat-label">Total dépôts</span>
               </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-warning"><CreditCard size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{financial.total_transactions ?? '—'}</span>
-                <span className="stat-label">Transactions</span>
-              </div>
-            </div>
           </div>
 
           {/* Pending review alert */}
-          {(projects.pending_analysis ?? 0) > 0 && (
+          {(projects.pending_review ?? 0) > 0 && (
             <div className="card" style={{ borderLeft: '4px solid var(--warning)', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
                   <Clock size={20} style={{ color: 'var(--warning)' }} />
                   <div>
-                    <strong>{projects.pending_analysis} projet(s) en attente d'analyse</strong>
+                    <strong>{projects.pending_review} projet(s) en attente de validation</strong>
                     <p className="text-muted" style={{ marginTop: '.15rem' }}>Des projets soumis par les porteurs de projets nécessitent votre attention.</p>
                   </div>
                 </div>
-                <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin/projects', { state: { filter: 'pending_analysis' } })}>
+                <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin/projects', { state: { filter: 'en_attente' } })}>
                   Examiner
                 </button>
               </div>
@@ -223,7 +180,8 @@ export default function AdminDashboardPage() {
             </div>
 
             <div>
-              {/* Recent activity */}
+          
+              {/* Recent activity 
               <div className="card">
                 <div className="card-header">
                   <h3>Activité récente</h3>
@@ -251,48 +209,47 @@ export default function AdminDashboardPage() {
                   <p className="text-muted">Aucune activité récente</p>
                 )}
               </div>
-
+*/}
               {/* Project breakdown */}
               <div className="card">
                 <div className="card-header">
                   <h3>Statut des projets</h3>
                 </div>
                 <div className="detail-grid">
-                  <div className="detail-row"><span>Brouillon</span><span>{projects.draft ?? '—'}</span></div>
-                  <div className="detail-row"><span>En Analyse</span><span className="text-info">{projects.pending_analysis ?? '—'}</span></div>
+                  <div className="detail-row"><span>Brouillon</span><span>{projects.brouillon ?? '—'}</span></div>
+                  <div className="detail-row"><span>Ouverts</span><span className="text-primary">{projects.ouvert ?? '—'}</span></div>
+                  <div className="detail-row"><span>Financés</span><span className="text-success">{projects.finance ?? '—'}</span></div>
+                  <div className="detail-row"><span>Clôturés</span><span>{projects.cloture ?? '—'}</span></div>
                   <div className="detail-row"><span>Approuvés</span><span className="text-success">{projects.approved ?? '—'}</span></div>
-                  <div className="detail-row"><span>En Collecte</span><span className="text-primary">{projects.funding_active ?? '—'}</span></div>
-                  <div className="detail-row"><span>Financés</span><span className="text-success">{projects.funded ?? '—'}</span></div>
-                  <div className="detail-row"><span>Remboursés</span><span>{projects.repaid ?? '—'}</span></div>
                   <div className="detail-row"><span>Rejetés</span><span className="text-danger">{projects.rejected ?? '—'}</span></div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Exports */}
-          <div className="card">
-            <div className="card-header">
-              <h3>Exports de données</h3>
-              <Download size={18} style={{ color: 'var(--text-muted)' }} />
-            </div>
-            <div className="export-grid">
-              {[
-                { key: 'users', label: 'Utilisateurs', icon: Users },
-                { key: 'investments', label: 'Investissements', icon: TrendingUp },
-                { key: 'transactions', label: 'Transactions', icon: DollarSign },
-              ].map(({ key, label, icon: Icon }) => (
-                <div key={key} className="export-item">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
-                    <Icon size={16} style={{ color: 'var(--text-muted)' }} />
-                    <span className="export-label">{label}</span>
-                  </div>
-                  <div className="export-actions">
-                    <button className="btn btn-sm" onClick={() => handleExport(key, 'json')}>JSON</button>
-                    <button className="btn btn-sm" onClick={() => handleExport(key, 'csv')}>CSV</button>
-                  </div>
+              {/* Exports */}
+              <div className="card">
+                <div className="card-header">
+                  <h3>Exports de données</h3>
+                  <Download size={18} style={{ color: 'var(--text-muted)' }} />
                 </div>
-              ))}
+                <div className="export-grid">
+                  {[
+                    { key: 'users', label: 'Utilisateurs', icon: Users },
+                    { key: 'investments', label: 'Investissements', icon: TrendingUp },
+                    { key: 'transactions', label: 'Transactions', icon: DollarSign },
+                  ].map(({ key, label, icon: Icon }) => (
+                    <div key={key} className="export-item">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+                        <Icon size={16} style={{ color: 'var(--text-muted)' }} />
+                        <span className="export-label">{label}</span>
+                      </div>
+                      <div className="export-actions">
+                        <button className="btn btn-sm" onClick={() => handleExport(key, 'json')}>JSON</button>
+                        <button className="btn btn-sm" onClick={() => handleExport(key, 'csv')}>CSV</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </>

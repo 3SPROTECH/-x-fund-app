@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import {
-  TrendingUp, Eye, ChevronLeft, ChevronRight, Search,
+  TrendingUp, Eye, ChevronLeft, ChevronRight, Search, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
@@ -94,19 +94,19 @@ export default function AdminInvestmentsPage() {
                       const a = inv.attributes || inv;
                       return (
                         <tr key={inv.id} className={selected?.id === inv.id ? 'row-selected' : ''}>
-                          <td>
+                          <td data-label="Investisseur">
                             <div>
                               <span style={{ fontWeight: 550 }}>{a.investor_name}</span>
                               <br />
                               <span style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>{a.investor_email}</span>
                             </div>
                           </td>
-                          <td>{a.project_title || '—'}</td>
-                          <td style={{ fontWeight: 600 }}>{fmt(a.amount_cents)}</td>
-                          <td>{a.shares_count}</td>
-                          <td><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
-                          <td>{a.invested_at ? new Date(a.invested_at).toLocaleDateString('fr-FR') : '—'}</td>
-                          <td>
+                          <td data-label="Projet">{a.project_title || '—'}</td>
+                          <td data-label="Montant" style={{ fontWeight: 600 }}>{fmt(a.amount_cents)}</td>
+                          <td data-label="Parts">{a.shares_count}</td>
+                          <td data-label="Statut"><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
+                          <td data-label="Date">{a.invested_at ? new Date(a.invested_at).toLocaleDateString('fr-FR') : '—'}</td>
+                          <td data-label="Actions">
                             <div className="actions-cell">
                               <button className="btn-icon" title="Voir" onClick={() => loadDetail(inv.id)}><Eye size={16} /></button>
                             </div>
@@ -133,6 +133,7 @@ export default function AdminInvestmentsPage() {
           const a = selected.attributes || selected;
           return (
             <div className="card user-detail-panel">
+              <button className="detail-panel-close" onClick={() => setSelected(null)}><X size={20} /></button>
               <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
                 <div className="stat-icon stat-icon-success" style={{ margin: '0 auto .5rem', width: 48, height: 48 }}>
                   <TrendingUp size={24} />

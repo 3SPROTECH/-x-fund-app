@@ -244,13 +244,13 @@ export default function AdminPropertiesPage() {
                       const a = p.attributes || p;
                       return (
                         <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => loadDetail(p.id)}>
-                          <td style={{ fontWeight: 550 }}>{a.title}</td>
-                          <td>{a.owner_name || '—'}</td>
-                          <td><span style={{ display: 'flex', alignItems: 'center', gap: '.3rem' }}><MapPin size={13} />{a.city}</span></td>
-                          <td><span className="badge">{TYPE_LABELS[a.property_type] || a.property_type}</span></td>
-                          <td><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
-                          <td>{fmt(a.acquisition_price_cents)}</td>
-                          <td>
+                          <td data-label="Titre" style={{ fontWeight: 550 }}>{a.title}</td>
+                          <td data-label="Propriétaire">{a.owner_name || '—'}</td>
+                          <td data-label="Ville"><span style={{ display: 'flex', alignItems: 'center', gap: '.3rem' }}><MapPin size={13} />{a.city}</span></td>
+                          <td data-label="Type"><span className="badge">{TYPE_LABELS[a.property_type] || a.property_type}</span></td>
+                          <td data-label="Statut"><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
+                          <td data-label="Prix">{fmt(a.acquisition_price_cents)}</td>
+                          <td data-label="Actions">
                             <div className="actions-cell" onClick={(e) => e.stopPropagation()}>
                               <button className="btn-icon" title="Modifier" onClick={() => openEditModal(p)}><Pencil size={16} /></button>
                               <button className="btn-icon btn-danger" title="Supprimer" onClick={() => handleDelete(p.id)}><Trash2 size={16} /></button>
@@ -278,6 +278,7 @@ export default function AdminPropertiesPage() {
           const a = selected.attributes || selected;
           return (
             <div className="card user-detail-panel">
+              <button className="detail-panel-close" onClick={() => setSelected(null)}><X size={20} /></button>
               <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
                 <div className="stat-icon stat-icon-info" style={{ margin: '0 auto .5rem', width: 48, height: 48 }}>
                   <Home size={24} />

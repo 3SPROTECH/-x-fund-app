@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import {
   ShieldCheck, ShieldX, Trash2, Eye, ChevronLeft,
-  ChevronRight, Users, UserCheck, UserX, Search, FileText, Download,
+  ChevronRight, Users, UserCheck, UserX, Search, FileText, Download, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../api/client';
@@ -143,17 +143,17 @@ export default function AdminUsersPage() {
                       const attrs = u.attributes || u;
                       return (
                         <tr key={u.id} className={selectedUser?.id === u.id ? 'row-selected' : ''}>
-                          <td>
+                          <td data-label="Nom">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
                               <div className="avatar avatar-sm">{attrs.first_name?.[0]}{attrs.last_name?.[0]}</div>
                               <span>{attrs.first_name} {attrs.last_name}</span>
                             </div>
                           </td>
-                          <td>{attrs.email}</td>
-                          <td><span className="badge badge-primary">{ROLE_LABELS[attrs.role] || attrs.role}</span></td>
-                          <td><span className={`badge kyc-${attrs.kyc_status}`}>{KYC_LABELS[attrs.kyc_status] || attrs.kyc_status}</span></td>
-                          <td>{attrs.created_at ? new Date(attrs.created_at).toLocaleDateString('fr-FR') : '—'}</td>
-                          <td>
+                          <td data-label="Email">{attrs.email}</td>
+                          <td data-label="Rôle"><span className="badge badge-primary">{ROLE_LABELS[attrs.role] || attrs.role}</span></td>
+                          <td data-label="KYC"><span className={`badge kyc-${attrs.kyc_status}`}>{KYC_LABELS[attrs.kyc_status] || attrs.kyc_status}</span></td>
+                          <td data-label="Inscrit le">{attrs.created_at ? new Date(attrs.created_at).toLocaleDateString('fr-FR') : '—'}</td>
+                          <td data-label="Actions">
                             <div className="actions-cell">
                               <button className="btn-icon" title="Voir" onClick={() => loadUserDetail(u.id)}><Eye size={16} /></button>
                               {attrs.kyc_status === 'submitted' && (
@@ -185,6 +185,7 @@ export default function AdminUsersPage() {
 
         {selectedUser && (
           <div className="card user-detail-panel">
+            <button className="detail-panel-close" onClick={() => setSelectedUser(null)}><X size={20} /></button>
             {(() => {
               const a = selectedUser.attributes || selectedUser;
               return (

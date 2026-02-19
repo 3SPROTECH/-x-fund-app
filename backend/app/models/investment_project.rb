@@ -16,46 +16,19 @@ class InvestmentProject < ApplicationRecord
   has_one_attached :pv_decision
   has_one_attached :note_operation
   has_many_attached :additional_documents
-  has_one_attached :price_grid
-  has_one_attached :block_buyer_loi
-  has_one_attached :sale_agreement
-  has_one_attached :projected_balance_sheet
-  has_one_attached :proof_of_funds
 
-  enum :status, {
-    draft: 0,
-    pending_analysis: 1,
-    info_requested: 2,
-    rejected: 3,
-    approved: 4,
-    legal_structuring: 5,
-    signing: 6,
-    funding_active: 7,
-    funded: 8,
-    under_construction: 9,
-    operating: 10,
-    repaid: 11
-  }
-  enum :exploitation_strategy, {
-    seasonal_rental: 0,
-    classic_rental: 1,
-    resale: 2,
-    colocation: 3
-  }, prefix: :exploit
-  enum :revenue_period, { monthly: 0, annual: 1 }, prefix: :rev
+  attribute :review_status, :integer, default: 0
+
+  enum :status, { brouillon: 0, ouvert: 1, finance: 2, cloture: 3, annule: 4 }
+  enum :review_status, { en_attente: 0, approuve: 1, rejete: 2 }, prefix: :review
   enum :operation_type, {
     promotion_immobiliere: 0,
     marchand_de_biens: 1,
     rehabilitation_lourde: 2,
     division_fonciere: 3,
     immobilier_locatif: 4,
-    transformation_usage: 5,
-    refinancement: 6,
-    amenagement_foncier: 7
+    transformation_usage: 5
   }, prefix: :op
-  enum :bank_loan_status, { en_negociation: 0, accord_principe: 1, offre_editee: 2, offre_signee: 3 }, prefix: :bank
-  enum :payment_frequency, { mensuel: 0, trimestriel: 1, annuel: 2, in_fine: 3 }, prefix: :freq
-  enum :exit_scenario, { unit_sale: 0, block_sale: 1, refinance_exit: 2 }, prefix: :exit
 
   validates :title, presence: true
   validates :total_amount_cents, presence: true, numericality: { greater_than: 0 }
@@ -66,10 +39,13 @@ class InvestmentProject < ApplicationRecord
   validates :funding_end_date, presence: true
   validates :management_fee_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }, allow_nil: true
   validate :end_date_after_start_date
+  validate :must_be_approved_to_open
 
-  scope :active, -> { where(status: [:funding_active, :funded, :under_construction, :operating]) }
-  scope :open_for_investment, -> { where(status: :funding_active) }
-  scope :visible_to_investors, -> { where(status: [:funding_active, :funded, :under_construction, :operating, :repaid]) }
+  scope :active, -> { where(status: [:ouvert, :finance]) }
+  scope :open_for_investment, -> { where(status: :ouvert) }
+  scope :pending_review, -> { where(review_status: :en_attente) }
+  scope :approved, -> { where(review_status: :approuve) }
+  scope :rejected, -> { where(review_status: :rejete) }
 
   # Premier bien (pour affichage titre/ville/photos)
   def primary_property
@@ -98,4 +74,9 @@ class InvestmentProject < ApplicationRecord
     end
   end
 
+  def must_be_approved_to_open
+    if ouvert? && !review_approuve?
+      errors.add(:status, "le projet doit etre approuve avant d'etre ouvert")
+    end
+  end
 end

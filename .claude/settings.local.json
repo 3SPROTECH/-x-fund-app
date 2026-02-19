@@ -1,7 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bundle exec rails db:migrate:*)"
+      "Bash(bundle exec rails db:migrate:*)",
+      "Bash(npm install:*)",
+      "Bash(ipconfig:*)",
+      "Bash(findstr:*)",
+      "Bash(npm run dev:*)",
+      "Bash(netstat:*)",
+      "Bash(powershell:*)",
+      "Bash(ss:*)",
+      "Bash(powershell.exe -c \"Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -ge 5173 -and $_.LocalPort -le 5180 } | Select-Object LocalAddress, LocalPort\")",
+      "Bash(powershell.exe -c \"Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force\")",
+      "Bash(ls:*)",
+      "Bash(rails db:migrate:*)"
     ]
   }
 }

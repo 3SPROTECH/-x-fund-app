@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import {
-  CreditCard, Eye, ChevronLeft, ChevronRight, Search,
+  CreditCard, Eye, ChevronLeft, ChevronRight, Search, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
@@ -110,23 +110,23 @@ export default function AdminTransactionsPage() {
                       const positive = isPositive(a.transaction_type);
                       return (
                         <tr key={tx.id} className={selected?.id === tx.id ? 'row-selected' : ''}>
-                          <td><span className="font-mono" style={{ fontSize: '.8rem' }}>{a.reference}</span></td>
-                          <td>
+                          <td data-label="Référence"><span className="font-mono" style={{ fontSize: '.8rem' }}>{a.reference}</span></td>
+                          <td data-label="Utilisateur">
                             <div>
                               <span style={{ fontWeight: 550 }}>{a.user_name}</span>
                               <br />
                               <span style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>{a.user_email}</span>
                             </div>
                           </td>
-                          <td><span className={`badge ${TYPE_BADGE[a.transaction_type] || ''}`}>{TYPE_LABELS[a.transaction_type] || a.transaction_type}</span></td>
-                          <td>
+                          <td data-label="Type"><span className={`badge ${TYPE_BADGE[a.transaction_type] || ''}`}>{TYPE_LABELS[a.transaction_type] || a.transaction_type}</span></td>
+                          <td data-label="Montant">
                             <span className={positive ? 'amount-positive' : 'amount-negative'}>
                               {positive ? '+' : ''}{fmt(a.amount_cents)}
                             </span>
                           </td>
-                          <td><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
-                          <td>{new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
-                          <td>
+                          <td data-label="Statut"><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
+                          <td data-label="Date">{new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
+                          <td data-label="Actions">
                             <div className="actions-cell">
                               <button className="btn-icon" title="Voir" onClick={() => loadDetail(tx.id)}><Eye size={16} /></button>
                             </div>
@@ -154,6 +154,7 @@ export default function AdminTransactionsPage() {
           const positive = isPositive(a.transaction_type);
           return (
             <div className="card user-detail-panel">
+              <button className="detail-panel-close" onClick={() => setSelected(null)}><X size={20} /></button>
               <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
                 <div className={`stat-icon ${positive ? 'stat-icon-success' : 'stat-icon-danger'}`} style={{ margin: '0 auto .5rem', width: 48, height: 48 }}>
                   <CreditCard size={24} />

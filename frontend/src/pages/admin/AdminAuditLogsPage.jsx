@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
-import { ScrollText, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ScrollText, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
 
@@ -89,11 +89,11 @@ export default function AdminAuditLogsPage() {
                       const a = log.attributes || log;
                       return (
                         <tr key={log.id} onClick={() => setSelectedLog(log)} style={{ cursor: 'pointer' }} className={selectedLog?.id === log.id ? 'row-selected' : ''}>
-                          <td>{a.created_at ? new Date(a.created_at).toLocaleString('fr-FR') : '—'}</td>
-                          <td>{a.user_email || '—'}</td>
-                          <td><span className={`badge ${ACTION_BADGE[a.action] || ''}`}>{ACTION_LABELS[a.action] || a.action}</span></td>
-                          <td>{a.auditable_type}</td>
-                          <td className="font-mono" style={{ fontSize: '.8rem' }}>{a.auditable_id}</td>
+                          <td data-label="Date">{a.created_at ? new Date(a.created_at).toLocaleString('fr-FR') : '—'}</td>
+                          <td data-label="Utilisateur">{a.user_email || '—'}</td>
+                          <td data-label="Action"><span className={`badge ${ACTION_BADGE[a.action] || ''}`}>{ACTION_LABELS[a.action] || a.action}</span></td>
+                          <td data-label="Ressource">{a.auditable_type}</td>
+                          <td data-label="ID" className="font-mono" style={{ fontSize: '.8rem' }}>{a.auditable_id}</td>
                         </tr>
                       );
                     })}
@@ -113,6 +113,7 @@ export default function AdminAuditLogsPage() {
 
         {selectedLog && (
           <div className="card user-detail-panel">
+            <button className="detail-panel-close" onClick={() => setSelectedLog(null)}><X size={20} /></button>
             <h3>Détails du log</h3>
             {(() => {
               const a = selectedLog.attributes || selectedLog;

@@ -10,20 +10,9 @@ import { walletApi } from '../../api/wallet';
 import { projectImagesApi } from '../../api/images';
 import { getImageUrl } from '../../api/client';
 import { adminApi } from '../../api/admin';
-import FormSelect from '../../components/FormSelect';
 
-const STATUS_LABELS = {
-  draft: 'Brouillon', pending_analysis: 'En Analyse', info_requested: 'Compléments requis',
-  rejected: 'Refusé', approved: 'Approuvé', legal_structuring: 'Montage Juridique',
-  signing: 'En Signature', funding_active: 'En Collecte', funded: 'Financé',
-  under_construction: 'En Travaux', operating: 'En Exploitation', repaid: 'Remboursé',
-};
-const STATUS_BADGE = {
-  draft: 'badge-warning', pending_analysis: 'badge-info', info_requested: 'badge-warning',
-  rejected: 'badge-danger', approved: 'badge-success', legal_structuring: 'badge-info',
-  signing: 'badge-info', funding_active: 'badge-success', funded: 'badge-success',
-  under_construction: 'badge-warning', operating: 'badge-info', repaid: 'badge-success',
-};
+const STATUS_LABELS = { brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé', cloture: 'Clôturé', annule: 'Annulé' };
+const STATUS_BADGE = { ouvert: 'badge-success', finance: 'badge-info', cloture: '', annule: 'badge-danger', brouillon: 'badge-warning' };
 const DIV_STATUS = { planifie: 'Planifié', distribue: 'Distribué', annule: 'Annulé' };
 const STMT_TYPE = { trimestriel: 'Trimestriel', semestriel: 'Semestriel', annuel: 'Annuel' };
 
@@ -148,8 +137,10 @@ export default function ProjectDetailPage() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // Admin: create dividend
-  const [divForm, setDivForm] = useState({ total_amount_cents: '', period_start: '', period_end: '' });
+  // Admin: auto dividend
+  const [divFrequency, setDivFrequency] = useState('trimestriel');
+  const [divYield, setDivYield] = useState('');
+  const [divConfirm, setDivConfirm] = useState(false);
   // Create statement (Admin + Project Owner)
   const [stmtForm, setStmtForm] = useState({
     statement_type: 'trimestriel',
@@ -214,17 +205,47 @@ export default function ProjectDetailPage() {
     }
   };
 
-  const handleCreateDividend = async (e) => {
-    e.preventDefault();
+  const FREQ_MONTHS = { mensuel: 1, trimestriel: 3, semestriel: 6, annuel: 12 };
+  const FREQ_LABELS = { mensuel: 'Mensuel', trimestriel: 'Trimestriel', semestriel: 'Semestriel', annuel: 'Annuel' };
+
+  const getAutoDividend = () => {
+    const a = project?.attributes || project;
+    const yieldPercent = a?.net_yield_percent || 0;
+    if (!yieldPercent || !a?.amount_raised_cents || !a?.shares_sold) return null;
+    const months = FREQ_MONTHS[divFrequency] || 3;
+    const lastDiv = dividends.length > 0
+      ? dividends.reduce((latest, d) => {
+          const de = (d.attributes || d).period_end;
+          return de > (latest || '') ? de : latest;
+        }, null)
+      : null;
+    const periodStart = lastDiv || a.funding_start_date || new Date().toISOString().split('T')[0];
+    const startDate = new Date(periodStart);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + months);
+    const periodEnd = endDate.toISOString().split('T')[0];
+    const totalCents = Math.round(a.amount_raised_cents * (yieldPercent / 100) * (months / 12));
+    return { totalCents, periodStart, periodEnd, perShareCents: Math.round(totalCents / a.shares_sold), yieldPercent };
+  };
+
+  const handleAutoCreateDividend = async () => {
+    const calc = getAutoDividend();
+    if (!calc || calc.totalCents <= 0) { toast.error('Impossible de calculer le dividende'); return; }
     setSubmitting(true);
     try {
-      await dividendsApi.create(id, {
-        total_amount_cents: Math.round(parseFloat(divForm.total_amount_cents) * 100),
-        period_start: divForm.period_start,
-        period_end: divForm.period_end,
+      const res = await dividendsApi.create(id, {
+        total_amount_cents: calc.totalCents,
+        period_start: calc.periodStart,
+        period_end: calc.periodEnd,
       });
-      toast.success('Dividende créé avec succès');
-      setDivForm({ total_amount_cents: '', period_start: '', period_end: '' });
+      const newDivId = res.data?.data?.id;
+      if (newDivId) {
+        await dividendsApi.distribute(id, newDivId);
+        toast.success('Dividende créé et distribué automatiquement');
+      } else {
+        toast.success('Dividende créé avec succès');
+      }
+      setDivConfirm(false);
       loadAll();
     } catch (err) {
       toast.error(err.response?.data?.error || err.response?.data?.errors?.join(', ') || 'Erreur');
@@ -485,10 +506,10 @@ export default function ProjectDetailPage() {
   const a = project.attributes || project;
   const isAdmin = user?.role === 'administrateur';
   const isOwner = user?.id === a.owner_id;
-  const canEdit = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && (a.status === 'draft' || a.status === 'info_requested'));
-  const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'draft');
-  const canInvest = (user?.role === 'investisseur' || isAdmin) && a.status === 'funding_active';
-  const canCreateStatement = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && ['funded', 'under_construction', 'operating'].includes(a.status));
+  const canEdit = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
+  const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
+  const canInvest = (user?.role === 'investisseur' || isAdmin) && a.status === 'ouvert';
+  const canCreateStatement = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'finance');
   const canViewInvestors = isAdmin || (user?.role === 'porteur_de_projet' && isOwner);
 
   return (
@@ -924,28 +945,100 @@ export default function ProjectDetailPage() {
 
       {tab === 'dividends' && (
         <div>
-          {isAdmin && (
-            <div className="card" style={{ marginBottom: '1rem' }}>
-              <h3>Créer un dividende</h3>
-              <form onSubmit={handleCreateDividend}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Montant total (EUR)</label>
-                    <input type="number" step="0.01" min="0.01" required value={divForm.total_amount_cents} onChange={e => setDivForm({ ...divForm, total_amount_cents: e.target.value })} />
-                  </div>
-                  <div className="form-group">
-                    <label>Début période</label>
-                    <input type="date" required value={divForm.period_start} onChange={e => setDivForm({ ...divForm, period_start: e.target.value })} />
-                  </div>
-                  <div className="form-group">
-                    <label>Fin période</label>
-                    <input type="date" required value={divForm.period_end} onChange={e => setDivForm({ ...divForm, period_end: e.target.value })} />
-                  </div>
+          {isAdmin && (() => {
+            const a = project?.attributes || project;
+            const yieldVal = a?.net_yield_percent || 0;
+            const calc = getAutoDividend();
+            const noInvestors = !a?.shares_sold || a.shares_sold === 0;
+            const noAmount = !a?.amount_raised_cents || a.amount_raised_cents === 0;
+            const noYield = !yieldVal;
+            const blocked = noInvestors || noAmount || noYield;
+            return (
+              <div className="card" style={{ marginBottom: '1rem' }}>
+                <h3>Dividende automatique</h3>
+
+                {/* Données du projet */}
+                <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', padding: '.5rem 0 .75rem', fontSize: '.85rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)', marginBottom: '.75rem' }}>
+                  <span>Montant levé : <strong style={{ color: noAmount ? 'var(--danger)' : 'var(--text)' }}>{a?.amount_raised_cents ? fmt(a.amount_raised_cents) : '0,00 €'}</strong></span>
+                  <span>Parts vendues : <strong style={{ color: noInvestors ? 'var(--danger)' : 'var(--text)' }}>{a?.shares_sold || 0}</strong></span>
+                  <span>Rendement net : <strong style={{ color: noYield ? 'var(--danger)' : 'var(--success)' }}>{yieldVal ? `${yieldVal}%` : 'Non défini'}</strong></span>
                 </div>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? '...' : 'Créer le dividende'}</button>
-              </form>
-            </div>
-          )}
+
+                {blocked ? (
+                  <div style={{ padding: '.25rem 0' }}>
+                    <p className="text-muted" style={{ fontSize: '.85rem' }}>
+                      {noYield ? 'Le rendement net n\'est pas défini.' : noInvestors ? 'Aucune part vendue.' : 'Aucun montant levé.'}{' '}
+                      Impossible de calculer les dividendes.
+                    </p>
+                    {noYield && (
+                      <button type="button" className="btn btn-sm btn-primary" style={{ marginTop: '.5rem' }} onClick={() => navigate(`/projects/${id}/edit`)}>
+                        Définir le rendement
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Fréquence</label>
+                        <select value={divFrequency} onChange={e => { setDivFrequency(e.target.value); setDivConfirm(false); }}>
+                          {Object.entries(FREQ_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    {calc ? (
+                      <>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '.75rem', margin: '.75rem 0', padding: '.75rem', background: 'var(--bg)', borderRadius: 'var(--radius-sm)' }}>
+                          <div>
+                            <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>Période</div>
+                            <div style={{ fontWeight: 550, fontSize: '.9rem' }}>{fmtDate(calc.periodStart)} → {fmtDate(calc.periodEnd)}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>Montant total</div>
+                            <div style={{ fontWeight: 600, fontSize: '.9rem' }}>{fmt(calc.totalCents)}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>Par part</div>
+                            <div style={{ fontWeight: 550, fontSize: '.9rem' }}>{fmt(calc.perShareCents)}</div>
+                          </div>
+                        </div>
+                        <p style={{ fontSize: '.8rem', color: 'var(--text-muted)', margin: '0 0 .75rem' }}>
+                          Calcul : {fmt(a.amount_raised_cents)} x {yieldVal}% x {FREQ_MONTHS[divFrequency]}/12 mois
+                        </p>
+
+                        {!divConfirm ? (
+                          <button type="button" className="btn btn-primary" onClick={() => setDivConfirm(true)}>
+                            Générer et distribuer
+                          </button>
+                        ) : (
+                          <div style={{ padding: '.75rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.2)', marginTop: '.25rem' }}>
+                            <p style={{ fontWeight: 600, marginBottom: '.5rem' }}>Confirmer la génération du dividende ?</p>
+                            <div style={{ fontSize: '.85rem', color: 'var(--text-muted)', marginBottom: '.75rem' }}>
+                              <div>Rendement : <strong>{yieldVal}%</strong> ({FREQ_LABELS[divFrequency]})</div>
+                              <div>Période : {fmtDate(calc.periodStart)} → {fmtDate(calc.periodEnd)}</div>
+                              <div>Montant total : <strong>{fmt(calc.totalCents)}</strong></div>
+                              <div>Par part : <strong>{fmt(calc.perShareCents)}</strong></div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '.5rem' }}>
+                              <button type="button" className="btn btn-success" disabled={submitting} onClick={handleAutoCreateDividend}>
+                                {submitting ? <><div className="spinner spinner-sm" /> En cours...</> : 'Confirmer'}
+                              </button>
+                              <button type="button" className="btn" disabled={submitting} onClick={() => setDivConfirm(false)}>
+                                Annuler
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-muted" style={{ padding: '.25rem 0', fontSize: '.85rem' }}>Données insuffisantes pour le calcul.</p>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })()}
           {dividends.length === 0 ? (
             <div className="card"><div className="empty-state"><DollarSign size={48} /><p>Aucun dividende</p></div></div>
           ) : (
@@ -993,115 +1086,6 @@ export default function ProjectDetailPage() {
 
       {tab === 'statements' && (
         <div>
-          {canCreateStatement && (
-            <div className="card" style={{ marginBottom: '1rem' }}>
-              <h3>Soumettre un rapport financier</h3>
-              <p style={{ fontSize: '.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                Les rapports financiers permettent de suivre les revenus et dépenses du projet sur une période donnée.
-              </p>
-              <form onSubmit={handleCreateStatement}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Type de Rapport *</label>
-                    <FormSelect
-                      value={stmtForm.statement_type}
-                      onChange={e => setStmtForm({ ...stmtForm, statement_type: e.target.value })}
-                      name="statement_type"
-                      required
-                      options={[
-                        { value: 'trimestriel', label: 'Trimestriel' },
-                        { value: 'semestriel', label: 'Semestriel' },
-                        { value: 'annuel', label: 'Annuel' },
-                      ]}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Date de début *</label>
-                    <input
-                      type="date"
-                      required
-                      value={stmtForm.period_start}
-                      onChange={e => setStmtForm({ ...stmtForm, period_start: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Date de fin *</label>
-                    <input
-                      type="date"
-                      required
-                      value={stmtForm.period_end}
-                      onChange={e => setStmtForm({ ...stmtForm, period_end: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Loyers Encaissés (Revenus) *</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      required
-                      value={stmtForm.total_revenue_cents}
-                      onChange={e => setStmtForm({ ...stmtForm, total_revenue_cents: e.target.value })}
-                      placeholder="0.00 EUR"
-                    />
-                    <small style={{ fontSize: '.75rem', color: 'var(--text-secondary)' }}>
-                      Saisissez le montant total des loyers perçus pendant cette période
-                    </small>
-                  </div>
-                  <div className="form-group">
-                    <label>Charges / Dépenses *</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      required
-                      value={stmtForm.total_expenses_cents}
-                      onChange={e => setStmtForm({ ...stmtForm, total_expenses_cents: e.target.value })}
-                      placeholder="0.00 EUR"
-                    />
-                    <small style={{ fontSize: '.75rem', color: 'var(--text-secondary)' }}>
-                      Incluant taxes foncières, charges de copropriété, travaux, etc.
-                    </small>
-                  </div>
-                </div>
-
-                {/* Calcul automatique des montants */}
-                {stmtForm.total_revenue_cents && stmtForm.total_expenses_cents && (
-                  <div style={{ padding: '1rem', background: 'rgba(79, 70, 229, 0.05)', borderRadius: '8px', marginTop: '1rem', marginBottom: '1rem' }}>
-                    <h4 style={{ fontSize: '.9rem', marginBottom: '.75rem', color: 'var(--primary)' }}>Calcul automatique</h4>
-                    <div className="detail-grid">
-                      <div className="detail-row">
-                        <span>Frais de Gestion ({a.management_fee_percent}%)</span>
-                        <span style={{ fontWeight: 600 }}>{fmt(Math.round(parseFloat(stmtForm.total_revenue_cents) * 100 * (a.management_fee_percent / 100)))}</span>
-                      </div>
-                      <div className="detail-row">
-                        <span style={{ fontWeight: 600 }}>Résultat Net (À verser aux investisseurs)</span>
-                        <span style={{ fontWeight: 600, color: '#10B981' }}>
-                          {fmt(
-                            Math.round(parseFloat(stmtForm.total_revenue_cents) * 100) -
-                            Math.round(parseFloat(stmtForm.total_expenses_cents) * 100) -
-                            Math.round(parseFloat(stmtForm.total_revenue_cents) * 100 * (a.management_fee_percent / 100))
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? (
-                    <><div className="spinner spinner-sm" /> Envoi en cours...</>
-                  ) : (
-                    'Soumettre le rapport'
-                  )}
-                </button>
-              </form>
-            </div>
-          )}
-          
-
           {/* ===== RAPPORT MVP (Admin + Porteur owner) ===== */}
           {(isAdmin || isOwner) && (
             <div style={{ marginTop: '2rem' }}>
@@ -1382,15 +1366,9 @@ export default function ProjectDetailPage() {
                       <div className="form-row">
                         <div className="form-group">
                           <label>Statut actuel</label>
-                          <FormSelect
-                            value={mvpForm.operation_status}
-                            onChange={updateMvpField('operation_status')}
-                            name="operation_status"
-                            options={Object.keys(OPERATION_STATUSES).map((k) => ({
-                              value: k,
-                              label: getOperationStatusLabel(a.operation_type, k),
-                            }))}
-                          />
+                          <select value={mvpForm.operation_status} onChange={updateMvpField('operation_status')}>
+                            {Object.keys(OPERATION_STATUSES).map((k) => <option key={k} value={k}>{getOperationStatusLabel(a.operation_type, k)}</option>)}
+                          </select>
                         </div>
                         <div className="form-group">
                           <label>Date previsionnelle remboursement</label>
