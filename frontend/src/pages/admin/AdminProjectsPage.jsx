@@ -113,7 +113,7 @@ export default function AdminProjectsPage() {
   };
 
   return (
-    <div className="page">
+    <div className="page admin-projects-page">
       <div className="page-header">
         <div>
           <h1>Gestion des Projets d'Investissement</h1>
@@ -167,12 +167,12 @@ export default function AdminProjectsPage() {
                       const progress = a.funding_progress_percent || 0;
                       return (
                         <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/projects/${p.id}`)}>
-                          <td style={{ fontWeight: 550 }}>{a.title}</td>
-                          <td>{a.property_title || '—'}</td>
-                          <td>{a.owner_name || '—'}</td>
-                          <td><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
-                          <td>{fmt(a.total_amount_cents)}</td>
-                          <td>
+                          <td data-label="Titre" style={{ fontWeight: 550 }}>{a.title}</td>
+                          <td data-label="Propriété">{a.property_title || '—'}</td>
+                          <td data-label="Porteur">{a.owner_name || '—'}</td>
+                          <td data-label="Statut"><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
+                          <td data-label="Montant">{fmt(a.total_amount_cents)}</td>
+                          <td data-label="Progression">
                             <div style={{ minWidth: 80 }}>
                               <div className="progress-bar-container">
                                 <div className="progress-bar" style={{ width: `${Math.min(progress, 100)}%` }} />
@@ -180,7 +180,7 @@ export default function AdminProjectsPage() {
                               <span style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>{progress}%</span>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="Actions">
                             <div className="actions-cell" onClick={(e) => e.stopPropagation()}>
                               <button className="btn-icon" title="Voir le détail" onClick={() => navigate(`/projects/${p.id}`)}><Eye size={16} /></button>
                               <button className="btn-icon" title="Rapport MVP" onClick={() => navigate(`/admin/projects/${p.id}/mvp-report`)}><FileText size={16} /></button>
