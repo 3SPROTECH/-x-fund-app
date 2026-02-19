@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { investmentsApi } from '../../api/investments';
-import { Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Briefcase, ChevronLeft, ChevronRight, TrendingUp, DollarSign, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
 
@@ -62,6 +62,37 @@ export default function MyInvestmentsPage() {
         searchPlaceholder="Rechercher un projet..."
       />
 
+      {!loading && investments.length > 0 && (() => {
+        const totalInvested = investments.reduce((sum, inv) => sum + ((inv.attributes || inv).amount_cents || 0), 0);
+        const totalDividends = investments.reduce((sum, inv) => sum + ((inv.attributes || inv).dividends_received_cents || 0), 0);
+        const totalValue = investments.reduce((sum, inv) => sum + ((inv.attributes || inv).current_value_cents || 0), 0);
+        return (
+          <div className="stats-grid stats-grid-3" style={{ marginBottom: '1rem' }}>
+            <div className="stat-card">
+              <div className="stat-icon stat-icon-primary"><Briefcase size={20} /></div>
+              <div className="stat-content">
+                <span className="stat-value">{fmt(totalInvested)}</span>
+                <span className="stat-label">Total investi</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon stat-icon-success"><DollarSign size={20} /></div>
+              <div className="stat-content">
+                <span className="stat-value">{fmt(totalDividends)}</span>
+                <span className="stat-label">Dividendes reçus</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon stat-icon-info"><TrendingUp size={20} /></div>
+              <div className="stat-content">
+                <span className="stat-value">{fmt(totalValue)}</span>
+                <span className="stat-label">Valeur actuelle</span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {loading ? (
         <div className="page-loading"><div className="spinner" /></div>
       ) : investments.length === 0 ? (
@@ -81,6 +112,7 @@ export default function MyInvestmentsPage() {
                   <th>Projet</th>
                   <th>Montant</th>
                   <th>Parts</th>
+                  <th>Dividendes</th>
                   <th>Valeur actuelle</th>
                   <th>Date</th>
                   <th>Statut</th>
@@ -92,15 +124,16 @@ export default function MyInvestmentsPage() {
                   const feePercent = a.fee_cents > 0 && a.amount_cents > 0 ? (a.fee_cents / a.amount_cents * 100).toFixed(1).replace(/\.0$/, '') : null;
                   return (
                     <tr key={inv.id} style={{ cursor: 'pointer' }} onClick={() => a.investment_project_id && navigate(`/projects/${a.investment_project_id}`)}>
-                      <td style={{ fontWeight: 550 }}>{a.project_title || '—'}</td>
-                      <td>
+                      <td data-label="Projet" style={{ fontWeight: 550 }}>{a.project_title || '—'}</td>
+                      <td data-label="Montant">
                         <div>{fmt(a.amount_cents)}</div>
                         {feePercent && <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>incl. {feePercent}% frais plateforme</div>}
                       </td>
-                      <td>{a.shares_count}</td>
-                      <td style={{ fontWeight: 600 }}>{fmt(a.current_value_cents)}</td>
-                      <td>{a.invested_at ? new Date(a.invested_at).toLocaleDateString('fr-FR') : '—'}</td>
-                      <td><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
+                      <td data-label="Parts">{a.shares_count}</td>
+                      <td data-label="Dividendes" style={{ color: a.dividends_received_cents > 0 ? 'var(--success)' : 'var(--text-muted)' }}>{a.dividends_received_cents > 0 ? `+${fmt(a.dividends_received_cents)}` : '—'}</td>
+                      <td data-label="Valeur actuelle" style={{ fontWeight: 600 }}>{fmt(a.current_value_cents)}</td>
+                      <td data-label="Date">{a.invested_at ? new Date(a.invested_at).toLocaleDateString('fr-FR') : '—'}</td>
+                      <td data-label="Statut"><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
                     </tr>
                   );
                 })}

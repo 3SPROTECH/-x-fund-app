@@ -66,6 +66,7 @@ class InvestmentProject < ApplicationRecord
   validates :funding_end_date, presence: true
   validates :management_fee_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }, allow_nil: true
   validate :end_date_after_start_date
+  validate :must_be_approved_to_open
 
   scope :active, -> { where(status: [:funding_active, :funded, :under_construction, :operating]) }
   scope :open_for_investment, -> { where(status: :funding_active) }
@@ -98,4 +99,9 @@ class InvestmentProject < ApplicationRecord
     end
   end
 
+  def must_be_approved_to_open
+    if ouvert? && !review_approuve?
+      errors.add(:status, "le projet doit etre approuve avant d'etre ouvert")
+    end
+  end
 end

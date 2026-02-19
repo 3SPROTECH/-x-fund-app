@@ -145,7 +145,7 @@ export default function WalletPage() {
           <div style={{ textAlign: 'center', padding: '2rem' }}><div className="spinner" /></div>
         ) : platformWallet && (
           <>
-            <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            <div className="stats-grid stats-grid-3">
               <div className="stat-card">
                 <div className="stat-icon stat-icon-primary"><Landmark size={20} /></div>
                 <div className="stat-content">
@@ -181,8 +181,8 @@ export default function WalletPage() {
                     <tbody>
                       {Object.entries(platformWallet.revenue_by_type).map(([type, cents]) => (
                         <tr key={type}>
-                          <td>{FEE_TYPE_LABELS[type] || type}</td>
-                          <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(cents)}</td>
+                          <td data-label="Type">{FEE_TYPE_LABELS[type] || type}</td>
+                          <td data-label="Montant" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(cents)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -217,21 +217,21 @@ export default function WalletPage() {
                       const feePercent = a.fee_cents > 0 && a.amount_cents > 0 ? (a.fee_cents / a.amount_cents * 100).toFixed(1).replace(/\.0$/, '') : null;
                       return (
                         <tr key={inv.id}>
-                          <td>{a.invested_at ? new Date(a.invested_at).toLocaleDateString('fr-FR') : '—'}</td>
-                          <td>
+                          <td data-label="Date">{a.invested_at ? new Date(a.invested_at).toLocaleDateString('fr-FR') : '—'}</td>
+                          <td data-label="Investisseur">
                             <div style={{ lineHeight: 1.3 }}>
                               <div style={{ fontWeight: 500 }}>{a.investor_name}</div>
                               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{a.investor_email}</div>
                             </div>
                           </td>
-                          <td style={{ fontWeight: 550 }}>{a.project_title || '—'}</td>
-                          <td>
+                          <td data-label="Projet" style={{ fontWeight: 550 }}>{a.project_title || '—'}</td>
+                          <td data-label="Montant">
                             <div>{fmt(a.amount_cents)}</div>
                             {feePercent && <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>incl. {feePercent}% frais</div>}
                           </td>
-                          <td>{a.shares_count}</td>
-                          <td style={{ fontWeight: 600 }}>{fmt(a.current_value_cents)}</td>
-                          <td><span className={`badge ${a.status === 'confirme' ? 'badge-success' : a.status === 'en_cours' ? 'badge-warning' : a.status === 'annule' ? 'badge-danger' : a.status === 'cloture' ? 'badge-info' : ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
+                          <td data-label="Parts">{a.shares_count}</td>
+                          <td data-label="Valeur" style={{ fontWeight: 600 }}>{fmt(a.current_value_cents)}</td>
+                          <td data-label="Statut"><span className={`badge ${a.status === 'confirme' ? 'badge-success' : a.status === 'en_cours' ? 'badge-warning' : a.status === 'annule' ? 'badge-danger' : a.status === 'cloture' ? 'badge-info' : ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
                         </tr>
                       );
                     })}
@@ -262,7 +262,7 @@ export default function WalletPage() {
         </div>
       </div>
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+      <div className="stats-grid stats-grid-3">
         <div className="stat-card">
           <div className="stat-icon stat-icon-primary"><Wallet size={20} /></div>
           <div className="stat-content">
@@ -346,13 +346,13 @@ export default function WalletPage() {
                     const isCredit = TX_CREDIT.includes(a.transaction_type);
                     return (
                       <tr key={tx.id}>
-                        <td>{new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
-                        <td><span className="badge">{TX_TYPE_LABELS[a.transaction_type] || a.transaction_type}</span></td>
-                        <td className={isCredit ? 'amount-positive' : 'amount-negative'}>
+                        <td data-label="Date">{new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
+                        <td data-label="Type"><span className="badge">{TX_TYPE_LABELS[a.transaction_type] || a.transaction_type}</span></td>
+                        <td data-label="Montant" className={isCredit ? 'amount-positive' : 'amount-negative'}>
                           {isCredit ? '+' : '-'}{fmt(a.amount_cents)}
                         </td>
-                        <td>{fmt(a.balance_after_cents)}</td>
-                        <td><span className={`badge ${a.status === 'completed' ? 'badge-success' : a.status === 'pending' ? 'badge-warning' : ''}`}>{a.status}</span></td>
+                        <td data-label="Solde après">{fmt(a.balance_after_cents)}</td>
+                        <td data-label="Statut"><span className={`badge ${a.status === 'completed' ? 'badge-success' : a.status === 'pending' ? 'badge-warning' : ''}`}>{a.status}</span></td>
                       </tr>
                     );
                   })}

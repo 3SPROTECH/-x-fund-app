@@ -130,7 +130,19 @@ export default function EditProjectPage() {
   };
 
   const updateField = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      if (field === 'gross_yield_percent') {
+        const grossYield = parseFloat(value);
+        const managementFee = parseFloat(updated.management_fee_percent) || 2.5;
+        if (!isNaN(grossYield) && grossYield > 0) {
+          updated.net_yield_percent = (grossYield - managementFee).toFixed(2);
+        } else {
+          updated.net_yield_percent = '';
+        }
+      }
+      return updated;
+    });
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
@@ -294,14 +306,15 @@ export default function EditProjectPage() {
                 />
               </div>
               <div className="form-group">
-                <label>Rendement net (%)</label>
+                <label>Rendement net (%) — auto</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={formData.net_yield_percent}
-                  onChange={(e) => updateField('net_yield_percent', e.target.value)}
-                  placeholder="4.5"
+                  readOnly
+                  style={{ background: 'var(--bg)', cursor: 'default', fontWeight: 600 }}
+                  placeholder="Calculé automatiquement"
                 />
               </div>
             </div>
