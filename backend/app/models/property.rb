@@ -6,7 +6,10 @@ class Property < ApplicationRecord
   has_one :investment_project, through: :investment_project_property
 
   has_many :lots, dependent: :destroy
+  has_many :cost_line_items, dependent: :destroy
+  has_many :project_documents, as: :documentable, dependent: :destroy
   accepts_nested_attributes_for :lots, allow_destroy: true
+  accepts_nested_attributes_for :cost_line_items, allow_destroy: true
 
   has_many_attached :photos
   has_many_attached :documents
@@ -16,6 +19,14 @@ class Property < ApplicationRecord
   enum :dpe_current, { dpe_current_a: 0, dpe_current_b: 1, dpe_current_c: 2, dpe_current_d: 3, dpe_current_e: 4, dpe_current_f: 5, dpe_current_g: 6 }, prefix: :dpe_current
   enum :dpe_target, { dpe_target_a: 0, dpe_target_b: 1, dpe_target_c: 2, dpe_target_d: 3, dpe_target_e: 4, dpe_target_f: 5, dpe_target_g: 6 }, prefix: :dpe_target
   enum :permit_status, { obtenu_purge: 0, obtenu_non_purge: 1, depose: 2 }, prefix: :permit
+  enum :zone_typology, {
+    hypercentre: 0,
+    periphery: 1,
+    rural: 2,
+    business_district: 3,
+    tourist_zone: 4,
+    student_quarter: 5
+  }, prefix: :zone
 
   validates :title, presence: true
   validates :address_line1, presence: true

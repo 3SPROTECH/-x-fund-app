@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_18_000009) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,20 +58,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
   end
 
   create_table "companies", force: :cascade do |t|
+    t.text "additional_info"
+    t.string "certifications"
     t.date "company_creation_date"
     t.string "company_name", null: false
     t.integer "completed_operations_count", default: 0
+    t.integer "core_expertise"
     t.datetime "created_at", null: false
     t.decimal "default_rate_percent", precision: 5, scale: 2, default: "0.0"
+    t.integer "geo_experience"
     t.string "headquarters_address"
     t.integer "legal_form"
     t.string "legal_representative_name"
     t.bigint "managed_volume_cents", default: 0
     t.string "siret", limit: 14
+    t.text "team_description"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.string "website_url"
+    t.integer "years_of_experience"
     t.index ["siret"], name: "index_companies_on_siret", unique: true, where: "(siret IS NOT NULL)"
     t.index ["user_id"], name: "index_companies_on_user_id", unique: true
+  end
+
+  create_table "cost_line_items", force: :cascade do |t|
+    t.bigint "amount_cents", default: 0, null: false
+    t.integer "category", null: false
+    t.datetime "created_at", null: false
+    t.string "label", null: false
+    t.integer "position"
+    t.bigint "property_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["property_id", "category"], name: "index_cost_line_items_on_property_id_and_category"
+    t.index ["property_id"], name: "index_cost_line_items_on_property_id"
   end
 
   create_table "dividend_payments", force: :cascade do |t|
@@ -145,25 +164,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
   create_table "investment_project_properties", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "investment_project_id", null: false
+    t.string "label"
     t.bigint "property_id", null: false
     t.datetime "updated_at", null: false
     t.index ["investment_project_id", "property_id"], name: "idx_ipp_on_project_and_property", unique: true
     t.index ["investment_project_id"], name: "index_investment_project_properties_on_investment_project_id"
-    t.index ["property_id"], name: "idx_ipp_on_property_unique", unique: true
+    t.index ["property_id"], name: "idx_ipp_on_property"
     t.index ["property_id"], name: "index_investment_project_properties_on_property_id"
   end
 
   create_table "investment_projects", force: :cascade do |t|
+    t.text "additional_info"
     t.bigint "bank_loan_cents"
     t.integer "bank_loan_status"
     t.string "bank_name"
+    t.jsonb "commercialization_strategy", default: []
+    t.boolean "consent_given", default: false, null: false
+    t.datetime "consent_given_at"
     t.datetime "created_at", null: false
     t.text "description"
     t.integer "duration_months"
     t.bigint "equity_cents"
     t.bigint "exit_price_per_sqm_cents"
     t.integer "exit_scenario"
+    t.integer "exploitation_strategy"
+    t.jsonb "financial_dossier_status", default: []
     t.bigint "financial_fees_cents"
+    t.jsonb "form_snapshot"
     t.date "funding_end_date", null: false
     t.date "funding_start_date", null: false
     t.decimal "gross_yield_percent", precision: 5, scale: 2
@@ -176,6 +203,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
     t.boolean "has_share_pledge", default: false, null: false
     t.boolean "has_works_escrow", default: false, null: false
     t.decimal "management_fee_percent", precision: 5, scale: 2, default: "0.0", null: false
+    t.string "market_segment"
     t.bigint "max_investment_cents"
     t.bigint "min_investment_cents", null: false
     t.decimal "net_yield_percent", precision: 5, scale: 2
@@ -187,8 +215,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
     t.date "planned_delivery_date"
     t.date "planned_repayment_date"
     t.decimal "pre_commercialization_percent", precision: 5, scale: 2
+    t.integer "progress_status"
     t.bigint "projected_margin_cents"
     t.bigint "projected_revenue_cents"
+    t.integer "revenue_period"
     t.text "review_comment"
     t.integer "review_status", default: 0, null: false
     t.datetime "reviewed_at"
@@ -202,12 +232,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
     t.integer "total_shares", null: false
     t.datetime "updated_at", null: false
     t.bigint "works_budget_cents"
+    t.text "yield_justification"
     t.index ["bank_loan_status"], name: "index_investment_projects_on_bank_loan_status"
     t.index ["exit_scenario"], name: "index_investment_projects_on_exit_scenario"
+    t.index ["exploitation_strategy"], name: "index_investment_projects_on_exploitation_strategy"
     t.index ["funding_end_date"], name: "index_investment_projects_on_funding_end_date"
     t.index ["funding_start_date"], name: "index_investment_projects_on_funding_start_date"
     t.index ["operation_type"], name: "index_investment_projects_on_operation_type"
     t.index ["owner_id"], name: "index_investment_projects_on_owner_id"
+    t.index ["progress_status"], name: "index_investment_projects_on_progress_status"
     t.index ["review_status"], name: "index_investment_projects_on_review_status"
     t.index ["reviewed_by_id"], name: "index_investment_projects_on_reviewed_by_id"
     t.index ["status"], name: "index_investment_projects_on_status"
@@ -239,8 +272,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
   create_table "lots", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "description"
+    t.boolean "is_rented", default: false, null: false
+    t.string "lease_ref"
     t.integer "lot_number", null: false
+    t.integer "pre_commercialized", default: 0, null: false
+    t.bigint "projected_sale_price_cents"
     t.bigint "property_id", null: false
+    t.string "sale_promise_ref"
     t.decimal "surface_area_sqm", precision: 10, scale: 2
     t.datetime "updated_at", null: false
     t.index ["property_id", "lot_number"], name: "index_lots_on_property_id_and_lot_number", unique: true
@@ -288,10 +326,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
     t.index ["review_status"], name: "index_mvp_reports_on_review_status"
   end
 
+  create_table "project_documents", force: :cascade do |t|
+    t.text "comment"
+    t.datetime "created_at", null: false
+    t.integer "document_type", null: false
+    t.bigint "documentable_id", null: false
+    t.string "documentable_type", null: false
+    t.boolean "required", default: true, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_type"], name: "index_project_documents_on_document_type"
+    t.index ["documentable_type", "documentable_id"], name: "index_project_documents_on_documentable"
+    t.index ["status"], name: "index_project_documents_on_status"
+  end
+
+  create_table "project_drafts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "current_step", default: 0, null: false
+    t.jsonb "form_data", default: {}, null: false
+    t.datetime "last_saved_at"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "updated_at"], name: "index_project_drafts_on_user_id_and_updated_at"
+    t.index ["user_id"], name: "index_project_drafts_on_user_id"
+  end
+
   create_table "properties", force: :cascade do |t|
     t.bigint "acquisition_price_cents", null: false
     t.string "address_line1", null: false
     t.string "address_line2"
+    t.bigint "agency_fees_cents"
     t.string "city", null: false
     t.string "country", default: "FR", null: false
     t.datetime "created_at", null: false
@@ -299,10 +363,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
     t.integer "dpe_current"
     t.integer "dpe_target"
     t.bigint "estimated_value_cents"
+    t.date "expert_date"
+    t.string "expert_name"
     t.decimal "floor_area_sqm", precision: 10, scale: 2
     t.boolean "is_land_division", default: false, null: false
+    t.boolean "is_refinancing", default: false, null: false
     t.decimal "latitude", precision: 10, scale: 8
     t.decimal "longitude", precision: 11, scale: 8
+    t.jsonb "nearby_amenities", default: []
+    t.string "neighborhood"
     t.integer "number_of_lots"
     t.bigint "owner_id", null: false
     t.date "permit_date"
@@ -311,14 +380,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
     t.string "postal_code", null: false
     t.integer "property_type", default: 0, null: false
     t.integer "status", default: 0, null: false
+    t.text "strategic_advantages"
     t.decimal "surface_area_sqm", precision: 10, scale: 2
     t.string "title", null: false
+    t.jsonb "transport_access", default: []
     t.datetime "updated_at", null: false
+    t.integer "works_duration_months"
+    t.boolean "works_needed", default: false, null: false
+    t.integer "zone_typology"
     t.index ["city"], name: "index_properties_on_city"
     t.index ["owner_id"], name: "index_properties_on_owner_id"
     t.index ["permit_status"], name: "index_properties_on_permit_status"
     t.index ["status", "city"], name: "index_properties_on_status_and_city"
     t.index ["status"], name: "index_properties_on_status"
+    t.index ["zone_typology"], name: "index_properties_on_zone_typology"
   end
 
   create_table "settings", force: :cascade do |t|
@@ -405,6 +480,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "audit_logs", "users"
   add_foreign_key "companies", "users"
+  add_foreign_key "cost_line_items", "properties"
   add_foreign_key "dividend_payments", "dividends"
   add_foreign_key "dividend_payments", "investments"
   add_foreign_key "dividend_payments", "users"
@@ -421,6 +497,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000003) do
   add_foreign_key "mvp_reports", "investment_projects"
   add_foreign_key "mvp_reports", "users", column: "author_id"
   add_foreign_key "mvp_reports", "users", column: "reviewed_by_id"
+  add_foreign_key "project_drafts", "users"
   add_foreign_key "properties", "users", column: "owner_id"
   add_foreign_key "transactions", "investments"
   add_foreign_key "transactions", "wallets"

@@ -15,6 +15,7 @@ class User < ApplicationRecord
   has_many :invested_projects, through: :investments, source: :investment_project
   has_many :dividend_payments, dependent: :restrict_with_error
   has_many :audit_logs, dependent: :nullify
+  has_many :project_drafts, dependent: :destroy
 
   has_one_attached :kyc_identity_document
   has_one_attached :kyc_proof_of_address

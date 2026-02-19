@@ -27,6 +27,8 @@ module Api
           :company_name, :siret, :company_creation_date, :legal_form,
           :legal_representative_name, :headquarters_address,
           :completed_operations_count, :managed_volume_cents, :default_rate_percent,
+          :website_url, :years_of_experience, :core_expertise, :geo_experience,
+          :certifications, :team_description, :additional_info,
           :kbis, :presentation_deck
         )
       end
@@ -43,6 +45,13 @@ module Api
           completed_operations_count: company.completed_operations_count,
           managed_volume_cents: company.managed_volume_cents,
           default_rate_percent: company.default_rate_percent,
+          website_url: company.website_url,
+          years_of_experience: company.years_of_experience,
+          core_expertise: company.core_expertise,
+          geo_experience: company.geo_experience,
+          certifications: company.certifications,
+          team_description: company.team_description,
+          additional_info: company.additional_info,
           kbis_attached: company.kbis.attached?,
           presentation_deck_attached: company.presentation_deck.attached?,
         }

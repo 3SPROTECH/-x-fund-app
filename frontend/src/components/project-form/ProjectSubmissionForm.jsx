@@ -1,357 +1,485 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, Building, Landmark, Euro, ShieldCheck, Store } from 'lucide-react';
+import { useEffect, useRef, useCallback } from 'react';
+import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-import useProjectFormStore, { STEP_LABELS } from '../../stores/useProjectFormStore';
-import { propertiesApi } from '../../api/properties';
-import { investmentProjectsApi } from '../../api/investments';
-import { projectImagesApi } from '../../api/images';
+import useProjectFormStore, { MACRO_STEPS, STEP_CONFIG } from '../../stores/useProjectFormStore';
+import { projectDraftsApi } from '../../api/projectDrafts';
 import { companiesApi } from '../../api/companies';
+import { investmentProjectsApi } from '../../api/investments';
 
-import StepOperator from './StepOperator';
-import StepProject from './StepProject';
-import StepFinance from './StepFinance';
-import StepGuarantees from './StepGuarantees';
-import StepCommercialization from './StepCommercialization';
+import StepPresentation from './steps/StepPresentation';
+import StepLocation from './steps/StepLocation';
+import StepProjectOwner from './steps/StepProjectOwner';
+import StepFinancialStructure from './steps/StepFinancialStructure';
+import AssetHub from './steps/AssetHub';
+import AssetDetails from './steps/AssetDetails';
+import ExpensePlan from './steps/ExpensePlan';
+import SalesPlanLots from './steps/SalesPlanLots';
+import VerificationDocs from './steps/VerificationDocs';
+import ContributionStep from './steps/ContributionStep';
+import FinancingSimulation from './steps/FinancingSimulation';
+import SignatureStep from './steps/SignatureStep';
 
-const STEPS = [
-  { id: 1, label: STEP_LABELS[0], icon: Building },
-  { id: 2, label: STEP_LABELS[1], icon: Landmark },
-  { id: 3, label: STEP_LABELS[2], icon: Euro },
-  { id: 4, label: STEP_LABELS[3], icon: ShieldCheck },
-  { id: 5, label: STEP_LABELS[4], icon: Store },
+import './project-submission-form.css';
+
+const MACRO_ICONS = [FileText, Calculator, TrendingUp, PenTool];
+
+const STEP_COMPONENTS = [
+  StepPresentation,        // 0  - Macro 0
+  StepLocation,            // 1
+  StepProjectOwner,        // 2
+  StepFinancialStructure,  // 3
+  AssetHub,                // 4  - Macro 1 (hub - not a real micro step)
+  AssetDetails,            // 5  - Asset sub-flow step 1
+  ExpensePlan,             // 6  - Asset sub-flow step 2
+  SalesPlanLots,           // 7  - Asset sub-flow step 3
+  VerificationDocs,        // 8  - Asset sub-flow step 4
+  ContributionStep,        // 9  - Macro 2
+  FinancingSimulation,     // 10
+  SignatureStep,           // 11 - Macro 3 (locked until analyst approves)
 ];
 
-const STEP_COMPONENTS = [StepOperator, StepProject, StepFinance, StepGuarantees, StepCommercialization];
+const HUB_INDEX = 4;
+const SUB_FLOW_START = 5;
+const SUB_FLOW_END = 8;
+const PROJECTION_START = 9;
+const SUBMIT_STEP = 10; // FinancingSimulation — last editable step
 
-// --- Validation per step ---
+const SUB_FLOW_LABELS = [
+  'Détails de l\'actif',
+  'Plan de dépenses',
+  'Revenus par lot',
+  'Vérification docs',
+];
 
-function validateStep1(operator) {
-  const errs = {};
-  if (!operator.company_name?.trim()) errs.company_name = 'La dénomination sociale est requise';
-  if (!operator.siret?.trim()) errs.siret = 'Le SIRET est requis';
-  else if (!/^\d{14}$/.test(operator.siret)) errs.siret = 'Le SIRET doit contenir 14 chiffres';
-  if (!operator.company_creation_date) errs.company_creation_date = 'La date de création est requise';
-  if (!operator.legal_form) errs.legal_form = 'La forme juridique est requise';
-  if (!operator.legal_representative_name?.trim()) errs.legal_representative_name = 'Le représentant légal est requis';
-  if (!operator.headquarters_address?.trim()) errs.headquarters_address = "L'adresse du siège est requise";
-  return errs;
-}
-
-function validateStep2(project, selectedPropertyId) {
-  const errs = {};
-  if (!selectedPropertyId) errs.selectedPropertyId = 'Veuillez sélectionner un bien immobilier';
-  if (!project.title?.trim()) errs.title = "Le nom de l'opération est requis";
-  if (!project.description?.trim()) errs.description = "Le résumé de l'opération est requis";
-  if (!project.address_line1?.trim()) errs.address_line1 = "L'adresse est requise";
-  if (!project.surface_area_sqm) errs.surface_area_sqm = 'La surface est requise';
-  if (!project.property_type) errs.property_type = "Le type d'actif est requis";
-  return errs;
-}
-
-function validateStep3(finance) {
-  const errs = {};
-  if (!finance.total_amount_cents || parseFloat(finance.total_amount_cents) <= 0) {
-    errs.total_amount_cents = 'Le montant recherché est requis';
-  }
-  if (!finance.projected_revenue_cents || parseFloat(finance.projected_revenue_cents) <= 0) {
-    errs.projected_revenue_cents = 'Le CA prévisionnel est requis';
-  }
-  const sharePrice = parseFloat(finance.share_price_cents);
-  if (!sharePrice || sharePrice <= 0) {
-    errs.share_price_cents = 'Le prix par part est requis';
-  }
-  const minInvest = parseFloat(finance.min_investment_cents);
-  if (!minInvest || minInvest <= 0) {
-    errs.min_investment_cents = "L'investissement minimum est requis";
-  } else if (sharePrice > 0 && minInvest < sharePrice) {
-    errs.min_investment_cents = `Doit être ≥ au prix par part (${sharePrice} €)`;
-  }
-  return errs;
-}
-
-function validateStep4() {
-  return {};
-}
-
-function validateStep5(commercialization) {
-  const errs = {};
-  if (!commercialization.exit_scenario) errs.exit_scenario = 'Le scénario de sortie est requis';
-  return errs;
-}
-
-const VALIDATORS = [validateStep1, validateStep2, validateStep3, validateStep4, validateStep5];
-
-// --- Main Component ---
-
-export default function ProjectSubmissionForm() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [submitting, setSubmitting] = useState(false);
-  const [propertiesLoaded, setPropertiesLoaded] = useState(false);
+export default function ProjectSubmissionForm({ initialDraftId = null, initialProjectId = null }) {
+  const scrollRef = useRef(null);
+  const autoSaveTimer = useRef(null);
 
   const store = useProjectFormStore();
-  const { currentStep, setStep, nextStep, prevStep, setErrors, reset } = store;
+  const {
+    globalStepIndex, setGlobalStep, goNext, goPrev, jumpToMacroStep,
+    validateCurrentStep, isStepLocked, allAssetsComplete,
+    selectedAssetIndex, returnToHub,
+    submitting, submitted, setSubmitting, setSubmitted,
+    consentGiven,
+    draftId, isDirty, setDraftId, setLastSavedAt, getSerializableState, loadFromDraft,
+    reset,
+  } = store;
 
-  // Load all properties on mount and pre-select from URL param
-  useEffect(() => {
-    const propertyId = searchParams.get('propertyId');
-    propertiesApi.list().then((res) => {
-      const list = res.data.data || [];
-      store.setProperties(list);
-      if (propertyId) {
-        store.selectProperty(propertyId);
+  const stepConfig = STEP_CONFIG[globalStepIndex] || STEP_CONFIG[0];
+  const currentMacro = stepConfig.macro;
+  const isOnHub = globalStepIndex === HUB_INDEX;
+  const isInSubFlow = globalStepIndex >= SUB_FLOW_START && globalStepIndex <= SUB_FLOW_END;
+
+  // ── Micro tabs computation ──
+  let microSteps = [];
+  let microIndex = -1;
+
+  if (isOnHub) {
+    // No micro bar on hub
+  } else if (isInSubFlow) {
+    // Sub-flow has its own 4-step micro bar
+    microSteps = SUB_FLOW_LABELS;
+    microIndex = globalStepIndex - SUB_FLOW_START;
+  } else {
+    // Normal macro micro tabs (only for macros 0, 2, 3)
+    const macroMicroSteps = STEP_CONFIG
+      .map((s, i) => ({ ...s, globalIdx: i }))
+      .filter((s) => s.macro === currentMacro && s.globalIdx !== HUB_INDEX);
+    if (macroMicroSteps.length > 1) {
+      microSteps = macroMicroSteps;
+      microIndex = macroMicroSteps.findIndex((s) => s.globalIdx === globalStepIndex);
+    }
+  }
+  const showMicroBar = microSteps.length > 0 && microIndex >= 0;
+
+  // ── Draft auto-save ──
+  const saveDraft = useCallback(async () => {
+    if (submitted || initialProjectId) return;
+    try {
+      const data = { form_data: getSerializableState(), current_step: globalStepIndex };
+      if (draftId) {
+        await projectDraftsApi.update(draftId, data);
+      } else {
+        const res = await projectDraftsApi.create(data);
+        setDraftId(res.data.data.id);
       }
-      setPropertiesLoaded(true);
-    }).catch(() => {
-      setPropertiesLoaded(true);
-    });
+      setLastSavedAt(new Date().toISOString());
+    } catch {
+      // Silent fail for auto-save
+    }
+  }, [draftId, globalStepIndex, submitted]);
 
-    // Reset store on unmount
-    return () => reset();
-  }, []);
+  useEffect(() => {
+    if (isDirty && !submitted) {
+      clearTimeout(autoSaveTimer.current);
+      autoSaveTimer.current = setTimeout(saveDraft, 5000);
+    }
+    return () => clearTimeout(autoSaveTimer.current);
+  }, [isDirty, globalStepIndex, saveDraft, submitted]);
 
-  const getSectionData = (step) => {
-    const sections = ['operator', 'project', 'finance', 'guarantees', 'commercialization'];
-    return store[sections[step - 1]];
-  };
+  useEffect(() => {
+    if (initialProjectId) {
+      // Load from a submitted project's form snapshot (read-only mode)
+      investmentProjectsApi.get(initialProjectId).then((res) => {
+        const project = res.data.data?.attributes || res.data.data || res.data;
+        if (project?.form_snapshot && Object.keys(project.form_snapshot).length > 0) {
+          loadFromDraft(project.form_snapshot, null);
+        } else {
+          // Fallback: reconstruct minimal form state from project attributes
+          const fallback = {
+            globalStepIndex: 0,
+            presentation: {
+              title: project.title || '',
+              progressStatus: project.progress_status || '',
+              propertyType: '',
+              operationType: project.operation_type || '',
+              pitch: project.description || '',
+              valBefore: '',
+              valAfter: '',
+              expertName: '',
+              expertDate: '',
+              durationMonths: project.duration_months ? String(project.duration_months) : '',
+              exploitationStrategy: project.exploitation_strategy || '',
+              marketSegment: project.market_segment || '',
+              projectedRevenue: project.projected_revenue_cents ? String(project.projected_revenue_cents / 100) : '',
+              revenuePeriod: project.revenue_period || '',
+              additionalInfo: project.additional_info || '',
+            },
+            location: {
+              address: '',
+              postalCode: '',
+              city: project.property_city || '',
+              neighborhood: '',
+              zoneTypology: '',
+              transportAccess: [],
+              nearbyAmenities: [],
+              strategicAdvantages: '',
+            },
+            projectOwner: {
+              structure: '', companyName: '', linkedinUrl: '', yearsExperience: '',
+              coreExpertise: '', completedProjects: '', businessVolume: '',
+              geoExperience: '', certifications: '', teamDescription: '', additionalInfo: '',
+            },
+            financialStructure: {
+              totalFunding: project.total_amount_cents ? String(project.total_amount_cents / 100) : '',
+              grossMargin: project.gross_yield_percent ? String(project.gross_yield_percent) : '',
+              netYield: project.net_yield_percent ? String(project.net_yield_percent) : '',
+              yieldJustification: project.yield_justification || '',
+              commercializationStrategy: project.commercialization_strategy || [],
+              financialDossierStatus: project.financial_dossier_status || [],
+              additionalInfo: '',
+            },
+            assets: [{ id: 1, label: project.property_title || 'Actif 1', completed: true, details: { isRefinancing: false, signatureDate: '', lotCount: '1', worksNeeded: false, worksDuration: '' }, costs: { items: [], total: 0 }, lots: [{ id: 1, preCommercialized: 'non', rented: 'non', surface: '', prix: 0, prixM2: 0, promesseRef: '', bailRef: '' }], documents: [], recettesTotal: 0 }],
+            projections: { contributionPct: 20, durationMonths: project.duration_months || 12, proofFileName: '' },
+            consentGiven: project.consent_given || false,
+          };
+          loadFromDraft(fallback, null);
+        }
+        setSubmitted(true);
+        setGlobalStep(SUBMIT_STEP);
+      }).catch(() => {});
+    } else if (initialDraftId) {
+      projectDraftsApi.get(initialDraftId).then((res) => {
+        const draft = res.data.data || res.data;
+        if (draft?.form_data && Object.keys(draft.form_data).length > 0) {
+          loadFromDraft(draft.form_data, draft.id);
+        }
+      }).catch(() => {});
+    }
 
+    return () => {
+      clearTimeout(autoSaveTimer.current);
+      reset();
+    };
+  }, [initialDraftId, initialProjectId]);
+
+  // ── Navigation ──
   const handleNext = () => {
-    const data = getSectionData(currentStep);
-    // Step 2 validator needs selectedPropertyId as extra arg
-    const errs = currentStep === 2
-      ? VALIDATORS[1](data, store.selectedPropertyId)
-      : VALIDATORS[currentStep - 1](data);
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
+    if (submitted) {
+      // Read-only navigation: allow moving forward through steps 0-10
+      if (globalStepIndex === SUB_FLOW_END) {
+        returnToHub();
+      } else if (isOnHub) {
+        setGlobalStep(PROJECTION_START);
+      } else if (globalStepIndex < SUBMIT_STEP) {
+        goNext();
+      }
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    nextStep();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
-  const handleBack = () => {
-    prevStep();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleStepClick = (stepId) => {
-    // Only allow going to completed steps or the next step
-    if (stepId < currentStep) {
-      setStep(stepId);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    // End of sub-flow: return to hub
+    if (globalStepIndex === SUB_FLOW_END) {
+      returnToHub();
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
+
+    // Validate current step
+    if (!validateCurrentStep()) return;
+
+    // Hub: skip sub-flow, jump to projections
+    if (isOnHub) {
+      if (!allAssetsComplete()) {
+        toast.error('Tous les actifs doivent être complets avant de continuer.');
+        return;
+      }
+      setGlobalStep(PROJECTION_START);
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Submit step: submit the dossier
+    if (globalStepIndex === SUBMIT_STEP) {
+      handleSubmit();
+      return;
+    }
+
+    goNext();
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handlePrev = () => {
+    // From first sub-flow step: return to hub
+    if (globalStepIndex === SUB_FLOW_START && selectedAssetIndex !== null) {
+      returnToHub();
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // From contribution: back to hub (skip sub-flow)
+    if (globalStepIndex === PROJECTION_START) {
+      setGlobalStep(HUB_INDEX);
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    goPrev();
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleMacroClick = (macroIdx) => {
+    if (isStepLocked(STEP_CONFIG.findIndex((s) => s.macro === macroIdx))) return;
+    if (isDirty && !submitted) saveDraft();
+    jumpToMacroStep(macroIdx);
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ── Submission ──
   const handleSubmit = async () => {
-    // Validate last step
-    const errs = validateStep5(store.commercialization);
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
+    if (!consentGiven) {
+      toast.error('Vous devez certifier l\'exactitude des informations.');
       return;
     }
 
     setSubmitting(true);
     try {
-      const { operator, project, finance, guarantees, commercialization, propertyIds, files } = store;
-
-      // --- 1. Save operator/company data (Step 1) ---
-      const companyData = {
-        company_name: operator.company_name?.trim() || undefined,
-        siret: operator.siret?.trim() || undefined,
-        company_creation_date: operator.company_creation_date || undefined,
-        legal_form: operator.legal_form || undefined,
-        legal_representative_name: operator.legal_representative_name?.trim() || undefined,
-        headquarters_address: operator.headquarters_address?.trim() || undefined,
-        completed_operations_count: operator.completed_operations_count ? parseInt(operator.completed_operations_count) : undefined,
-        managed_volume_cents: operator.managed_volume_cents ? Math.round(parseFloat(operator.managed_volume_cents) * 100) : undefined,
-        default_rate_percent: operator.default_rate_percent ? parseFloat(operator.default_rate_percent) : undefined,
-      };
-
-      await companiesApi.createOrUpdate(companyData);
-
-      // Upload company files (kbis, presentation_deck) if present
-      if (files.kbis || files.presentation_deck) {
-        const companyFileData = new FormData();
-        if (files.kbis) companyFileData.append('company[kbis]', files.kbis);
-        if (files.presentation_deck) companyFileData.append('company[presentation_deck]', files.presentation_deck);
-        await companiesApi.createOrUpdate(companyFileData);
-      }
-
-      // --- 2. Create investment project (Steps 2-5) ---
-      // Helper: convert EUR input to cents
-      const toCents = (val) => {
-        const n = parseFloat(val);
-        return !isNaN(n) && n > 0 ? Math.round(n * 100) : undefined;
-      };
-
-      const projectData = {
-        // Project info (Step 2)
-        title: project.title.trim(),
-        description: project.description?.trim() || undefined,
-        operation_type: project.operation_type || undefined,
-
-        // Finance (Step 3) - amounts in EUR, backend expects cents
-        total_amount_cents: toCents(finance.total_amount_cents) || 0,
-        notary_fees_cents: toCents(finance.notary_fees_cents),
-        works_budget_cents: toCents(finance.works_budget_cents),
-        financial_fees_cents: toCents(finance.financial_fees_cents),
-        equity_cents: toCents(finance.equity_cents),
-        bank_loan_cents: toCents(finance.bank_loan_cents),
-        projected_revenue_cents: toCents(finance.projected_revenue_cents),
-        projected_margin_cents: toCents(finance.projected_margin_cents),
-        bank_name: finance.bank_name || undefined,
-        bank_loan_status: finance.bank_loan_status || undefined,
-        gross_yield_percent: finance.gross_yield_percent ? parseFloat(finance.gross_yield_percent) : undefined,
-        management_fee_percent: finance.management_fee_percent ? parseFloat(finance.management_fee_percent) : undefined,
-        net_yield_percent: finance.net_yield_percent ? parseFloat(finance.net_yield_percent) : undefined,
-        duration_months: finance.duration_months ? parseInt(finance.duration_months) : undefined,
-        payment_frequency: finance.payment_frequency || undefined,
-
-        // Guarantees (Step 4)
-        has_first_rank_mortgage: guarantees.has_first_rank_mortgage,
-        has_share_pledge: guarantees.has_share_pledge,
-        has_fiducie: guarantees.has_fiducie,
-        has_interest_escrow: guarantees.has_interest_escrow,
-        has_works_escrow: guarantees.has_works_escrow,
-        has_personal_guarantee: guarantees.has_personal_guarantee,
-        has_gfa: guarantees.has_gfa,
-        has_open_banking: guarantees.has_open_banking,
-        risk_description: guarantees.risk_description?.trim() || undefined,
-
-        // Commercialization (Step 5)
-        pre_commercialization_percent: commercialization.pre_commercialization_percent != null ? Number(commercialization.pre_commercialization_percent) : undefined,
-        exit_price_per_sqm_cents: toCents(commercialization.exit_price_per_sqm_cents),
-        exit_scenario: commercialization.exit_scenario || undefined,
-        planned_acquisition_date: commercialization.planned_acquisition_date || undefined,
-        planned_delivery_date: commercialization.planned_delivery_date || undefined,
-        planned_repayment_date: commercialization.planned_repayment_date || undefined,
-
-        // Shares structure (Step 3)
-        share_price_cents: toCents(finance.share_price_cents) || 10000,
-        total_shares: (() => {
-          const manual = parseInt(finance.total_shares);
-          if (manual > 0) return manual;
-          const sp = parseFloat(finance.share_price_cents) || 0;
-          const ta = parseFloat(finance.total_amount_cents) || 0;
-          return sp > 0 && ta > 0 ? Math.floor(ta / sp) : 1;
-        })(),
-        min_investment_cents: toCents(finance.min_investment_cents) || toCents(finance.share_price_cents) || 10000,
-        max_investment_cents: toCents(finance.max_investment_cents),
-        // Dates derived from planning
-        funding_start_date: commercialization.planned_acquisition_date || new Date().toISOString().split('T')[0],
-        funding_end_date: commercialization.planned_repayment_date || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      };
-
-      const res = await investmentProjectsApi.create({
-        ...projectData,
-        property_ids: propertyIds,
+      const state = getSerializableState();
+      const owner = state.projectOwner;
+      await companiesApi.createOrUpdate({
+        company_name: owner.companyName,
+        legal_form: owner.structure,
+        website_url: owner.linkedinUrl,
+        years_of_experience: owner.yearsExperience ? parseInt(owner.yearsExperience) : undefined,
+        core_expertise: owner.coreExpertise || undefined,
+        completed_operations_count: owner.completedProjects ? parseInt(owner.completedProjects) : undefined,
+        managed_volume_cents: owner.businessVolume ? Math.round(parseFloat(owner.businessVolume) * 100) : undefined,
+        geo_experience: owner.geoExperience || undefined,
+        certifications: owner.certifications || undefined,
+        team_description: owner.teamDescription || undefined,
+        additional_info: owner.additionalInfo || undefined,
       });
-      const projectId = res.data.data?.id || res.data.id;
 
-      // --- 3. Upload project photos (Step 2) ---
-      if (files.photos.length > 0 && projectId) {
-        try {
-          await projectImagesApi.uploadImages(projectId, files.photos);
-        } catch {
-          toast.error("Projet créé mais erreur lors de l'upload des photos");
-        }
+      const pres = state.presentation;
+      const loc = state.location;
+      const fin = state.financialStructure;
+      const proj = state.projections;
+      const totalCosts = state.assets.reduce((sum, a) => sum + (a.costs.total || 0), 0);
+      const toCents = (v) => { const n = parseFloat(v); return !isNaN(n) && n > 0 ? Math.round(n * 100) : undefined; };
+
+      // Build properties_data from form assets
+      const propertiesData = state.assets.map((asset, idx) => {
+        const acqItem = asset.costs.items.find(i => i.category === 'acquisition' && i.label.includes('acquisition'));
+        const acqPrice = acqItem ? Math.round((parseFloat(acqItem.amount) || 1) * 100) : Math.round((asset.costs.total || 1) * 100);
+        return {
+          title: asset.label || `${pres.title || 'Bien'} - Actif ${idx + 1}`,
+          address_line1: loc.address || 'Adresse à préciser',
+          city: loc.city || 'Ville à préciser',
+          postal_code: loc.postalCode || '00000',
+          country: 'FR',
+          property_type: pres.propertyType || 'appartement',
+          acquisition_price_cents: Math.max(acqPrice, 1),
+          estimated_value_cents: toCents(pres.valAfter),
+          number_of_lots: asset.details.lotCount ? parseInt(asset.details.lotCount) : undefined,
+          neighborhood: loc.neighborhood || undefined,
+          zone_typology: loc.zoneTypology || undefined,
+          transport_access: loc.transportAccess || [],
+          nearby_amenities: loc.nearbyAmenities || [],
+          strategic_advantages: loc.strategicAdvantages || undefined,
+          expert_name: pres.expertName || undefined,
+          expert_date: pres.expertDate || undefined,
+          is_refinancing: asset.details.isRefinancing || false,
+          works_needed: asset.details.worksNeeded || false,
+          works_duration_months: asset.details.worksDuration ? parseInt(asset.details.worksDuration) : undefined,
+        };
+      });
+
+      const projectPayload = {
+        title: pres.title,
+        description: pres.pitch || undefined,
+        operation_type: pres.operationType || undefined,
+        progress_status: pres.progressStatus || undefined,
+        exploitation_strategy: pres.exploitationStrategy || undefined,
+        market_segment: pres.marketSegment || undefined,
+        projected_revenue_cents: toCents(pres.projectedRevenue),
+        revenue_period: pres.revenuePeriod || undefined,
+        duration_months: pres.durationMonths ? parseInt(pres.durationMonths) : proj.durationMonths,
+        additional_info: pres.additionalInfo || undefined,
+        yield_justification: fin.yieldJustification || undefined,
+        gross_yield_percent: fin.grossMargin ? parseFloat(fin.grossMargin) : undefined,
+        net_yield_percent: fin.netYield ? parseFloat(fin.netYield) : undefined,
+        total_amount_cents: toCents(fin.totalFunding) || Math.round(totalCosts * 100),
+        commercialization_strategy: fin.commercializationStrategy || [],
+        financial_dossier_status: fin.financialDossierStatus || [],
+        equity_cents: Math.round(totalCosts * (proj.contributionPct / 100) * 100),
+        consent_given: state.consentGiven,
+        consent_given_at: state.consentGiven ? new Date().toISOString() : undefined,
+        share_price_cents: 10000,
+        total_shares: Math.max(1, Math.floor((toCents(fin.totalFunding) || totalCosts * 100) / 10000)),
+        min_investment_cents: 10000,
+        funding_start_date: new Date().toISOString().split('T')[0],
+        funding_end_date: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
+      };
+
+      await investmentProjectsApi.create({ ...projectPayload, properties_data: propertiesData, form_snapshot: state });
+
+      if (draftId) {
+        try { await projectDraftsApi.delete(draftId); } catch {}
       }
 
-      toast.success("Projet soumis avec succès !");
-      navigate('/properties');
+      setSubmitting(false);
+      setSubmitted(true);
+      toast.success('Votre dossier a été soumis avec succès !');
     } catch (err) {
-      const res = err.response;
-      const msg = res?.data?.errors?.join(', ') || res?.data?.error || 'Erreur lors de la soumission';
+      const msg = err.response?.data?.errors?.join(', ') || 'Erreur lors de la soumission';
       toast.error(msg);
-    } finally {
       setSubmitting(false);
     }
   };
 
-  if (!propertiesLoaded) {
-    return (
-      <div className="page-loading">
-        <div className="spinner" />
-      </div>
-    );
-  }
+  // ── Button labels ──
+  const isSubmitStep = globalStepIndex === SUBMIT_STEP;
+  const isEndOfSubFlow = globalStepIndex === SUB_FLOW_END;
+  const hubAllComplete = isOnHub && allAssetsComplete();
+  const isLastNavigable = globalStepIndex === SUBMIT_STEP;
 
-  const StepComponent = STEP_COMPONENTS[currentStep - 1];
+  const nextLabel = submitted
+    ? (isLastNavigable ? 'Dossier envoyé' : 'Suivant')
+    : submitting
+    ? 'Envoi en cours...'
+    : isSubmitStep
+    ? 'Envoyer mon dossier en analyse'
+    : isEndOfSubFlow
+    ? 'Terminer cet actif'
+    : 'Suivant';
+
+  const prevLabel = (globalStepIndex === SUB_FLOW_START && selectedAssetIndex !== null)
+    ? 'Retour au Hub'
+    : globalStepIndex === PROJECTION_START
+    ? 'Retour au Hub'
+    : 'Précédent';
+
+  const nextDisabled = submitting
+    || (submitted && isLastNavigable)
+    || (isOnHub && !hubAllComplete && !submitted);
+
+  const StepComponent = STEP_COMPONENTS[globalStepIndex];
 
   return (
-    <div className="page">
-      {/* Header */}
-      <div style={{ marginBottom: '2rem' }}>
-        <button className="btn btn-ghost" onClick={() => navigate('/properties')}>
-          <ArrowLeft size={16} /> Retour aux biens
-        </button>
-      </div>
-
-      <div className="page-header">
-        <div>
-          <h1>Soumission de Projet</h1>
-          <p className="text-muted">Complétez les 5 étapes pour soumettre votre projet</p>
-        </div>
-      </div>
-
-      {/* Stepper */}
-      <div className="wizard-steps">
-        {STEPS.map((step, index) => {
-          const Icon = step.icon;
-          const isActive = currentStep === step.id;
-          const isCompleted = currentStep > step.id;
+    <div className="pf-app-container">
+      {/* ── Macro Navigation ── */}
+      <nav className="pf-macro-nav">
+        {MACRO_STEPS.map((macro, idx) => {
+          const Icon = MACRO_ICONS[idx];
+          const isActive = currentMacro === idx;
+          const isCompleted = submitted ? idx <= 2 : currentMacro > idx;
+          const locked = isStepLocked(STEP_CONFIG.findIndex((s) => s.macro === idx));
 
           return (
-            <div key={step.id} className="wizard-step-container">
-              <div
-                className={`wizard-step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
-                onClick={() => handleStepClick(step.id)}
-                style={{ cursor: isCompleted ? 'pointer' : 'default' }}
-              >
-                <div className="wizard-step-number">
-                  {isCompleted ? <Check size={20} /> : <Icon size={20} />}
-                </div>
-                <div className="wizard-step-content">
-                  <div className="wizard-step-title">{step.label}</div>
-                  <div className="wizard-step-subtitle">Étape {step.id}/5</div>
-                </div>
+            <div
+              key={idx}
+              className={`pf-macro-step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''} ${locked ? 'locked' : ''}`}
+              onClick={() => !locked && handleMacroClick(idx)}
+            >
+              <div className="pf-macro-step-icon">
+                {isCompleted ? <Check size={14} /> : <Icon size={14} />}
               </div>
-              {index < STEPS.length - 1 && (
-                <div className={`wizard-step-line ${isCompleted ? 'completed' : ''}`} />
-              )}
+              <span>{macro.label}</span>
             </div>
           );
         })}
-      </div>
+      </nav>
 
-      {/* Step Content */}
-      <div className="wizard-content">
-        <StepComponent />
-      </div>
+      {/* ── Main Content ── */}
+      <div className="pf-main-content">
+        {/* Micro Progress - hidden on hub */}
+        {showMicroBar && (
+          <div className="pf-micro-nav">
+            <div className="pf-micro-tabs">
+              {microSteps.map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`pf-micro-tab ${idx < microIndex ? 'completed' : ''} ${idx === microIndex ? 'active' : ''}`}
+                />
+              ))}
+            </div>
+            <div className="pf-micro-status-text">
+              Étape {microIndex + 1} sur {microSteps.length}
+            </div>
+          </div>
+        )}
 
-      {/* Navigation */}
-      <div className="wizard-actions">
-        {currentStep > 1 && (
-          <button type="button" className="btn btn-ghost" onClick={handleBack} disabled={submitting}>
-            <ArrowLeft size={16} /> Précédent
-          </button>
+        {/* Form Header */}
+        <div className="pf-form-header">
+          <h2>{stepConfig.title}</h2>
+          <p>{stepConfig.desc}</p>
+        </div>
+
+        {/* Success Banner - shown after submission */}
+        {submitted && (
+          <div className="pf-success-banner">
+            <CheckCircle size={20} />
+            <div>
+              <strong>Dossier envoyé avec succès</strong>
+              <span>Votre dossier est en cours d'analyse par notre équipe. Vous pouvez consulter vos informations ci-dessous.</span>
+            </div>
+          </div>
         )}
-        <div style={{ flex: 1 }} />
-        {currentStep < 5 ? (
-          <button type="button" className="btn btn-primary" onClick={handleNext}>
-            Suivant <ArrowRight size={16} />
+
+        {/* Dynamic Fields */}
+        <div className={`pf-dynamic-fields${submitted ? ' pf-read-only' : ''}`} ref={scrollRef}>
+          <StepComponent />
+        </div>
+
+        {/* Form Footer */}
+        <div className="pf-form-footer">
+          {globalStepIndex > 0 && (
+            <button type="button" className="pf-nav-btn pf-btn-prev" onClick={handlePrev} disabled={submitting}>
+              <ArrowLeft size={16} /> {prevLabel}
+            </button>
+          )}
+          <div style={{ flex: 1 }} />
+          <button
+            type="button"
+            className={`pf-nav-btn pf-btn-next${isSubmitStep && !submitted ? ' pf-btn-submit' : ''}`}
+            onClick={handleNext}
+            disabled={nextDisabled}
+          >
+            {nextLabel} {!isSubmitStep && !submitted && <ArrowRight size={16} />}
           </button>
-        ) : (
-          <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
-            {submitting ? 'Soumission en cours...' : (
-              <>
-                <Check size={16} /> Soumettre le projet
-              </>
-            )}
-          </button>
-        )}
+        </div>
       </div>
     </div>
   );

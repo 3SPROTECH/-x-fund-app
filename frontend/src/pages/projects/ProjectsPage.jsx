@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { investmentProjectsApi } from '../../api/investments';
+import { projectDraftsApi } from '../../api/projectDrafts';
 import { useAuth } from '../../context/AuthContext';
-import { TrendingUp, MapPin, ChevronLeft, ChevronRight, Plus, Calendar, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { TrendingUp, MapPin, ChevronLeft, ChevronRight, Plus, Calendar, Image as ImageIcon, Trash2, FileEdit, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../api/client';
 import TableFilters from '../../components/TableFilters';
@@ -17,6 +18,7 @@ export default function ProjectsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [projects, setProjects] = useState([]);
+  const [drafts, setDrafts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
@@ -26,6 +28,14 @@ export default function ProjectsPage() {
   const canCreateProject = user?.role === 'porteur_de_projet' || user?.role === 'administrateur';
 
   useEffect(() => { loadProjects(); }, [page, statusFilter, search]);
+
+  useEffect(() => {
+    if (canCreateProject) {
+      projectDraftsApi.list().then((res) => {
+        setDrafts(res.data.data || []);
+      }).catch(() => {});
+    }
+  }, []);
 
   const loadProjects = async () => {
     setLoading(true);
@@ -40,6 +50,18 @@ export default function ProjectsPage() {
       toast.error('Erreur lors du chargement des projets');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteDraft = async (draftId, e) => {
+    e.stopPropagation();
+    if (!window.confirm('Voulez-vous vraiment supprimer ce brouillon ?')) return;
+    try {
+      await projectDraftsApi.delete(draftId);
+      setDrafts((prev) => prev.filter((d) => d.id !== draftId));
+      toast.success('Brouillon supprimé');
+    } catch {
+      toast.error('Erreur lors de la suppression du brouillon');
     }
   };
 
@@ -88,6 +110,60 @@ export default function ProjectsPage() {
         searchPlaceholder="Rechercher un projet..."
       />
 
+      {drafts.length > 0 && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '.75rem', color: 'var(--text-muted)' }}>
+            <FileEdit size={16} style={{ marginRight: '.4rem', verticalAlign: 'text-bottom' }} />
+            Mes brouillons
+          </h3>
+          <div className="project-grid">
+            {drafts.map((draft) => {
+              const fd = draft.form_data || {};
+              const title = fd.presentation?.title || 'Projet sans nom';
+              const updatedAt = draft.updated_at ? new Date(draft.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+
+              return (
+                <div key={`draft-${draft.id}`} className="project-card" onClick={() => navigate(`/projects/new?draft=${draft.id}`)} style={{ cursor: 'pointer' }}>
+                  <div style={{
+                    width: '100%',
+                    aspectRatio: '16/9',
+                    borderRadius: '12px 12px 0 0',
+                    background: 'linear-gradient(135deg, rgba(218,165,32,0.10) 0%, rgba(218,165,32,0.04) 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <FileEdit size={40} opacity={0.25} color="var(--gold-color)" />
+                  </div>
+                  <div className="project-card-body">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '.5rem' }}>
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: 650, margin: 0 }}>{title}</h3>
+                      <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
+                        <span className="badge badge-warning">Brouillon</span>
+                        <button
+                          onClick={(e) => handleDeleteDraft(draft.id, e)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: 'var(--danger)', opacity: 0.7, transition: 'opacity 0.2s' }}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                          title="Supprimer le brouillon"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                    {fd.location?.city && <p className="text-muted"><MapPin size={14} /> {fd.location.city}</p>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '.35rem', marginTop: '.5rem', fontSize: '.8rem', color: 'var(--text-muted)' }}>
+                      <Clock size={12} />
+                      <span>Dernière modification : {updatedAt}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="page-loading"><div className="spinner" /></div>
       ) : projects.length === 0 ? (
@@ -114,8 +190,14 @@ export default function ProjectsPage() {
               const isOwner = user?.id === a.owner_id;
               const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
 
+              // Navigate to read-only form for owner's submitted projects pending review
+              const isPendingReview = isOwner && a.status === 'brouillon';
+              const cardHref = isPendingReview
+                ? `/projects/new?project=${p.id}`
+                : `/projects/${p.id}`;
+
               return (
-                <div key={p.id} className="project-card" onClick={() => navigate(`/projects/${p.id}`)}>
+                <div key={p.id} className="project-card" onClick={() => navigate(cardHref)}>
                   {/* Image section */}
                   <div style={{
                     width: '100%',

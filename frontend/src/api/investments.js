@@ -10,11 +10,17 @@ export const investmentProjectsApi = {
   },
 
   create(data) {
-    const { property_ids, ...payload } = data;
-    return client.post('/investment_projects', {
-      property_ids: property_ids || [],
-      investment_project: payload,
-    });
+    const { property_ids, properties_data, form_snapshot, ...payload } = data;
+    const body = { investment_project: payload };
+    if (properties_data && properties_data.length > 0) {
+      body.properties_data = properties_data;
+    } else {
+      body.property_ids = property_ids || [];
+    }
+    if (form_snapshot) {
+      body.form_snapshot = form_snapshot;
+    }
+    return client.post('/investment_projects', body);
   },
 
   update(id, data) {

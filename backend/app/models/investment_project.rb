@@ -20,9 +20,24 @@ class InvestmentProject < ApplicationRecord
   has_one_attached :block_buyer_loi
   has_one_attached :sale_agreement
   has_one_attached :projected_balance_sheet
+  has_one_attached :proof_of_funds
 
   enum :status, { brouillon: 0, ouvert: 1, finance: 2, cloture: 3, annule: 4 }
   enum :review_status, { en_attente: 0, approuve: 1, rejete: 2 }, prefix: :review
+  enum :progress_status, {
+    searching_funding: 0,
+    under_compromise: 1,
+    purchase_done: 2,
+    works_starting: 3,
+    works_in_progress: 4
+  }, prefix: :progress
+  enum :exploitation_strategy, {
+    seasonal_rental: 0,
+    classic_rental: 1,
+    resale: 2,
+    colocation: 3
+  }, prefix: :exploit
+  enum :revenue_period, { monthly: 0, annual: 1 }, prefix: :rev
   enum :operation_type, {
     promotion_immobiliere: 0,
     marchand_de_biens: 1,

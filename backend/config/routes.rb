@@ -37,6 +37,13 @@ Rails.application.routes.draw do
         end
       end
 
+      # === Project Drafts ===
+      resources :project_drafts, only: [:index, :show, :create, :update, :destroy] do
+        member do
+          post :submit
+        end
+      end
+
       # === Investment Projects ===
       resources :investment_projects, only: [:index, :show, :create, :update, :destroy] do
         resources :investments, only: [:create], controller: "project_investments"

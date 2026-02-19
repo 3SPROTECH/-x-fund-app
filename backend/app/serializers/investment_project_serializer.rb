@@ -6,6 +6,20 @@ class InvestmentProjectSerializer
              :funding_start_date, :funding_end_date, :status,
              :management_fee_percent, :gross_yield_percent, :net_yield_percent,
              :review_status, :review_comment, :reviewed_at,
+             # Advanced form fields
+             :progress_status, :exploitation_strategy, :market_segment,
+             :revenue_period, :additional_info, :yield_justification,
+             :commercialization_strategy, :financial_dossier_status,
+             :consent_given, :consent_given_at,
+             :duration_months, :equity_cents,
+             :notary_fees_cents, :works_budget_cents, :financial_fees_cents,
+             :bank_loan_cents, :projected_revenue_cents, :projected_margin_cents,
+             :bank_name, :bank_loan_status, :payment_frequency,
+             :pre_commercialization_percent, :exit_price_per_sqm_cents, :exit_scenario,
+             :planned_acquisition_date, :planned_delivery_date, :planned_repayment_date,
+             :has_first_rank_mortgage, :has_share_pledge, :has_fiducie,
+             :has_interest_escrow, :has_works_escrow, :has_personal_guarantee,
+             :has_gfa, :has_open_banking, :risk_description,
              :created_at, :updated_at
 
   attribute :funding_progress_percent do |project|
@@ -42,6 +56,18 @@ class InvestmentProjectSerializer
 
   attribute :reviewer_name do |project|
     project.reviewer&.full_name
+  end
+
+  attribute :has_form_snapshot do |project|
+    project.form_snapshot.present?
+  end
+
+  attribute :form_snapshot do |project, params|
+    if params && params[:include_snapshot]
+      project.form_snapshot
+    else
+      nil
+    end
   end
 
   attribute :investment_fee_percent do |_project|

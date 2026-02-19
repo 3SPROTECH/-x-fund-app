@@ -5,7 +5,12 @@ class PropertySerializer
              :address_line1, :address_line2, :city, :postal_code, :country,
              :latitude, :longitude, :surface_area_sqm,
              :acquisition_price_cents, :estimated_value_cents,
-             :number_of_lots,
+             :number_of_lots, :is_land_division, :floor_area_sqm,
+             :dpe_current, :dpe_target, :permit_status, :permit_date, :permit_number,
+             # Advanced form fields
+             :neighborhood, :zone_typology, :transport_access, :nearby_amenities,
+             :strategic_advantages, :expert_name, :expert_date,
+             :is_refinancing, :works_needed, :works_duration_months, :agency_fees_cents,
              :created_at, :updated_at
 
   attribute :lots do |property|
@@ -14,7 +19,12 @@ class PropertySerializer
         id: lot.id,
         lot_number: lot.lot_number,
         surface_area_sqm: lot.surface_area_sqm,
-        description: lot.description
+        description: lot.description,
+        pre_commercialized: lot.pre_commercialized,
+        is_rented: lot.is_rented,
+        projected_sale_price_cents: lot.projected_sale_price_cents,
+        sale_promise_ref: lot.sale_promise_ref,
+        lease_ref: lot.lease_ref
       }
     end
   end

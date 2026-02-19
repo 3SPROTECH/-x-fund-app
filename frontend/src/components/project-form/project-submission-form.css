@@ -1,0 +1,1732 @@
+/* ============================================================
+   Project Submission Form — Styles
+   Prefix: .pf-  (project form)
+   Maps prototype vars to app global CSS variables:
+     --primary: #111827 (prototype) -> var(--primary) #000000
+     --primary-light: #D4AF37 (prototype gold) -> var(--gold-color) #DAA520
+     --gray-light -> var(--border)
+     --gray-text -> var(--text-muted)
+     --input-border -> var(--border)
+     --bg-color -> var(--bg)
+     --white -> var(--bg-card)
+   ============================================================ */
+
+/* ==================== APP CONTAINER ==================== */
+.pf-app-container {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% + 5rem);
+  height: 100vh;
+  background: var(--bg-card);
+  margin: -2rem -2.5rem;
+  overflow: hidden;
+}
+
+/* ==================== MACRO NAV ==================== */
+.pf-macro-nav {
+  display: flex;
+  background: #fafafa;
+  border-bottom: 2px solid var(--border);
+  padding: 0 40px;
+  flex-shrink: 0;
+}
+
+.pf-macro-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 10px;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pf-macro-step-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.pf-macro-step.active {
+  color: var(--primary);
+  font-weight: 700;
+}
+.pf-macro-step.active .pf-macro-step-icon {
+  border-color: var(--gold-color);
+  background: var(--gold-color);
+  color: var(--primary);
+}
+
+.pf-macro-step.completed {
+  color: var(--primary);
+}
+.pf-macro-step.completed .pf-macro-step-icon {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--bg-card);
+}
+
+/* ==================== MAIN CONTENT ==================== */
+.pf-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 30px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==================== MICRO NAV (Progress Bar Tabs) ==================== */
+.pf-micro-nav {
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.pf-micro-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.pf-micro-tab {
+  flex: 1;
+  height: 5px;
+  background: var(--border);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.pf-micro-tab.completed {
+  background: var(--primary);
+}
+
+.pf-micro-tab.active {
+  background: var(--gold-color);
+}
+
+.pf-micro-status-text {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==================== FORM HEADER ==================== */
+.pf-form-header {
+  margin-bottom: 25px;
+  flex-shrink: 0;
+}
+
+.pf-form-header h2 {
+  margin: 0 0 5px 0;
+  color: var(--primary);
+  font-size: 26px;
+}
+
+.pf-form-header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+/* ==================== SCROLLABLE AREA ==================== */
+.pf-dynamic-fields {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 20px;
+}
+
+.pf-dynamic-fields::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pf-dynamic-fields::-webkit-scrollbar-track {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.pf-dynamic-fields::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 4px;
+}
+
+.pf-dynamic-fields::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ==================== FORM SECTION TITLES ==================== */
+.pf-form-section-title {
+  color: var(--primary);
+  margin: 30px 0 15px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 18px;
+}
+
+/* ==================== FORM GRID ==================== */
+.pf-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.pf-form-grid.full {
+  grid-template-columns: 1fr;
+}
+
+/* ==================== FORM GROUP (Label + Input) ==================== */
+.pf-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.pf-form-group.full {
+  grid-column: 1 / -1;
+}
+
+.pf-form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.pf-form-group input,
+.pf-form-group select,
+.pf-form-group textarea {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  height: auto;
+}
+
+.pf-form-group input:focus,
+.pf-form-group select:focus,
+.pf-form-group textarea:focus {
+  outline: none;
+  border-color: #DAA520;
+  box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.12);
+  background: var(--bg-card);
+}
+
+.pf-form-group .pf-error-message {
+  color: var(--danger);
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.pf-form-group .pf-warning-message {
+  color: var(--warning);
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* ==================== CHECKBOX GRID ==================== */
+.pf-checkbox-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: #fafafa;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.pf-checkbox-grid label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--primary);
+  cursor: pointer;
+  margin: 0;
+}
+
+.pf-checkbox-grid input[type="checkbox"],
+.pf-checkbox-grid input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold-color);
+  cursor: pointer;
+  margin: 0;
+}
+
+/* ==================== READONLY HEADER ==================== */
+.pf-readonly-header {
+  background-color: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pf-readonly-header h3 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* ==================== ACCORDION / LEDGER CARDS ==================== */
+.pf-ledger-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.pf-ledger-card summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #fafafa;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 16px;
+  list-style: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.pf-ledger-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.pf-ledger-card[open] summary {
+  border-bottom-color: var(--border);
+  background: var(--bg-card);
+}
+
+.pf-ledger-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pf-ledger-subtotal {
+  font-family: monospace;
+  font-size: 16px;
+  background: var(--gold-color);
+  color: var(--primary);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+.pf-ledger-content {
+  padding: 24px 20px;
+}
+
+/* ==================== COST ROWS ==================== */
+.pf-cost-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pf-cost-row .pf-label-col {
+  flex: 1;
+  font-weight: 500;
+  color: var(--primary);
+  font-size: 15px;
+}
+
+.pf-cost-row .pf-amount-col {
+  flex: 0 0 200px;
+}
+
+.pf-cost-row .pf-form-group {
+  margin-bottom: 0;
+}
+
+/* ==================== FILE UPLOAD BUTTON ==================== */
+.pf-file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  height: 48px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pf-file-upload-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #f8fafc;
+}
+
+.pf-file-upload-btn input[type="file"] {
+  display: none;
+}
+
+/* ==================== ICON BUTTONS ==================== */
+.pf-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.pf-icon-btn:hover {
+  background: var(--border);
+}
+
+.pf-icon-btn.btn-remove {
+  border-color: #fca5a5;
+  color: var(--danger);
+  background: #fef2f2;
+}
+
+.pf-icon-btn.btn-remove:hover {
+  background: #fee2e2;
+  border-color: var(--danger);
+}
+
+/* ==================== ACTION TEXT BUTTONS ==================== */
+.pf-action-btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1px dashed var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  transition: all 0.3s ease;
+}
+
+.pf-action-btn-text:hover {
+  background: #f8fafc;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ==================== LOT GALLERY ==================== */
+.pf-lots-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pf-lots-meta {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.pf-lot-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.pf-lot-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fcfcfd;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pf-lot-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.pf-lot-card-title {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 15px;
+}
+
+.pf-lot-card-summary {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.pf-lot-card-body {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+/* ==================== READONLY CHIPS ==================== */
+.pf-readonly-chip {
+  background: #f3f4f6;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--primary);
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 15px;
+}
+
+.pf-readonly-chip small {
+  display: block;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ==================== TRUST / VERIFICATION DASHBOARD ==================== */
+.pf-trust-dashboard {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.pf-trust-kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.pf-trust-kpi-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 700;
+}
+
+.pf-trust-kpi-value {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: monospace;
+}
+
+/* ==================== DOCUMENT ROWS ==================== */
+.pf-doc-group {
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.pf-doc-group-title {
+  margin: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: #fafafa;
+  color: var(--primary);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.pf-doc-list {
+  padding: 10px 12px;
+}
+
+.pf-doc-row {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.pf-doc-row:last-child {
+  margin-bottom: 0;
+}
+
+.pf-doc-row.status-empty {
+  background: #ffffff;
+  border-color: var(--border);
+}
+
+.pf-doc-row.status-uploaded {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.pf-doc-row.status-commented {
+  background: #fefce8;
+  border-color: #fde047;
+}
+
+.pf-doc-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.pf-doc-title {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.pf-doc-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pf-doc-status-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  color: var(--text-muted);
+}
+
+.pf-doc-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pf-doc-comment-toggle {
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.pf-doc-file-name {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.pf-doc-comment-box {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+/* ==================== FLOATING TOTAL BAR ==================== */
+.pf-floating-total-container {
+  flex-shrink: 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+  margin-right: 20px;
+}
+
+.pf-floating-total-bar {
+  background: var(--primary);
+  color: var(--bg-card);
+  padding: 16px 24px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.pf-floating-total-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.pf-floating-total-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold-color);
+  font-family: monospace;
+}
+
+.pf-floating-total-separator {
+  width: 1px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 14px;
+}
+
+.pf-floating-total-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pf-floating-total-value.alt {
+  color: #ffffff;
+  font-size: 22px;
+}
+
+/* ==================== FORM FOOTER ==================== */
+.pf-form-footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 20px;
+  padding-bottom: 30px;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+}
+
+.pf-nav-btn {
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.pf-btn-prev {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--primary);
+}
+
+.pf-btn-prev:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.pf-btn-next {
+  background: var(--primary);
+  color: var(--bg-card);
+}
+
+.pf-btn-next:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pf-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ==================== HUB CARDS ==================== */
+.pf-hub-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.pf-hub-list {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.pf-hub-card {
+  border: 1px solid var(--border);
+  background: #fcfcfd;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pf-hub-card.complete {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.pf-hub-card.incomplete {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.pf-hub-card-title {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.pf-hub-card-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.pf-hub-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ==================== CONTRIBUTION POWER CARD (Dark Theme + Gold) ==================== */
+.pf-projection-power-card {
+  background: linear-gradient(135deg, #0f172a 0%, var(--primary) 100%);
+  border: 1px solid rgba(218, 165, 32, 0.35);
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+  margin-bottom: 18px;
+}
+
+.pf-projection-power-label {
+  color: #9ca3af;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+.pf-projection-power-amount {
+  margin-top: 8px;
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--gold-color);
+  text-shadow: 0 0 16px rgba(218, 165, 32, 0.25);
+  font-family: monospace;
+}
+
+.pf-projection-power-meta {
+  color: #d1d5db;
+  font-size: 14px;
+  margin-top: 4px;
+  margin-bottom: 18px;
+}
+
+/* ==================== SLIDER STYLING ==================== */
+.pf-power-slider-wrap {
+  margin-top: 8px;
+}
+
+.pf-power-slider {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+
+.pf-power-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--gold-color);
+  border: 2px solid #fef3c7;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(218, 165, 32, 0.5);
+}
+
+.pf-power-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--gold-color);
+  border: 2px solid #fef3c7;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(218, 165, 32, 0.5);
+}
+
+.pf-power-slider-ends {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ==================== ALERTS ==================== */
+.pf-onyx-alert {
+  background: var(--primary);
+  border: 1px solid rgba(218, 165, 32, 0.45);
+  border-radius: 10px;
+  color: #f3f4f6;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.pf-warning-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  color: #991b1b;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pf-warning-alert svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ==================== DROPZONE ==================== */
+.pf-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pf-dropzone:hover,
+.pf-dropzone.dragover {
+  border-color: var(--primary);
+  background: #f8fafc;
+}
+
+.pf-dropzone .pf-dropzone-filename {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* ==================== PROJECTION SIMULATION RECEIPT CARD ==================== */
+.pf-receipt-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  padding: 10px 0;
+  margin-top: 10px;
+}
+
+.pf-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pf-receipt-row:last-child {
+  border-bottom: none;
+}
+
+.pf-receipt-row:hover {
+  background: #f8fafc;
+}
+
+.pf-receipt-key {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.pf-receipt-val {
+  color: var(--primary);
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.pf-receipt-val.gold {
+  color: #b45309;
+}
+
+.pf-final-payout {
+  margin-top: 14px;
+  border-radius: 10px;
+  background: var(--primary);
+  padding: 16px;
+  color: var(--bg-card);
+  border: 1px solid rgba(218, 165, 32, 0.35);
+}
+
+.pf-final-payout-title {
+  color: #9ca3af;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  font-weight: 700;
+}
+
+.pf-final-payout-value {
+  margin-top: 6px;
+  font-size: 32px;
+  color: var(--gold-color);
+  font-weight: 800;
+  font-family: monospace;
+}
+
+/* ==================== EQUITY BUMP DISPLAY ==================== */
+.pf-equity-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 12px;
+  margin-bottom: 20px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.pf-equity-container.positive {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.pf-equity-container.negative {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+/* ==================== READ-ONLY MODE ==================== */
+.pf-readonly .pf-form-group input,
+.pf-readonly .pf-form-group select,
+.pf-readonly .pf-form-group textarea {
+  background: var(--bg);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pf-readonly .pf-checkbox-grid input[type="checkbox"],
+.pf-readonly .pf-checkbox-grid input[type="radio"] {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.pf-readonly .pf-file-upload-btn,
+.pf-readonly .pf-action-btn-text,
+.pf-readonly .pf-icon-btn {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* ==================== STATUS BADGE ==================== */
+.pf-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.pf-status-badge.complete {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+}
+
+.pf-status-badge.incomplete {
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.pf-status-badge.pending {
+  color: var(--text-muted);
+  background: #f3f4f6;
+  border: 1px solid var(--border);
+}
+
+/* ==================== POWER CARD (Generic Dark Theme) ==================== */
+.pf-power-card {
+  background: linear-gradient(135deg, #0f172a 0%, var(--primary) 100%);
+  border: 1px solid rgba(218, 165, 32, 0.35);
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+  margin-bottom: 18px;
+}
+
+.pf-power-card-label {
+  color: #9ca3af;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+.pf-power-card-value {
+  margin-top: 8px;
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--gold-color);
+  text-shadow: 0 0 16px rgba(218, 165, 32, 0.25);
+  font-family: monospace;
+}
+
+.pf-power-card-subtitle {
+  color: #d1d5db;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* ==================== SECTION TITLE ==================== */
+.pf-section-title {
+  color: var(--primary);
+  margin: 30px 0 15px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 18px;
+}
+
+/* ==================== CHAR COUNT ==================== */
+.pf-char-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* ==================== TEXT HELPERS ==================== */
+.pf-text-muted {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ==================== EQUITY DISPLAY EXTRAS ==================== */
+.pf-equity-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.pf-equity-value {
+  display: block;
+  font-family: monospace;
+  font-size: 18px;
+  margin-top: 2px;
+}
+
+/* ==================== BUTTONS ==================== */
+.pf-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--primary);
+}
+
+.pf-btn-primary {
+  background: var(--primary);
+  color: var(--bg-card);
+  border-color: var(--primary);
+}
+
+.pf-btn-primary:hover {
+  opacity: 0.9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pf-btn-remove {
+  border-color: #fca5a5;
+  color: var(--danger);
+  background: #fef2f2;
+}
+
+.pf-btn-remove:hover {
+  background: #fee2e2;
+  border-color: var(--danger);
+}
+
+/* ==================== HUB GRID & CARD DETAILS ==================== */
+.pf-hub-grid {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.pf-hub-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.pf-hub-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.pf-hub-card-label {
+  font-size: 15px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--primary);
+  width: 100%;
+}
+
+.pf-hub-card-label:focus {
+  outline: none;
+  border-color: var(--border);
+  background: #fafafa;
+}
+
+.pf-hub-card-id {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pf-hub-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* ==================== COST ROW COLUMNS ==================== */
+.pf-cost-row-label-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.pf-cost-row-amount-col {
+  flex: 0 0 200px;
+}
+
+.pf-cost-row-amount-col input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  background: #fafafa;
+  font-family: inherit;
+}
+
+.pf-cost-row-amount-col input:focus {
+  outline: none;
+  border-color: #DAA520;
+  box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.12);
+  background: var(--bg-card);
+}
+
+.pf-cost-label {
+  font-weight: 500;
+  color: var(--primary);
+  font-size: 15px;
+}
+
+.pf-cost-label-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  background: #fafafa;
+  font-family: inherit;
+}
+
+.pf-cost-label-input:focus {
+  outline: none;
+  border-color: #DAA520;
+  box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.12);
+  background: var(--bg-card);
+}
+
+/* ==================== FLOATING TOTAL (Inline version) ==================== */
+.pf-floating-total {
+  background: var(--primary);
+  color: var(--bg-card);
+  padding: 16px 24px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 24px;
+  margin-bottom: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+}
+
+.pf-floating-total span {
+  font-size: 15px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.pf-floating-total strong {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold-color);
+  font-family: monospace;
+}
+
+.pf-floating-total--split {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pf-floating-total-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pf-floating-total strong.positive {
+  color: #86efac;
+}
+
+.pf-floating-total strong.negative {
+  color: #fca5a5;
+}
+
+/* ==================== DOCUMENT ROW DETAILS ==================== */
+.pf-doc-row-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pf-doc-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pf-doc-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.pf-doc-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  color: var(--text-muted);
+}
+
+.pf-doc-status-badge.uploaded {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.pf-doc-status-badge.commented {
+  background: #fefce8;
+  color: #92400e;
+}
+
+.pf-doc-filename {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.pf-doc-comment {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.pf-doc-comment label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+
+.pf-doc-comment textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fafafa;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.pf-doc-comment textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-card);
+}
+
+.pf-doc-row.uploaded {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.pf-doc-row.commented {
+  background: #fefce8;
+  border-color: #fde047;
+}
+
+/* ==================== RECEIPT CARD EXTRAS ==================== */
+.pf-receipt-highlight {
+  background: #fffbeb;
+}
+
+.pf-receipt-highlight span:last-child {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.pf-receipt-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+
+.pf-receipt-total {
+  background: #f8fafc;
+  font-weight: 700;
+}
+
+.pf-receipt-total span:last-child {
+  font-size: 18px;
+  color: var(--primary);
+  font-family: monospace;
+}
+
+/* ==================== PAYOUT CARD ==================== */
+.pf-payout-card {
+  margin-top: 14px;
+  border-radius: 10px;
+  background: var(--primary);
+  padding: 16px;
+  color: var(--bg-card);
+  border: 1px solid rgba(218, 165, 32, 0.35);
+}
+
+.pf-payout-label {
+  color: #9ca3af;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  font-weight: 700;
+}
+
+.pf-payout-value {
+  margin-top: 6px;
+  font-size: 32px;
+  color: var(--gold-color);
+  font-weight: 800;
+  font-family: monospace;
+}
+
+/* ==================== DISCLAIMER ==================== */
+.pf-disclaimer {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ==================== SLIDER (Contribution Step) ==================== */
+.pf-slider-container {
+  margin-top: 14px;
+}
+
+.pf-slider {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+
+.pf-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--gold-color);
+  border: 2px solid #fef3c7;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(218, 165, 32, 0.5);
+}
+
+.pf-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--gold-color);
+  border: 2px solid #fef3c7;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(218, 165, 32, 0.5);
+}
+
+.pf-slider-labels {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ==================== CONSENT BOX ==================== */
+.pf-consent-box {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  background: #fafafa;
+  margin-bottom: 16px;
+}
+
+.pf-consent-box.error {
+  border-color: var(--danger);
+  background: #fef2f2;
+}
+
+.pf-consent-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--primary);
+}
+
+.pf-consent-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--gold-color);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ==================== SUBMISSION ICON ==================== */
+.pf-submission-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #15803d;
+  color: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.pf-submission-notice {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.pf-submission-notice h2 {
+  color: var(--primary);
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+
+.pf-submission-notice p {
+  color: var(--text-muted);
+  font-size: 15px;
+  margin: 0;
+}
+
+/* ==================== WARNING MESSAGE (FormField) ==================== */
+.pf-warning-message {
+  color: #d97706;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* ==================== ERROR MESSAGE (standalone) ==================== */
+.pf-error-message {
+  color: var(--danger);
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* ==================== LOCKED MACRO STEP ==================== */
+.pf-macro-step.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ==================== SUCCESS BANNER ==================== */
+.pf-success-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  margin: 0 0 20px 0;
+  color: #166534;
+}
+.pf-success-banner svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #16a34a;
+}
+.pf-success-banner div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pf-success-banner strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.pf-success-banner span {
+  font-size: 13px;
+  color: #15803d;
+}
+
+/* ==================== READ-ONLY MODE ==================== */
+.pf-read-only {
+  position: relative;
+}
+.pf-read-only input,
+.pf-read-only textarea,
+.pf-read-only select,
+.pf-read-only .pf-slider,
+.pf-read-only .fs-select,
+.pf-read-only .pf-file-upload-btn,
+.pf-read-only .pf-dropzone,
+.pf-read-only .pf-checkbox-grid label,
+.pf-read-only .pf-action-btn-text,
+.pf-read-only .pf-icon-btn {
+  pointer-events: none;
+  opacity: 0.65;
+}
+.pf-read-only .pf-consent-box {
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+/* ==================== SUBMIT BUTTON VARIANT ==================== */
+.pf-btn-submit {
+  background: var(--gold-color) !important;
+  color: #000 !important;
+  font-weight: 600;
+}

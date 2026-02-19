@@ -20,25 +20,58 @@ module Api
 
       def show
         authorize @investment_project
-        render json: { data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data] }
+        render json: { data: InvestmentProjectSerializer.new(@investment_project, params: { include_snapshot: true }).serializable_hash[:data] }
       end
 
       def create
         property_ids = Array(params[:property_ids]).presence || (params[:property_id].present? ? [params[:property_id]] : nil)
-        if property_ids.blank?
-          return render json: { errors: ["Veuillez sélectionner au moins un bien"] }, status: :unprocessable_entity
-        end
+        inline_properties = params[:properties_data]
 
-        props = Property.where(id: property_ids)
-        if props.count != property_ids.size
-          return render json: { errors: ["Un ou plusieurs biens sont introuvables"] }, status: :unprocessable_entity
-        end
-
-        props.each do |property|
-          authorize property, :create_project?
-          if property.investment_project.present?
-            return render json: { errors: ["Le bien « #{property.title} » a déjà un projet d'investissement"] }, status: :unprocessable_entity
+        # Resolve properties: either from existing IDs or create inline
+        props = []
+        if property_ids.present?
+          props = Property.where(id: property_ids).to_a
+          if props.size != property_ids.size
+            return render json: { errors: ["Un ou plusieurs biens sont introuvables"] }, status: :unprocessable_entity
           end
+          props.each do |property|
+            authorize property, :create_project?
+            if property.investment_project.present?
+              return render json: { errors: ["Le bien « #{property.title} » a déjà un projet d'investissement"] }, status: :unprocessable_entity
+            end
+          end
+        elsif inline_properties.present?
+          # Create properties on the fly from form data
+          inline_properties.each do |prop_data|
+            p = current_user.properties.build(
+              title: prop_data[:title].presence || "Bien - #{prop_data[:address_line1]}",
+              address_line1: prop_data[:address_line1] || "",
+              city: prop_data[:city] || "",
+              postal_code: prop_data[:postal_code] || "",
+              country: prop_data[:country] || "FR",
+              property_type: prop_data[:property_type] || "appartement",
+              acquisition_price_cents: (prop_data[:acquisition_price_cents].presence || 1).to_i,
+              estimated_value_cents: prop_data[:estimated_value_cents].presence&.to_i,
+              number_of_lots: prop_data[:number_of_lots].presence&.to_i,
+              neighborhood: prop_data[:neighborhood],
+              zone_typology: prop_data[:zone_typology],
+              transport_access: prop_data[:transport_access],
+              nearby_amenities: prop_data[:nearby_amenities],
+              strategic_advantages: prop_data[:strategic_advantages],
+              expert_name: prop_data[:expert_name],
+              expert_date: prop_data[:expert_date],
+              is_refinancing: prop_data[:is_refinancing] || false,
+              works_needed: prop_data[:works_needed] || false,
+              works_duration_months: prop_data[:works_duration_months].presence&.to_i,
+              surface_area_sqm: prop_data[:surface_area_sqm].presence&.to_d
+            )
+            unless p.save
+              return render json: { errors: p.errors.full_messages }, status: :unprocessable_entity
+            end
+            props << p
+          end
+        else
+          return render json: { errors: ["Veuillez sélectionner au moins un bien"] }, status: :unprocessable_entity
         end
 
         share_price = (project_params[:share_price_cents].presence || 0).to_i
@@ -67,10 +100,15 @@ module Api
         end
 
         if @investment_project.save
-          property_ids.each do |pid|
-            InvestmentProjectProperty.create!(investment_project_id: @investment_project.id, property_id: pid)
+          props.each do |p|
+            InvestmentProjectProperty.create!(investment_project_id: @investment_project.id, property_id: p.id)
+            p.update!(status: :en_financement) if p.brouillon?
           end
-          props.each { |p| p.update!(status: :en_financement) if p.brouillon? }
+          # Save form snapshot if provided (for read-only form view)
+          if params[:form_snapshot].present?
+            snapshot = params[:form_snapshot].respond_to?(:to_unsafe_h) ? params[:form_snapshot].to_unsafe_h : params[:form_snapshot]
+            @investment_project.update!(form_snapshot: snapshot)
+          end
           render json: { data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data] }, status: :created
         else
           render json: { errors: @investment_project.errors.full_messages }, status: :unprocessable_entity
@@ -147,9 +185,16 @@ module Api
           # Commercialization fields
           :pre_commercialization_percent, :exit_price_per_sqm_cents, :exit_scenario,
           :planned_acquisition_date, :planned_delivery_date, :planned_repayment_date,
+          # Advanced form fields
+          :progress_status, :exploitation_strategy, :market_segment,
+          :revenue_period, :additional_info, :yield_justification,
+          :consent_given, :consent_given_at,
           # File attachments
           :contrat_obligataire, :fici_document, :pv_decision, :note_operation,
           :price_grid, :block_buyer_loi, :sale_agreement, :projected_balance_sheet,
+          :proof_of_funds,
+          # Array / nested params (must come last)
+          commercialization_strategy: [], financial_dossier_status: [],
           additional_documents: []
         )
       end
