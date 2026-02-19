@@ -100,8 +100,9 @@ class InvestmentProject < ApplicationRecord
   end
 
   def must_be_approved_to_open
-    if ouvert? && !review_approuve?
-      errors.add(:status, "le projet doit etre approuve avant d'etre ouvert")
+    # Prevent opening a project for funding directly from early stages
+    if funding_active? && status_was.in?(["draft", "pending_analysis", "info_requested"])
+      errors.add(:status, "le projet doit etre approuve avant d'etre mis en collecte")
     end
   end
 end
