@@ -145,7 +145,6 @@ export default function AdminUsersPage() {
                         <tr key={u.id} className={selectedUser?.id === u.id ? 'row-selected' : ''}>
                           <td data-label="Nom">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-                              <div className="avatar avatar-sm">{attrs.first_name?.[0]}{attrs.last_name?.[0]}</div>
                               <span>{attrs.first_name} {attrs.last_name}</span>
                             </div>
                           </td>
