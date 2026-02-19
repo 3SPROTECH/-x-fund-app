@@ -1359,44 +1359,7 @@ textarea:focus {
     margin-left: 0;
   }
 
-  /* Table admin projets: affichage cartes mobile, texte à gauche */
-  .admin-projects-page .table thead {
-    display: none;
-  }
-  .admin-projects-page .table,
-  .admin-projects-page .table tbody,
-  .admin-projects-page .table tr,
-  .admin-projects-page .table td {
-    display: block;
-    width: 100%;
-  }
-  .admin-projects-page .table tr {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: .75rem;
-    padding: .5rem;
-    background: var(--bg-card);
-  }
-  .admin-projects-page .table td {
-    text-align: left !important;
-    padding: .35rem .5rem;
-    border-bottom: none;
-  }
-  .admin-projects-page .table td::before {
-    content: attr(data-label);
-    display: block;
-    font-size: .65rem;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    font-weight: 600;
-    letter-spacing: .04em;
-    margin-bottom: .1rem;
-  }
-  .admin-projects-page .table-container {
-    border: none;
-    background: transparent;
-    overflow: visible;
-  }
+  /* Table admin projets: même affichage que Gestion des Biens (label + valeur sur la même ligne) */
 }
 /* ======= Wizard / Stepper ======= */
 .wizard-steps {
