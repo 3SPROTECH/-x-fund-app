@@ -96,8 +96,8 @@ export default function AdminDashboardPage() {
             <div className="stat-card">
               <div className="stat-icon stat-icon-success"><Activity size={20} /></div>
               <div className="stat-content">
-                <span className="stat-value">{projects.ouvert ?? '—'}</span>
-                <span className="stat-label">Projets ouverts</span>
+                <span className="stat-value">{projects.funding_active ?? '—'}</span>
+                <span className="stat-label">En Collecte</span>
               </div>
             </div>
             <div className="stat-card">
@@ -117,17 +117,17 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Pending review alert */}
-          {(projects.pending_review ?? 0) > 0 && (
+          {(projects.pending_analysis ?? 0) > 0 && (
             <div className="card" style={{ borderLeft: '4px solid var(--warning)', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
                   <Clock size={20} style={{ color: 'var(--warning)' }} />
                   <div>
-                    <strong>{projects.pending_review} projet(s) en attente de validation</strong>
+                    <strong>{projects.pending_analysis} projet(s) en attente d'analyse</strong>
                     <p className="text-muted" style={{ marginTop: '.15rem' }}>Des projets soumis par les porteurs de projets nécessitent votre attention.</p>
                   </div>
                 </div>
-                <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin/projects', { state: { filter: 'en_attente' } })}>
+                <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin/projects', { state: { filter: 'pending_analysis' } })}>
                   Examiner
                 </button>
               </div>
