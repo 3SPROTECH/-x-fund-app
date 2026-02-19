@@ -22,15 +22,20 @@ class InvestmentProject < ApplicationRecord
   has_one_attached :projected_balance_sheet
   has_one_attached :proof_of_funds
 
-  enum :status, { brouillon: 0, ouvert: 1, finance: 2, cloture: 3, annule: 4 }
-  enum :review_status, { en_attente: 0, approuve: 1, rejete: 2 }, prefix: :review
-  enum :progress_status, {
-    searching_funding: 0,
-    under_compromise: 1,
-    purchase_done: 2,
-    works_starting: 3,
-    works_in_progress: 4
-  }, prefix: :progress
+  enum :status, {
+    draft: 0,
+    pending_analysis: 1,
+    info_requested: 2,
+    rejected: 3,
+    approved: 4,
+    legal_structuring: 5,
+    signing: 6,
+    funding_active: 7,
+    funded: 8,
+    under_construction: 9,
+    operating: 10,
+    repaid: 11
+  }
   enum :exploitation_strategy, {
     seasonal_rental: 0,
     classic_rental: 1,
@@ -61,13 +66,10 @@ class InvestmentProject < ApplicationRecord
   validates :funding_end_date, presence: true
   validates :management_fee_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }, allow_nil: true
   validate :end_date_after_start_date
-  validate :must_be_approved_to_open
 
-  scope :active, -> { where(status: [:ouvert, :finance]) }
-  scope :open_for_investment, -> { where(status: :ouvert) }
-  scope :pending_review, -> { where(review_status: :en_attente) }
-  scope :approved, -> { where(review_status: :approuve) }
-  scope :rejected, -> { where(review_status: :rejete) }
+  scope :active, -> { where(status: [:funding_active, :funded, :under_construction, :operating]) }
+  scope :open_for_investment, -> { where(status: :funding_active) }
+  scope :visible_to_investors, -> { where(status: [:funding_active, :funded, :under_construction, :operating, :repaid]) }
 
   # Premier bien (pour affichage titre/ville/photos)
   def primary_property
@@ -96,9 +98,4 @@ class InvestmentProject < ApplicationRecord
     end
   end
 
-  def must_be_approved_to_open
-    if ouvert? && !review_approuve?
-      errors.add(:status, "le projet doit etre approuve avant d'etre ouvert")
-    end
-  end
 end

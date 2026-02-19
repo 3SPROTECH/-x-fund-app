@@ -31,12 +31,12 @@ module Dashboards
       projects = InvestmentProject.joins(:property).where(properties: { owner_id: @user.id })
       {
         total: projects.count,
-        brouillon: projects.brouillon.count,
-        en_attente: projects.pending_review.count,
-        approuve: projects.approved.count,
-        rejete: projects.rejected.count,
-        ouvert: projects.ouvert.count,
-        finance: projects.finance.count,
+        draft: projects.draft.count,
+        pending_analysis: projects.pending_analysis.count,
+        approved: projects.approved.count,
+        rejected: projects.rejected.count,
+        funding_active: projects.funding_active.count,
+        funded: projects.funded.count,
         total_funding_raised_cents: projects.sum("shares_sold * share_price_cents")
       }
     end
@@ -74,7 +74,6 @@ module Dashboards
           id: project.id,
           title: project.title,
           status: project.status,
-          review_status: project.review_status,
           funding_progress_percent: project.funding_progress_percent,
           amount_raised_cents: project.amount_raised_cents,
           total_amount_cents: project.total_amount_cents,

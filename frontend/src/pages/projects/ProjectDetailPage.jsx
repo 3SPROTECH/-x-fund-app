@@ -12,8 +12,18 @@ import { getImageUrl } from '../../api/client';
 import { adminApi } from '../../api/admin';
 import FormSelect from '../../components/FormSelect';
 
-const STATUS_LABELS = { brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé', cloture: 'Clôturé', annule: 'Annulé' };
-const STATUS_BADGE = { ouvert: 'badge-success', finance: 'badge-info', cloture: '', annule: 'badge-danger', brouillon: 'badge-warning' };
+const STATUS_LABELS = {
+  draft: 'Brouillon', pending_analysis: 'En Analyse', info_requested: 'Compléments requis',
+  rejected: 'Refusé', approved: 'Approuvé', legal_structuring: 'Montage Juridique',
+  signing: 'En Signature', funding_active: 'En Collecte', funded: 'Financé',
+  under_construction: 'En Travaux', operating: 'En Exploitation', repaid: 'Remboursé',
+};
+const STATUS_BADGE = {
+  draft: 'badge-warning', pending_analysis: 'badge-info', info_requested: 'badge-warning',
+  rejected: 'badge-danger', approved: 'badge-success', legal_structuring: 'badge-info',
+  signing: 'badge-info', funding_active: 'badge-success', funded: 'badge-success',
+  under_construction: 'badge-warning', operating: 'badge-info', repaid: 'badge-success',
+};
 const DIV_STATUS = { planifie: 'Planifié', distribue: 'Distribué', annule: 'Annulé' };
 const STMT_TYPE = { trimestriel: 'Trimestriel', semestriel: 'Semestriel', annuel: 'Annuel' };
 
@@ -475,10 +485,10 @@ export default function ProjectDetailPage() {
   const a = project.attributes || project;
   const isAdmin = user?.role === 'administrateur';
   const isOwner = user?.id === a.owner_id;
-  const canEdit = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
-  const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
-  const canInvest = (user?.role === 'investisseur' || isAdmin) && a.status === 'ouvert';
-  const canCreateStatement = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'finance');
+  const canEdit = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && (a.status === 'draft' || a.status === 'info_requested'));
+  const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'draft');
+  const canInvest = (user?.role === 'investisseur' || isAdmin) && a.status === 'funding_active';
+  const canCreateStatement = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && ['funded', 'under_construction', 'operating'].includes(a.status));
   const canViewInvestors = isAdmin || (user?.role === 'porteur_de_projet' && isOwner);
 
   return (

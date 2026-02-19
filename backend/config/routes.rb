@@ -96,6 +96,8 @@ Rails.application.routes.draw do
           member do
             patch :approve
             patch :reject
+            patch :request_info
+            patch :advance_status
           end
           resources :mvp_reports, only: [:index, :show, :create, :update, :destroy] do
             member do

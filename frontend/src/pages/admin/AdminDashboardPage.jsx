@@ -114,21 +114,21 @@ export default function AdminDashboardPage() {
             <div className="stat-card">
               <div className="stat-icon stat-icon-warning"><Clock size={20} /></div>
               <div className="stat-content">
-                <span className="stat-value">{projects.pending_review ?? '—'}</span>
-                <span className="stat-label">En attente de validation</span>
+                <span className="stat-value">{projects.pending_analysis ?? '—'}</span>
+                <span className="stat-label">En attente d'analyse</span>
               </div>
             </div>
             <div className="stat-card">
               <div className="stat-icon stat-icon-success"><Activity size={20} /></div>
               <div className="stat-content">
-                <span className="stat-value">{projects.ouvert ?? '—'}</span>
-                <span className="stat-label">Projets ouverts</span>
+                <span className="stat-value">{projects.funding_active ?? '—'}</span>
+                <span className="stat-label">En Collecte</span>
               </div>
             </div>
             <div className="stat-card">
               <div className="stat-icon stat-icon-info"><CheckCircle size={20} /></div>
               <div className="stat-content">
-                <span className="stat-value">{projects.finance ?? '—'}</span>
+                <span className="stat-value">{projects.funded ?? '—'}</span>
                 <span className="stat-label">Projets financés</span>
               </div>
             </div>
@@ -160,17 +160,17 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Pending review alert */}
-          {(projects.pending_review ?? 0) > 0 && (
+          {(projects.pending_analysis ?? 0) > 0 && (
             <div className="card" style={{ borderLeft: '4px solid var(--warning)', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
                   <Clock size={20} style={{ color: 'var(--warning)' }} />
                   <div>
-                    <strong>{projects.pending_review} projet(s) en attente de validation</strong>
+                    <strong>{projects.pending_analysis} projet(s) en attente d'analyse</strong>
                     <p className="text-muted" style={{ marginTop: '.15rem' }}>Des projets soumis par les porteurs de projets nécessitent votre attention.</p>
                   </div>
                 </div>
-                <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin/projects', { state: { filter: 'en_attente' } })}>
+                <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin/projects', { state: { filter: 'pending_analysis' } })}>
                   Examiner
                 </button>
               </div>
@@ -258,11 +258,12 @@ export default function AdminDashboardPage() {
                   <h3>Statut des projets</h3>
                 </div>
                 <div className="detail-grid">
-                  <div className="detail-row"><span>Brouillon</span><span>{projects.brouillon ?? '—'}</span></div>
-                  <div className="detail-row"><span>Ouverts</span><span className="text-primary">{projects.ouvert ?? '—'}</span></div>
-                  <div className="detail-row"><span>Financés</span><span className="text-success">{projects.finance ?? '—'}</span></div>
-                  <div className="detail-row"><span>Clôturés</span><span>{projects.cloture ?? '—'}</span></div>
+                  <div className="detail-row"><span>Brouillon</span><span>{projects.draft ?? '—'}</span></div>
+                  <div className="detail-row"><span>En Analyse</span><span className="text-info">{projects.pending_analysis ?? '—'}</span></div>
                   <div className="detail-row"><span>Approuvés</span><span className="text-success">{projects.approved ?? '—'}</span></div>
+                  <div className="detail-row"><span>En Collecte</span><span className="text-primary">{projects.funding_active ?? '—'}</span></div>
+                  <div className="detail-row"><span>Financés</span><span className="text-success">{projects.funded ?? '—'}</span></div>
+                  <div className="detail-row"><span>Remboursés</span><span>{projects.repaid ?? '—'}</span></div>
                   <div className="detail-row"><span>Rejetés</span><span className="text-danger">{projects.rejected ?? '—'}</span></div>
                 </div>
               </div>

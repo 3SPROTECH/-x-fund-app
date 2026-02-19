@@ -55,7 +55,7 @@ module Investments
 
         # Check if project is fully funded
         if @project.shares_sold >= @project.total_shares
-          @project.update!(status: :finance)
+          @project.update!(status: :funded)
         end
 
         Result.new(success: true, investment: investment, errors: [])
@@ -68,7 +68,7 @@ module Investments
 
     def validate
       errors = []
-      errors << "Le projet n'est pas ouvert aux investissements" unless @project.ouvert?
+      errors << "Le projet n'est pas ouvert aux investissements" unless @project.funding_active?
       errors << "La periode de financement n'a pas commence" if Date.current < @project.funding_start_date
       errors << "La periode de financement est terminee" if Date.current > @project.funding_end_date
       errors << "Votre KYC doit etre verifie pour investir" unless @user.kyc_verified?

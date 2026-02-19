@@ -107,7 +107,7 @@ module Api
           # Save form snapshot if provided (for read-only form view)
           if params[:form_snapshot].present?
             snapshot = params[:form_snapshot].respond_to?(:to_unsafe_h) ? params[:form_snapshot].to_unsafe_h : params[:form_snapshot]
-            @investment_project.update!(form_snapshot: snapshot)
+            @investment_project.update!(form_snapshot: snapshot, status: :pending_analysis)
           end
           render json: { data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data] }, status: :created
         else
@@ -186,7 +186,7 @@ module Api
           :pre_commercialization_percent, :exit_price_per_sqm_cents, :exit_scenario,
           :planned_acquisition_date, :planned_delivery_date, :planned_repayment_date,
           # Advanced form fields
-          :progress_status, :exploitation_strategy, :market_segment,
+          :exploitation_strategy, :market_segment,
           :revenue_period, :additional_info, :yield_justification,
           :consent_given, :consent_given_at,
           # File attachments

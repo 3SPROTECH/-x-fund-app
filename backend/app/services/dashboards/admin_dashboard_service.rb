@@ -36,13 +36,17 @@ module Dashboards
     def project_stats
       {
         total: InvestmentProject.count,
-        brouillon: InvestmentProject.brouillon.count,
-        ouvert: InvestmentProject.ouvert.count,
-        finance: InvestmentProject.finance.count,
-        cloture: InvestmentProject.cloture.count,
-        pending_review: InvestmentProject.pending_review.count,
+        draft: InvestmentProject.draft.count,
+        pending_analysis: InvestmentProject.pending_analysis.count,
+        info_requested: InvestmentProject.info_requested.count,
         approved: InvestmentProject.approved.count,
-        rejected: InvestmentProject.rejected.count
+        rejected: InvestmentProject.rejected.count,
+        legal_structuring: InvestmentProject.legal_structuring.count,
+        funding_active: InvestmentProject.funding_active.count,
+        funded: InvestmentProject.funded.count,
+        under_construction: InvestmentProject.under_construction.count,
+        operating: InvestmentProject.operating.count,
+        repaid: InvestmentProject.repaid.count
       }
     end
 

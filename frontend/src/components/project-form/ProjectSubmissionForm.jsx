@@ -132,7 +132,6 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
             globalStepIndex: 0,
             presentation: {
               title: project.title || '',
-              progressStatus: project.progress_status || '',
               propertyType: '',
               operationType: project.operation_type || '',
               pitch: project.description || '',
@@ -330,7 +329,6 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         title: pres.title,
         description: pres.pitch || undefined,
         operation_type: pres.operationType || undefined,
-        progress_status: pres.progressStatus || undefined,
         exploitation_strategy: pres.exploitationStrategy || undefined,
         market_segment: pres.marketSegment || undefined,
         projected_revenue_cents: toCents(pres.projectedRevenue),

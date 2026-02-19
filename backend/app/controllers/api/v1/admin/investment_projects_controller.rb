@@ -3,12 +3,11 @@ module Api
     module Admin
       class InvestmentProjectsController < ApplicationController
         before_action :require_admin!
-        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject]
+        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :advance_status]
 
         def index
           projects = InvestmentProject.includes(properties: :owner).all
           projects = projects.where(status: params[:status]) if params[:status].present?
-          projects = projects.where(review_status: params[:review_status]) if params[:review_status].present?
           if params[:search].present?
             q = "%#{params[:search]}%"
             projects = projects.where("investment_projects.title ILIKE :q OR investment_projects.description ILIKE :q", q: q)
@@ -74,11 +73,10 @@ module Api
 
         def approve
           @project.update!(
-            review_status: :approuve,
+            status: :approved,
             reviewed_by_id: current_user.id,
             reviewed_at: Time.current,
-            review_comment: params[:comment],
-            status: :ouvert
+            review_comment: params[:comment]
           )
           render json: {
             message: "Projet approuve avec succes.",
@@ -88,13 +86,44 @@ module Api
 
         def reject
           @project.update!(
-            review_status: :rejete,
+            status: :rejected,
             reviewed_by_id: current_user.id,
             reviewed_at: Time.current,
             review_comment: params[:comment]
           )
           render json: {
             message: "Projet rejete.",
+            data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
+          }
+        end
+
+        def request_info
+          @project.update!(
+            status: :info_requested,
+            reviewed_by_id: current_user.id,
+            reviewed_at: Time.current,
+            review_comment: params[:comment]
+          )
+          render json: {
+            message: "Complements d'information demandes.",
+            data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
+          }
+        end
+
+        def advance_status
+          new_status = params[:status]
+          unless InvestmentProject.statuses.key?(new_status)
+            return render json: { errors: ["Statut invalide: #{new_status}"] }, status: :unprocessable_entity
+          end
+
+          @project.update!(
+            status: new_status,
+            reviewed_by_id: current_user.id,
+            reviewed_at: Time.current,
+            review_comment: params[:comment]
+          )
+          render json: {
+            message: "Statut du projet mis a jour: #{new_status}.",
             data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
           }
         end

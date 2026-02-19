@@ -12,11 +12,11 @@ class InvestmentProjectPolicy < ApplicationPolicy
   end
 
   def update?
-    admin? || (user.porteur_de_projet? && record.owner == user && record.brouillon?)
+    admin? || (user.porteur_de_projet? && record.owner == user && (record.draft? || record.info_requested?))
   end
 
   def destroy?
-    admin? || (user.porteur_de_projet? && record.owner == user && record.brouillon?)
+    admin? || (user.porteur_de_projet? && record.owner == user && record.draft?)
   end
 
   def invest?
@@ -46,7 +46,7 @@ class InvestmentProjectPolicy < ApplicationPolicy
       elsif user.porteur_de_projet?
         scope.where(owner_id: user.id)
       else
-        scope.where.not(status: :brouillon)
+        scope.visible_to_investors
       end
     end
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_18_000009) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_19_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -215,12 +215,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_18_000009) do
     t.date "planned_delivery_date"
     t.date "planned_repayment_date"
     t.decimal "pre_commercialization_percent", precision: 5, scale: 2
-    t.integer "progress_status"
     t.bigint "projected_margin_cents"
     t.bigint "projected_revenue_cents"
     t.integer "revenue_period"
     t.text "review_comment"
-    t.integer "review_status", default: 0, null: false
     t.datetime "reviewed_at"
     t.bigint "reviewed_by_id"
     t.text "risk_description"
@@ -240,8 +238,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_18_000009) do
     t.index ["funding_start_date"], name: "index_investment_projects_on_funding_start_date"
     t.index ["operation_type"], name: "index_investment_projects_on_operation_type"
     t.index ["owner_id"], name: "index_investment_projects_on_owner_id"
-    t.index ["progress_status"], name: "index_investment_projects_on_progress_status"
-    t.index ["review_status"], name: "index_investment_projects_on_review_status"
     t.index ["reviewed_by_id"], name: "index_investment_projects_on_reviewed_by_id"
     t.index ["status"], name: "index_investment_projects_on_status"
   end

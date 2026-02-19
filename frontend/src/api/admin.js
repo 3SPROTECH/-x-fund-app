@@ -68,6 +68,14 @@ export const adminApi = {
     return client.patch(`/admin/investment_projects/${id}/reject`, { comment });
   },
 
+  requestInfo(id, comment) {
+    return client.patch(`/admin/investment_projects/${id}/request_info`, { comment });
+  },
+
+  advanceStatus(id, status, comment = '') {
+    return client.patch(`/admin/investment_projects/${id}/advance_status`, { status, comment });
+  },
+
   // MVP Reports
   getMvpReports(projectId, params = {}) {
     return client.get(`/admin/investment_projects/${projectId}/mvp_reports`, { params });

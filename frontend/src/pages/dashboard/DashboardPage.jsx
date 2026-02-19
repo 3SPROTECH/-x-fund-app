@@ -12,7 +12,12 @@ import toast from 'react-hot-toast';
 const KYC_LABELS = { pending: 'En attente', submitted: 'Soumis', verified: 'Vérifié', rejected: 'Rejeté' };
 const KYC_BADGE = { pending: 'kyc-pending', submitted: 'kyc-submitted', verified: 'kyc-verified', rejected: 'kyc-rejected' };
 const fmt = (c) => (c == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(c / 100));
-const STATUS_LABELS = { brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé', cloture: 'Clôturé' };
+const STATUS_LABELS = {
+  draft: 'Brouillon', pending_analysis: 'En Analyse', info_requested: 'Compléments requis',
+  rejected: 'Refusé', approved: 'Approuvé', legal_structuring: 'Montage Juridique',
+  signing: 'En Signature', funding_active: 'En Collecte', funded: 'Financé',
+  under_construction: 'En Travaux', operating: 'En Exploitation', repaid: 'Remboursé',
+};
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -47,7 +52,7 @@ export default function DashboardPage() {
         promises.push(porteurDashboardApi.get());
       } else {
         promises.push(dashboardApi.get());
-        promises.push(investmentProjectsApi.list({ status: 'ouvert', per_page: 6 }));
+        promises.push(investmentProjectsApi.list({ status: 'funding_active', per_page: 6 }));
       }
       const results = await Promise.allSettled(promises);
       const [walletRes, txRes, dashRes, projectsRes] = results;
@@ -286,8 +291,8 @@ export default function DashboardPage() {
                         <h4>{p.title}</h4>
                         <span className="project-location-simple">📍 {p.property_city || 'France'}</span>
                       </div>
-                      <span className={`project-status-badge ${p.status === 'ouvert' ? 'status-open' : 'status-coming'}`}>
-                        {p.status === 'ouvert' ? 'Collecte en cours' : 'À venir'}
+                      <span className={`project-status-badge ${p.status === 'funding_active' ? 'status-open' : 'status-coming'}`}>
+                        {p.status === 'funding_active' ? 'Collecte en cours' : STATUS_LABELS[p.status] || p.status}
                       </span>
                     </div>
                   );

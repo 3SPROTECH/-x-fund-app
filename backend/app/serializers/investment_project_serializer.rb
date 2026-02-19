@@ -5,9 +5,9 @@ class InvestmentProjectSerializer
              :total_shares, :shares_sold, :min_investment_cents, :max_investment_cents,
              :funding_start_date, :funding_end_date, :status,
              :management_fee_percent, :gross_yield_percent, :net_yield_percent,
-             :review_status, :review_comment, :reviewed_at,
+             :review_comment, :reviewed_at,
              # Advanced form fields
-             :progress_status, :exploitation_strategy, :market_segment,
+             :exploitation_strategy, :market_segment,
              :revenue_period, :additional_info, :yield_justification,
              :commercialization_strategy, :financial_dossier_status,
              :consent_given, :consent_given_at,

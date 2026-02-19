@@ -8,8 +8,18 @@ import toast from 'react-hot-toast';
 import { getImageUrl } from '../../api/client';
 import TableFilters from '../../components/TableFilters';
 
-const STATUS_LABELS = { brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé', cloture: 'Clôturé', annule: 'Annulé' };
-const STATUS_BADGE = { brouillon: 'badge-warning', ouvert: 'badge-success', finance: 'badge-info', cloture: '', annule: 'badge-danger' };
+const STATUS_LABELS = {
+  draft: 'Brouillon', pending_analysis: 'En Analyse', info_requested: 'Compléments requis',
+  rejected: 'Refusé', approved: 'Approuvé', legal_structuring: 'Montage Juridique',
+  signing: 'En Signature', funding_active: 'En Collecte', funded: 'Financé',
+  under_construction: 'En Travaux', operating: 'En Exploitation', repaid: 'Remboursé',
+};
+const STATUS_BADGE = {
+  draft: 'badge-warning', pending_analysis: 'badge-info', info_requested: 'badge-warning',
+  rejected: 'badge-danger', approved: 'badge-success', legal_structuring: 'badge-info',
+  signing: 'badge-info', funding_active: 'badge-success', funded: 'badge-success',
+  under_construction: 'badge-warning', operating: 'badge-info', repaid: 'badge-success',
+};
 
 const formatCents = (c) => c == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(c / 100);
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
@@ -99,9 +109,11 @@ export default function ProjectsPage() {
         filters={[
           { key: 'status', label: 'Statut', value: statusFilter, options: [
             { value: '', label: 'Tous' },
-            { value: 'ouvert', label: 'Ouvert' },
-            { value: 'finance', label: 'Financé' },
-            { value: 'cloture', label: 'Clôturé' },
+            { value: 'funding_active', label: 'En Collecte' },
+            { value: 'funded', label: 'Financé' },
+            { value: 'under_construction', label: 'En Travaux' },
+            { value: 'operating', label: 'En Exploitation' },
+            { value: 'repaid', label: 'Remboursé' },
           ]},
         ]}
         onFilterChange={(key, value) => { setStatusFilter(value); setPage(1); }}
@@ -188,11 +200,11 @@ export default function ProjectsPage() {
 
               const isAdmin = user?.role === 'administrateur';
               const isOwner = user?.id === a.owner_id;
-              const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'brouillon');
+              const canDelete = isAdmin || (user?.role === 'porteur_de_projet' && isOwner && a.status === 'draft');
 
-              // Navigate to read-only form for owner's submitted projects pending review
-              const isPendingReview = isOwner && a.status === 'brouillon';
-              const cardHref = isPendingReview
+              // Navigate to read-only form for owner's draft or pending_analysis projects
+              const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis');
+              const cardHref = showForm
                 ? `/projects/new?project=${p.id}`
                 : `/projects/${p.id}`;
 

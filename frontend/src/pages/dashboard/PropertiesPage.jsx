@@ -309,7 +309,7 @@ export default function PropertiesPage() {
               <div className="card">
                 <div className="card-header">
                   <h3>Projet : {pa.title}</h3>
-                  <span className={`badge badge-${pa.status === 'ouvert' ? 'success' : pa.status === 'cloture' ? 'danger' : 'info'}`}>
+                  <span className={`badge badge-${pa.status === 'funding_active' ? 'success' : pa.status === 'rejected' ? 'danger' : 'info'}`}>
                     {pa.status}
                   </span>
                 </div>
@@ -332,7 +332,7 @@ export default function PropertiesPage() {
                   </div>
                 )}
 
-                {user?.role === 'investisseur' && pa.status === 'ouvert' && (
+                {user?.role === 'investisseur' && pa.status === 'funding_active' && (
                   <div className="invest-form">
                     <h4>Investir dans ce projet</h4>
                     {pa.min_investment_cents && (

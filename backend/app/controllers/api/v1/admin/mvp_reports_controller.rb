@@ -55,15 +55,14 @@ module Api
             review_comment: params[:comment]
           )
 
-          # Approve and publish the project
+          # Approve the project if still pending
           project = @report.investment_project
-          if project.review_en_attente? || project.review_rejete?
+          if project.pending_analysis? || project.info_requested?
             project.update!(
-              review_status: :approuve,
               reviewed_by_id: current_user.id,
               reviewed_at: Time.current,
               review_comment: "Rapport valide - projet approuve.",
-              status: :ouvert
+              status: :approved
             )
           end
 

@@ -368,7 +368,7 @@ export default function AdminMvpReportPage() {
               <div className="detail-row"><span>Montant total</span><span>{fmt(project.total_amount_cents)}</span></div>
               <div className="detail-row"><span>Taux brut</span><span>{project.gross_yield_percent ?? '\u2014'} %</span></div>
               <div className="detail-row"><span>Duree</span><span>{project.funding_start_date && project.funding_end_date ? `${fmtDate(project.funding_start_date)} \u2192 ${fmtDate(project.funding_end_date)}` : '\u2014'}</span></div>
-              <div className="detail-row"><span>Statut</span><span className={`badge ${project.status === 'ouvert' ? 'badge-info' : project.status === 'finance' ? 'badge-success' : 'badge-warning'}`}>{project.status}</span></div>
+              <div className="detail-row"><span>Statut</span><span className={`badge ${project.status === 'funding_active' ? 'badge-info' : project.status === 'funded' ? 'badge-success' : 'badge-warning'}`}>{project.status}</span></div>
             </div>
           </div>
 

@@ -3,21 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../../api/admin';
 import {
   Briefcase, CheckCircle, XCircle, ChevronLeft,
-  ChevronRight, Search, Plus, Eye, FileText,
+  ChevronRight, Search, Plus, Eye, FileText, AlertCircle, ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
+import FormSelect from '../../components/FormSelect';
 
 const STATUS_LABELS = {
-  brouillon: 'Brouillon', ouvert: 'Ouvert', finance: 'Financé',
-  cloture: 'Clôturé', annule: 'Annulé',
+  draft: 'Brouillon', pending_analysis: 'En Analyse', info_requested: 'Compléments requis',
+  rejected: 'Refusé', approved: 'Approuvé', legal_structuring: 'Montage Juridique',
+  signing: 'En Signature', funding_active: 'En Collecte', funded: 'Financé',
+  under_construction: 'En Travaux', operating: 'En Exploitation', repaid: 'Remboursé',
 };
 const STATUS_BADGE = {
-  brouillon: 'badge-warning', ouvert: 'badge-info', finance: 'badge-success',
-  cloture: 'badge', annule: 'badge-danger',
+  draft: 'badge-warning', pending_analysis: 'badge-info', info_requested: 'badge-warning',
+  rejected: 'badge-danger', approved: 'badge-success', legal_structuring: 'badge-info',
+  signing: 'badge-info', funding_active: 'badge-success', funded: 'badge-success',
+  under_construction: 'badge-warning', operating: 'badge-info', repaid: 'badge-success',
 };
-const REVIEW_LABELS = { en_attente: 'En attente', approuve: 'Approuvé', rejete: 'Rejeté' };
-const REVIEW_BADGE = { en_attente: 'badge-warning', approuve: 'badge-success', rejete: 'badge-danger' };
 
 const fmt = (cents) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100);
@@ -26,13 +29,16 @@ export default function AdminProjectsPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ status: '', review_status: '' });
+  const [filters, setFilters] = useState({ status: '' });
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectId, setRejectId] = useState(null);
-  const [rejectComment, setRejectComment] = useState('');
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+  const [targetId, setTargetId] = useState(null);
+  const [modalComment, setModalComment] = useState('');
+  const [advanceStatus, setAdvanceStatus] = useState('');
 
   useEffect(() => { load(); }, [page, filters, search]);
 
@@ -41,7 +47,6 @@ export default function AdminProjectsPage() {
     try {
       const params = { page };
       if (filters.status) params.status = filters.status;
-      if (filters.review_status) params.review_status = filters.review_status;
       if (search) params.search = search;
       const res = await adminApi.getProjects(params);
       setProjects(res.data.data || []);
@@ -54,10 +59,10 @@ export default function AdminProjectsPage() {
   };
 
   const handleApprove = async (id) => {
-    if (!window.confirm('Voulez-vous approuver ce projet ? Il sera automatiquement ouvert aux investisseurs.')) return;
+    if (!window.confirm('Voulez-vous approuver ce projet ?')) return;
     try {
       await adminApi.approveProject(id);
-      toast.success('Projet approuvé et ouvert aux investisseurs');
+      toast.success('Projet approuvé');
       load();
     } catch (err) {
       toast.error(err.response?.data?.errors?.[0] || err.response?.data?.error || 'Erreur lors de l\'approbation');
@@ -65,16 +70,45 @@ export default function AdminProjectsPage() {
   };
 
   const handleReject = async () => {
-    if (!rejectComment.trim()) { toast.error('Veuillez fournir un commentaire'); return; }
+    if (!modalComment.trim()) { toast.error('Veuillez fournir un commentaire'); return; }
     try {
-      await adminApi.rejectProject(rejectId, rejectComment);
+      await adminApi.rejectProject(targetId, modalComment);
       toast.success('Projet rejeté');
       setShowRejectModal(false);
-      setRejectComment('');
-      setRejectId(null);
+      setModalComment('');
+      setTargetId(null);
       load();
     } catch (err) {
       toast.error(err.response?.data?.errors?.[0] || err.response?.data?.error || 'Erreur lors du rejet');
+    }
+  };
+
+  const handleRequestInfo = async () => {
+    if (!modalComment.trim()) { toast.error('Veuillez fournir un commentaire'); return; }
+    try {
+      await adminApi.requestInfo(targetId, modalComment);
+      toast.success('Demande de compléments envoyée');
+      setShowInfoModal(false);
+      setModalComment('');
+      setTargetId(null);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || err.response?.data?.error || 'Erreur');
+    }
+  };
+
+  const handleAdvanceStatus = async () => {
+    if (!advanceStatus) { toast.error('Veuillez sélectionner un statut'); return; }
+    try {
+      await adminApi.advanceStatus(targetId, advanceStatus, modalComment);
+      toast.success(`Statut mis à jour: ${STATUS_LABELS[advanceStatus]}`);
+      setShowAdvanceModal(false);
+      setModalComment('');
+      setAdvanceStatus('');
+      setTargetId(null);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || err.response?.data?.error || 'Erreur');
     }
   };
 
@@ -98,10 +132,6 @@ export default function AdminProjectsPage() {
           { key: 'status', label: 'Statut', value: filters.status, options: [
             { value: '', label: 'Tous les statuts' },
             ...Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v })),
-          ]},
-          { key: 'review_status', label: 'Validation', value: filters.review_status, options: [
-            { value: '', label: 'Toutes les validations' },
-            ...Object.entries(REVIEW_LABELS).map(([k, v]) => ({ value: k, label: v })),
           ]},
         ]}
         onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
@@ -128,7 +158,7 @@ export default function AdminProjectsPage() {
                   <thead>
                     <tr>
                       <th>Titre</th><th>Propriété</th><th>Porteur</th><th>Statut</th>
-                      <th>Validation</th><th>Montant total</th><th>Progression</th><th>Actions</th>
+                      <th>Montant total</th><th>Progression</th><th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -141,7 +171,6 @@ export default function AdminProjectsPage() {
                           <td>{a.property_title || '—'}</td>
                           <td>{a.owner_name || '—'}</td>
                           <td><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
-                          <td><span className={`badge ${REVIEW_BADGE[a.review_status] || ''}`}>{REVIEW_LABELS[a.review_status] || a.review_status}</span></td>
                           <td>{fmt(a.total_amount_cents)}</td>
                           <td>
                             <div style={{ minWidth: 80 }}>
@@ -155,11 +184,15 @@ export default function AdminProjectsPage() {
                             <div className="actions-cell" onClick={(e) => e.stopPropagation()}>
                               <button className="btn-icon" title="Voir le détail" onClick={() => navigate(`/projects/${p.id}`)}><Eye size={16} /></button>
                               <button className="btn-icon" title="Rapport MVP" onClick={() => navigate(`/admin/projects/${p.id}/mvp-report`)}><FileText size={16} /></button>
-                              {a.review_status === 'en_attente' && (
+                              {a.status === 'pending_analysis' && (
                                 <>
                                   <button className="btn-icon btn-success" title="Approuver" onClick={() => handleApprove(p.id)}><CheckCircle size={16} /></button>
-                                  <button className="btn-icon btn-danger" title="Rejeter" onClick={() => { setRejectId(p.id); setShowRejectModal(true); }}><XCircle size={16} /></button>
+                                  <button className="btn-icon btn-danger" title="Rejeter" onClick={() => { setTargetId(p.id); setShowRejectModal(true); }}><XCircle size={16} /></button>
+                                  <button className="btn-icon" title="Demander des compléments" onClick={() => { setTargetId(p.id); setShowInfoModal(true); }}><AlertCircle size={16} /></button>
                                 </>
+                              )}
+                              {!['draft', 'rejected', 'repaid'].includes(a.status) && (
+                                <button className="btn-icon" title="Avancer le statut" onClick={() => { setTargetId(p.id); setAdvanceStatus(''); setShowAdvanceModal(true); }}><ArrowRight size={16} /></button>
                               )}
                             </div>
                           </td>
@@ -192,12 +225,62 @@ export default function AdminProjectsPage() {
             </p>
             <div className="form-group">
               <label>Commentaire de rejet</label>
-              <textarea value={rejectComment} onChange={(e) => setRejectComment(e.target.value)}
+              <textarea value={modalComment} onChange={(e) => setModalComment(e.target.value)}
                 placeholder="Décrivez les raisons du rejet..." rows={4} />
             </div>
             <div className="modal-actions">
               <button className="btn" onClick={() => setShowRejectModal(false)}>Annuler</button>
               <button className="btn btn-danger" onClick={handleReject}>Rejeter le projet</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showInfoModal && (
+        <div className="modal-overlay" onClick={() => setShowInfoModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Demander des compléments</h3>
+            <p className="text-muted" style={{ marginBottom: '1rem' }}>
+              Précisez les informations ou documents manquants. Le porteur pourra modifier son projet.
+            </p>
+            <div className="form-group">
+              <label>Commentaire</label>
+              <textarea value={modalComment} onChange={(e) => setModalComment(e.target.value)}
+                placeholder="Décrivez les informations manquantes..." rows={4} />
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setShowInfoModal(false)}>Annuler</button>
+              <button className="btn btn-primary" onClick={handleRequestInfo}>Envoyer la demande</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAdvanceModal && (
+        <div className="modal-overlay" onClick={() => setShowAdvanceModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Avancer le statut du projet</h3>
+            <p className="text-muted" style={{ marginBottom: '1rem' }}>
+              Sélectionnez le nouveau statut pour ce projet.
+            </p>
+            <div className="form-group">
+              <label>Nouveau statut</label>
+              <FormSelect
+                value={advanceStatus}
+                onChange={(e) => setAdvanceStatus(e.target.value)}
+                name="advance_status"
+                options={Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+                placeholder="Sélectionnez un statut..."
+              />
+            </div>
+            <div className="form-group">
+              <label>Commentaire (optionnel)</label>
+              <textarea value={modalComment} onChange={(e) => setModalComment(e.target.value)}
+                placeholder="Commentaire..." rows={3} />
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setShowAdvanceModal(false)}>Annuler</button>
+              <button className="btn btn-primary" onClick={handleAdvanceStatus}>Mettre à jour</button>
             </div>
           </div>
         </div>

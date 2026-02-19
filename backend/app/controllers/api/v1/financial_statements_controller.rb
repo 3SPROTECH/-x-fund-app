@@ -69,7 +69,7 @@ module Api
           return render json: { error: "Vous ne pouvez creer des rapports que pour vos propres projets." }, status: :forbidden
         end
 
-        unless @investment_project.finance?
+        unless @investment_project.funded? || @investment_project.under_construction? || @investment_project.operating?
           return render json: { error: "Vous ne pouvez creer des rapports que pour des projets finances." }, status: :forbidden
         end
       end

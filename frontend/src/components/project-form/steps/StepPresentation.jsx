@@ -20,14 +20,6 @@ const OPERATION_TYPES = [
   { value: 'marchand_de_biens', label: 'Marchand de biens' },
 ];
 
-const PROGRESS_STATUSES = [
-  { value: 'searching_funding', label: 'En recherche de financement' },
-  { value: 'under_compromise', label: 'Sous compromis' },
-  { value: 'purchase_done', label: 'Achat acté' },
-  { value: 'works_starting', label: 'Travaux à démarrer' },
-  { value: 'works_in_progress', label: 'Travaux en cours' },
-];
-
 const EXPLOITATION_STRATEGIES = [
   { value: 'seasonal_rental', label: 'Location saisonnière (Airbnb)' },
   { value: 'classic_rental', label: 'Location classique' },
@@ -59,9 +51,6 @@ export default function StepPresentation() {
       <FormGrid>
         <FormField label="Nom du projet" error={flags['presentation.title']}>
           <input type="text" value={presentation.title} onChange={(e) => update('title', e.target.value)} placeholder="Ex: Résidence Les Oliviers" />
-        </FormField>
-        <FormField label="État d'avancement actuel">
-          <FormSelect value={presentation.progressStatus} options={PROGRESS_STATUSES} onChange={(e) => update('progressStatus', e.target.value)} placeholder="Sélectionnez..." />
         </FormField>
         <FormField label="Type de bien" error={flags['presentation.propertyType']}>
           <FormSelect value={presentation.propertyType} options={PROPERTY_TYPES} onChange={(e) => update('propertyType', e.target.value)} placeholder="Sélectionnez..." />
