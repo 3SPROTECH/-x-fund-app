@@ -1,10 +1,11 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  LogOut, User, LayoutDashboard, Wallet, Building, FileCheck,
+  LogOut, Wallet, Building,
   TrendingUp, Briefcase, Shield, BarChart3, ScrollText, CreditCard, Settings,
 } from 'lucide-react';
 import Navbar from './Navbar';
+import PorteurNavbar from './PorteurNavbar';
 
 export default function Layout() {
   const { user, signOut } = useAuth();
@@ -30,6 +31,18 @@ export default function Layout() {
     return (
       <div className="investor-layout">
         <Navbar />
+        <main className="investor-content">
+          <Outlet />
+        </main>
+      </div>
+    );
+  }
+
+  // Layout pour porteurs de projet: navbar horizontale (pas de sidebar)
+  if (isPorteur) {
+    return (
+      <div className="investor-layout">
+        <PorteurNavbar />
         <main className="investor-content">
           <Outlet />
         </main>
@@ -101,56 +114,11 @@ export default function Layout() {
     );
   }
 
-  // Layout pour porteurs de projet: sidebar verticale
+  // Fallback layout (admin uses sidebar above, this shouldn't be reached)
   return (
-    <div className="layout">
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <span className="logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
-        </div>
-
-        <nav className="sidebar-nav">
-          <div className="nav-section"><span className="nav-section-label">Principal</span></div>
-          <NavLink to="/dashboard" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <LayoutDashboard size={18} /><span>Tableau de bord</span>
-          </NavLink>
-          <NavLink to="/wallet" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <Wallet size={18} /><span>Portefeuille</span>
-          </NavLink>
-          <NavLink to="/projects" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <TrendingUp size={18} /><span>Projets</span>
-          </NavLink>
-
-          {isPorteur && (
-            <>
-              <div className="nav-section"><span className="nav-section-label">Immobilier</span></div>
-              <NavLink to="/properties" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                <Building size={18} /><span>Biens immobiliers</span>
-              </NavLink>
-            </>
-          )}
-
-          <div className="nav-section"><span className="nav-section-label">Compte</span></div>
-          <NavLink to="/profile" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <User size={18} /><span>Profil</span>
-          </NavLink>
-          <NavLink to="/kyc" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <FileCheck size={18} /><span>KYC</span>
-          </NavLink>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="user-info">
-            <span className="user-name">{user?.first_name} {user?.last_name}</span>
-            <span className="user-role">{roleLabel[user?.role] || user?.role}</span>
-          </div>
-          <button onClick={handleSignOut} className="btn-icon" title="Se déconnecter" style={{ color: '#DAA520' }}>
-            <LogOut size={18} />
-          </button>
-        </div>
-      </aside>
-
-      <main className="main-content">
+    <div className="investor-layout">
+      <PorteurNavbar />
+      <main className="investor-content">
         <Outlet />
       </main>
     </div>

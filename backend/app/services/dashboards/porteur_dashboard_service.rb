@@ -28,7 +28,7 @@ module Dashboards
     end
 
     def project_stats
-      projects = InvestmentProject.joins(:property).where(properties: { owner_id: @user.id })
+      projects = InvestmentProject.joins(:properties).where(properties: { owner_id: @user.id })
       {
         total: projects.count,
         draft: projects.draft.count,
@@ -42,7 +42,7 @@ module Dashboards
     end
 
     def investments_received_stats
-      project_ids = InvestmentProject.joins(:property).where(properties: { owner_id: @user.id }).pluck(:id)
+      project_ids = InvestmentProject.joins(:properties).where(properties: { owner_id: @user.id }).pluck(:id)
       investments = Investment.where(investment_project_id: project_ids)
       {
         total_investors: investments.select(:user_id).distinct.count,
@@ -64,9 +64,9 @@ module Dashboards
     end
 
     def recent_projects
-      InvestmentProject.joins(:property)
+      InvestmentProject.joins(:properties)
                        .where(properties: { owner_id: @user.id })
-                       .includes(:property)
+                       .includes(:properties)
                        .order(created_at: :desc)
                        .limit(5)
                        .map do |project|

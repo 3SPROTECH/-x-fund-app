@@ -44,7 +44,7 @@ class InvestmentProjectPolicy < ApplicationPolicy
       if user.administrateur?
         scope.all
       elsif user.porteur_de_projet?
-        scope.where(owner_id: user.id)
+        scope.where(owner_id: user.id).or(scope.visible_to_investors)
       else
         scope.visible_to_investors
       end
