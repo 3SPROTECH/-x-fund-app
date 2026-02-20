@@ -70,6 +70,14 @@ class InvestmentProjectSerializer
     end
   end
 
+  attribute :has_pending_info_request do |project|
+    project.demo_info_requests.where(status: :pending).exists?
+  end
+
+  attribute :latest_info_request_id do |project|
+    project.demo_info_requests.order(created_at: :desc).first&.id
+  end
+
   attribute :investment_fee_percent do |_project|
     Setting.get("platform_investment_commission_percent") || 0.0
   end

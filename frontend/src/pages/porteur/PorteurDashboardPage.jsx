@@ -7,7 +7,7 @@ import { porteurDashboardApi } from '../../api/investments';
 import { getImageUrl } from '../../api/client';
 import {
   Plus, MapPin, Image as ImageIcon, FileEdit, Clock, Trash2,
-  ChevronDown, CheckCircle, AlertCircle, ClipboardList,
+  ChevronDown, CheckCircle, AlertCircle, ClipboardList, AlertTriangle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
@@ -155,8 +155,23 @@ export default function PorteurDashboardPage() {
     });
   }
 
+  // Sort: info_requested and info_resubmitted projects come first
+  const ACTION_STATUSES = ['info_requested', 'info_resubmitted'];
+
   projects.forEach((p) => {
     allItems.push({ type: 'project', data: p });
+  });
+
+  // Sort to put action-required projects first
+  allItems.sort((a, b) => {
+    if (a.type === 'draft' && b.type === 'draft') return 0;
+    if (a.type === 'draft') return -1; // drafts stay at top
+    if (b.type === 'draft') return 1;
+    const aStatus = (a.data.attributes || a.data).status;
+    const bStatus = (b.data.attributes || b.data).status;
+    const aAction = ACTION_STATUSES.includes(aStatus) ? 0 : 1;
+    const bAction = ACTION_STATUSES.includes(bStatus) ? 0 : 1;
+    return aAction - bAction;
   });
 
   /* ── Render helpers ── */
@@ -209,13 +224,15 @@ export default function PorteurDashboardPage() {
     const firstImage = (a.images?.length > 0) ? a.images[0] : (a.property_photos?.length > 0) ? a.property_photos[0] : null;
     const isOwner = user?.id === a.owner_id;
     const canDelete = user?.role === 'porteur_de_projet' && isOwner && a.status === 'draft';
-    const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis');
+    const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis' || a.status === 'info_requested' || a.status === 'info_resubmitted');
     const cardHref = showForm ? `/projects/new?project=${p.id}` : `/projects/${p.id}`;
+    const isActionRequired = a.status === 'info_requested';
+    const isInfoResubmitted = a.status === 'info_resubmitted';
 
     return (
       <div
         key={p.id}
-        className="porteur-project-card"
+        className={`porteur-project-card ${isActionRequired ? 'porteur-card--action-required' : ''} ${isInfoResubmitted ? 'porteur-card--info-resubmitted' : ''}`}
         onClick={() => navigate(cardHref)}
       >
         <div className="porteur-card-visual">
@@ -255,6 +272,18 @@ export default function PorteurDashboardPage() {
                 <span>{formatCents(a.amount_raised_cents)} leves</span>
                 <span>{Math.round(progress)}%</span>
               </div>
+            </div>
+          )}
+          {isActionRequired && (
+            <div className="porteur-card-cta">
+              <AlertTriangle size={14} />
+              <span>Compléter les informations</span>
+            </div>
+          )}
+          {isInfoResubmitted && (
+            <div className="porteur-card-cta porteur-card-cta--success">
+              <CheckCircle size={14} />
+              <span>Compléments envoyés — en attente</span>
             </div>
           )}
         </div>

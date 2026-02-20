@@ -5729,6 +5729,63 @@ textarea.error:focus {
   color: #B8860B;
 }
 
+/* ── Action-required card (info_requested) ── */
+.porteur-card--action-required {
+  border: 1.5px solid #e67e22;
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.04), rgba(230, 126, 34, 0.01));
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+.porteur-card--action-required:hover {
+  border-color: #d35400;
+  box-shadow: 0 4px 16px rgba(230, 126, 34, 0.18);
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 2px 8px rgba(230, 126, 34, 0.08); }
+  50% { box-shadow: 0 2px 16px rgba(230, 126, 34, 0.18); }
+}
+
+/* ── Info resubmitted card ── */
+.porteur-card--info-resubmitted {
+  border: 1.5px solid #27ae60;
+  background: linear-gradient(135deg, rgba(39, 174, 96, 0.04), rgba(39, 174, 96, 0.01));
+}
+
+.porteur-card--info-resubmitted:hover {
+  border-color: #1e8449;
+  box-shadow: 0 4px 16px rgba(39, 174, 96, 0.15);
+}
+
+/* ── Card CTA (action button inside project card) ── */
+.porteur-card-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.porteur-card-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(230, 126, 34, 0.3);
+}
+
+.porteur-card-cta--success {
+  background: linear-gradient(135deg, #27ae60, #1e8449);
+}
+
+.porteur-card-cta--success:hover {
+  box-shadow: 0 3px 10px rgba(39, 174, 96, 0.3);
+}
+
 /* ── Read-only card ── */
 .porteur-readonly-card {
   cursor: default;

@@ -81,6 +81,23 @@ Rails.application.routes.draw do
       resource :dashboard, only: [:show], controller: "investor_dashboard"
       resource :porteur_dashboard, only: [:show], controller: "porteur_dashboard"
 
+      # === Demo (temporary analyst feature) ===
+      namespace :demo do
+        resources :analyst_projects, only: [:index, :show], controller: 'analyst', path: 'analyst/projects' do
+          member do
+            post :request_info
+            patch :approve
+            patch :reject
+          end
+        end
+        # Porteur info request endpoints
+        scope 'porteur/projects/:project_id' do
+          resource :info_request, only: [:show], controller: 'porteur_info' do
+            patch :submit
+          end
+        end
+      end
+
       # === Admin ===
       namespace :admin do
         resources :users, only: [:index, :show, :update, :destroy] do

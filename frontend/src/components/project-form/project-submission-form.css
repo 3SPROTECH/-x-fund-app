@@ -1769,3 +1769,108 @@
   color: #000 !important;
   font-weight: 600;
 }
+
+/* ==================== INFO BANNER (info_requested state) ==================== */
+.pf-info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  margin: 0 0 20px 0;
+  color: #92400e;
+}
+
+.pf-info-banner svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #d97706;
+}
+
+.pf-info-banner div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf-info-banner strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pf-info-banner span {
+  font-size: 13px;
+  color: #92400e;
+}
+
+/* ==================== ADDITIONAL INFO STEP ==================== */
+.pf-additional-info-step {
+  padding: 0;
+}
+
+.pf-ai-loading,
+.pf-ai-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.pf-field-hint {
+  font-size: 13px;
+  color: var(--text-muted, #6b7280);
+  margin: -4px 0 8px;
+  font-style: italic;
+}
+
+.pf-ai-file-upload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pf-ai-file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--primary, #1e293b);
+}
+
+.pf-ai-file-btn:hover {
+  border-color: var(--gold-color, #DAA520);
+}
+
+.pf-ai-file-btn input[type="file"] {
+  display: none;
+}
+
+.pf-ai-file-name {
+  font-size: 13px;
+  color: var(--text-muted, #6b7280);
+}
+
+.pf-ai-field-readonly {
+  padding: 10px 14px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--primary, #1e293b);
+}
+
+.pf-ai-empty-value {
+  color: var(--text-muted, #6b7280);
+  font-style: italic;
+}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle, ChevronLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle, ChevronLeft, MessageSquare, Info, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import useProjectFormStore, { MACRO_STEPS, STEP_CONFIG, createEmptyLot } from '../../stores/useProjectFormStore';
@@ -19,11 +19,12 @@ import SalesPlanLots from './steps/SalesPlanLots';
 import VerificationDocs from './steps/VerificationDocs';
 import ContributionStep from './steps/ContributionStep';
 import FinancingSimulation from './steps/FinancingSimulation';
+import AdditionalInfoStep from './steps/AdditionalInfoStep';
 import SignatureStep from './steps/SignatureStep';
 
 import './project-submission-form.css';
 
-const MACRO_ICONS = [FileText, Calculator, TrendingUp, PenTool];
+const MACRO_ICONS = [FileText, Calculator, TrendingUp, MessageSquare, PenTool];
 
 const STEP_COMPONENTS = [
   StepPresentation,        // 0  - Macro 0
@@ -37,7 +38,8 @@ const STEP_COMPONENTS = [
   VerificationDocs,        // 8  - Asset sub-flow step 4
   ContributionStep,        // 9  - Macro 2
   FinancingSimulation,     // 10
-  SignatureStep,           // 11 - Macro 3 (locked until analyst approves)
+  AdditionalInfoStep,      // 11 - Macro 3 (Compléments - demo)
+  SignatureStep,           // 12 - Macro 4 (locked until analyst approves)
 ];
 
 const HUB_INDEX = 4;
@@ -45,6 +47,7 @@ const SUB_FLOW_START = 5;
 const SUB_FLOW_END = 8;
 const PROJECTION_START = 9;
 const SUBMIT_STEP = 10; // FinancingSimulation — last editable step
+const ADDITIONAL_INFO_STEP = 11; // Compléments step
 
 const SUB_FLOW_LABELS = [
   'Détails de l\'actif',
@@ -57,6 +60,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   const autoSaveTimer = useRef(null);
+  const additionalInfoSubmitRef = useRef(null);
 
   const store = useProjectFormStore();
   const {
@@ -67,12 +71,14 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
     consentGiven,
     draftId, isDirty, setDraftId, setLastSavedAt, getSerializableState, loadFromDraft,
     reset,
+    projectStatus, setProjectStatus, setLoadedProjectId,
   } = store;
 
   const stepConfig = STEP_CONFIG[globalStepIndex] || STEP_CONFIG[0];
   const currentMacro = stepConfig.macro;
   const isOnHub = globalStepIndex === HUB_INDEX;
   const isInSubFlow = globalStepIndex >= SUB_FLOW_START && globalStepIndex <= SUB_FLOW_END;
+  const isInfoFlow = projectStatus === 'info_requested' || projectStatus === 'info_resubmitted';
 
   // ── Micro tabs computation ──
   let microSteps = [];
@@ -126,6 +132,10 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
       // Load from a submitted project's form snapshot (read-only mode)
       investmentProjectsApi.get(initialProjectId).then((res) => {
         const project = res.data.data?.attributes || res.data.data || res.data;
+        // Store project ID and status for info_requested flow
+        setLoadedProjectId(initialProjectId);
+        setProjectStatus(project?.status || null);
+
         if (project?.form_snapshot && Object.keys(project.form_snapshot).length > 0) {
           loadFromDraft(project.form_snapshot, null);
         } else {
@@ -179,7 +189,12 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
           loadFromDraft(fallback, null);
         }
         setSubmitted(true);
-        setGlobalStep(SUBMIT_STEP);
+        // If info flow, go to the Compléments step; otherwise show projection summary
+        if (project?.status === 'info_requested' || project?.status === 'info_resubmitted') {
+          setGlobalStep(ADDITIONAL_INFO_STEP);
+        } else {
+          setGlobalStep(SUBMIT_STEP);
+        }
       }).catch(() => { });
     } else if (initialDraftId) {
       projectDraftsApi.get(initialDraftId).then((res) => {
@@ -197,13 +212,24 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
   }, [initialDraftId, initialProjectId]);
 
   // ── Navigation ──
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Additional Info step: use Suivant to submit responses (don't navigate)
+    if (globalStepIndex === ADDITIONAL_INFO_STEP && submitted) {
+      if (projectStatus === 'info_resubmitted') return; // Already submitted
+      if (additionalInfoSubmitRef.current) {
+        await additionalInfoSubmitRef.current();
+      }
+      return;
+    }
+
     if (submitted) {
-      // Read-only navigation: allow moving forward through steps 0-10
+      // Read-only navigation
       if (globalStepIndex === SUB_FLOW_END) {
         returnToHub();
       } else if (isOnHub) {
         setGlobalStep(PROJECTION_START);
+      } else if (globalStepIndex === SUBMIT_STEP && isInfoFlow) {
+        setGlobalStep(ADDITIONAL_INFO_STEP);
       } else if (globalStepIndex < SUBMIT_STEP) {
         goNext();
       }
@@ -476,19 +502,22 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
 
   // ── Button labels ──
   const isSubmitStep = globalStepIndex === SUBMIT_STEP;
+  const isAdditionalInfoStep = globalStepIndex === ADDITIONAL_INFO_STEP;
   const isEndOfSubFlow = globalStepIndex === SUB_FLOW_END;
   const hubAllComplete = isOnHub && allAssetsComplete();
   const isLastNavigable = globalStepIndex === SUBMIT_STEP;
 
-  const nextLabel = submitted
-    ? (isLastNavigable ? 'Dossier envoyé' : 'Suivant')
-    : submitting
-      ? 'Envoi en cours...'
-      : isSubmitStep
-        ? 'Envoyer mon dossier en analyse'
-        : isEndOfSubFlow
-          ? 'Terminer cet actif'
-          : 'Suivant';
+  const nextLabel = isAdditionalInfoStep && submitted
+    ? (projectStatus === 'info_resubmitted' ? 'Compléments envoyés' : 'Envoyer les compléments')
+    : submitted
+      ? ((isLastNavigable && !isInfoFlow) ? 'Dossier envoyé' : 'Suivant')
+      : submitting
+        ? 'Envoi en cours...'
+        : isSubmitStep
+          ? 'Envoyer mon dossier en analyse'
+          : isEndOfSubFlow
+            ? 'Terminer cet actif'
+            : 'Suivant';
 
   const prevLabel = (globalStepIndex === SUB_FLOW_START && selectedAssetIndex !== null)
     ? 'Retour au Hub'
@@ -497,7 +526,8 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
       : 'Précédent';
 
   const nextDisabled = submitting
-    || (submitted && isLastNavigable)
+    || (submitted && isLastNavigable && !isInfoFlow)
+    || (submitted && isAdditionalInfoStep && projectStatus === 'info_resubmitted')
     || (isOnHub && !hubAllComplete && !submitted);
 
   const StepComponent = STEP_COMPONENTS[globalStepIndex];
@@ -510,9 +540,14 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
           <ChevronLeft size={16} /> Retour
         </button>
         {MACRO_STEPS.map((macro, idx) => {
+          // When viewing a submitted project, hide Compléments unless info flow
+          if (submitted && !isInfoFlow && idx === 3) return null;
+
           const Icon = MACRO_ICONS[idx];
           const isActive = currentMacro === idx;
-          const isCompleted = submitted ? idx <= 2 : currentMacro > idx;
+          const isCompleted = submitted
+            ? (idx <= 2 || (idx === 3 && projectStatus === 'info_resubmitted'))
+            : currentMacro > idx;
           const locked = isStepLocked(STEP_CONFIG.findIndex((s) => s.macro === idx));
 
           return (
@@ -555,20 +590,41 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
           <p>{stepConfig.desc}</p>
         </div>
 
-        {/* Success Banner - shown after submission */}
-        {submitted && (
-          <div className="pf-success-banner">
-            <CheckCircle size={20} />
-            <div>
-              <strong>Dossier envoyé avec succès</strong>
-              <span>Votre dossier est en cours d'analyse par notre équipe. Vous pouvez consulter vos informations ci-dessous.</span>
+        {/* Success / Info Banner - context-aware (hidden on Additional Info step which has its own) */}
+        {submitted && globalStepIndex !== ADDITIONAL_INFO_STEP && (
+          projectStatus === 'info_requested' ? (
+            <div className="pf-info-banner">
+              <Info size={20} />
+              <div>
+                <strong>Compléments d'information requis</strong>
+                <span>L'analyste a demandé des informations supplémentaires. Rendez-vous à l'étape « Compléments » pour y répondre.</span>
+              </div>
             </div>
-          </div>
+          ) : projectStatus === 'info_resubmitted' ? (
+            <div className="pf-success-banner">
+              <CheckCircle size={20} />
+              <div>
+                <strong>Compléments envoyés</strong>
+                <span>Vos informations complémentaires ont été envoyées. L'analyste va les examiner.</span>
+              </div>
+            </div>
+          ) : (
+            <div className="pf-success-banner">
+              <CheckCircle size={20} />
+              <div>
+                <strong>Dossier envoyé avec succès</strong>
+                <span>Votre dossier est en cours d'analyse par notre équipe. Vous pouvez consulter vos informations ci-dessous.</span>
+              </div>
+            </div>
+          )
         )}
 
         {/* Dynamic Fields */}
-        <div className={`pf-dynamic-fields${submitted ? ' pf-read-only' : ''}`} ref={scrollRef}>
-          <StepComponent />
+        <div className={`pf-dynamic-fields${submitted && globalStepIndex !== ADDITIONAL_INFO_STEP ? ' pf-read-only' : ''}`} ref={scrollRef}>
+          {globalStepIndex === ADDITIONAL_INFO_STEP
+            ? <StepComponent onSubmitRef={additionalInfoSubmitRef} />
+            : <StepComponent />
+          }
         </div>
 
         {/* Form Footer */}
@@ -601,11 +657,14 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
           <div style={{ flex: 1 }} />
           <button
             type="button"
-            className={`pf-nav-btn pf-btn-next${isSubmitStep && !submitted ? ' pf-btn-submit' : ''}`}
+            className={`pf-nav-btn pf-btn-next${(isSubmitStep && !submitted) || (isAdditionalInfoStep && submitted && projectStatus !== 'info_resubmitted') ? ' pf-btn-submit' : ''}`}
             onClick={handleNext}
             disabled={nextDisabled}
           >
-            {nextLabel} {!isSubmitStep && !submitted && <ArrowRight size={16} />}
+            {isAdditionalInfoStep && submitted && projectStatus !== 'info_resubmitted'
+              ? <><Send size={16} /> {nextLabel}</>
+              : <>{nextLabel} {!isSubmitStep && !isAdditionalInfoStep && !submitted && <ArrowRight size={16} />}</>
+            }
           </button>
         </div>
       </div>

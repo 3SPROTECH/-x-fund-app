@@ -10,6 +10,7 @@ class InvestmentProject < ApplicationRecord
   has_many :dividends, dependent: :restrict_with_error
   has_many :financial_statements, dependent: :destroy
   has_many :mvp_reports, dependent: :destroy
+  has_many :demo_info_requests, dependent: :destroy
 
   has_one_attached :contrat_obligataire
   has_one_attached :fici_document
@@ -34,7 +35,9 @@ class InvestmentProject < ApplicationRecord
     funded: 8,
     under_construction: 9,
     operating: 10,
-    repaid: 11
+    repaid: 11,
+    info_resubmitted: 12,
+    analyst_approved: 13
   }
   enum :exploitation_strategy, {
     seasonal_rental: 0,
@@ -101,7 +104,7 @@ class InvestmentProject < ApplicationRecord
 
   def must_be_approved_to_open
     # Prevent opening a project for funding directly from early stages
-    if funding_active? && status_was.in?(["draft", "pending_analysis", "info_requested"])
+    if funding_active? && status_was.in?(["draft", "pending_analysis", "info_requested", "info_resubmitted", "analyst_approved"])
       errors.add(:status, "le projet doit etre approuve avant d'etre mis en collecte")
     end
   end

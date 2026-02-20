@@ -51,6 +51,10 @@ import PorteurWalletPage from './pages/porteur/PorteurWalletPage';
 import PorteurProfilePage from './pages/porteur/PorteurProfilePage';
 import PorteurKycPage from './pages/porteur/PorteurKycPage';
 
+// Demo pages (temporary)
+import DemoAnalystDashboard from './pages/demo/DemoAnalystDashboard';
+import DemoAnalystProjectReview from './pages/demo/DemoAnalystProjectReview';
+
 function DashboardRedirect() {
   const { user, loading } = useAuth();
 
@@ -185,6 +189,16 @@ export default function App() {
               element={<ProtectedRoute roles={['administrateur']}><AdminProfilePage /></ProtectedRoute>}
             />
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+
+            {/* Demo Analyst (temporary) */}
+            <Route
+              path="/demo/analyst"
+              element={<ProtectedRoute roles={['administrateur']}><DemoAnalystDashboard /></ProtectedRoute>}
+            />
+            <Route
+              path="/demo/analyst/projects/:id"
+              element={<ProtectedRoute roles={['administrateur']}><DemoAnalystProjectReview /></ProtectedRoute>}
+            />
 
             <Route
               path="/investor/dashboard"

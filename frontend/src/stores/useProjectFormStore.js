@@ -5,6 +5,7 @@ export const MACRO_STEPS = [
   { label: 'Présentation', icon: 'FileText' },
   { label: 'Finances', icon: 'Calculator' },
   { label: 'Projections', icon: 'TrendingUp' },
+  { label: 'Compléments', icon: 'MessageSquare' },
   { label: 'Signature', icon: 'PenTool' },
 ];
 
@@ -23,8 +24,10 @@ export const STEP_CONFIG = [
   // Macro 3 - Projections
   { macro: 2, micro: 0, title: 'Engagement du porteur', desc: 'Définissez votre apport et prouvez vos fonds.' },
   { macro: 2, micro: 1, title: 'Simulation de financement', desc: 'Paramètres et projection de la collecte.' },
-  // Macro 4 - Signature
-  { macro: 3, micro: 0, title: 'Signature des contrats', desc: 'Téléchargement des documents et consentement final.' },
+  // Macro 4 - Compléments (demo)
+  { macro: 3, micro: 0, title: 'Informations complémentaires', desc: 'Répondez aux questions de l\'analyste.' },
+  // Macro 5 - Signature
+  { macro: 4, micro: 0, title: 'Signature des contrats', desc: 'Téléchargement des documents et consentement final.' },
 ];
 
 // ─── Initial data shapes ────────────────────────────────────────────
@@ -214,6 +217,7 @@ export const STEP_VALIDATORS = [
   () => ({}), // Docs - validated via asset completion
   () => ({}), // Contribution - no blocking validation
   () => ({}), // Simulation - no blocking validation
+  () => ({}), // Additional Info - no blocking validation (handled internally)
   (state) => validateSignature(state.consentGiven),
 ];
 
@@ -250,6 +254,10 @@ const useProjectFormStore = create((set, get) => ({
 
   // Step completion tracking
   completedSteps: new Set(),
+
+  // Project info (for info_requested flow)
+  loadedProjectId: null,
+  projectStatus: null,
 
   // ── Navigation ──────────────────────────────────────────────────
   setGlobalStep: (index) => set({ globalStepIndex: index, flaggedFields: {} }),
@@ -518,6 +526,8 @@ const useProjectFormStore = create((set, get) => ({
   // ── Draft ───────────────────────────────────────────────────────
   setDraftId: (id) => set({ draftId: id }),
   setLastSavedAt: (date) => set({ lastSavedAt: date, isDirty: false }),
+  setProjectStatus: (status) => set({ projectStatus: status }),
+  setLoadedProjectId: (id) => set({ loadedProjectId: id }),
 
   getSerializableState: () => {
     const s = get();
@@ -607,8 +617,13 @@ const useProjectFormStore = create((set, get) => ({
       return !s.assets.every(a => a.completed);
     }
 
-    // Macro 4 (Signature): always locked until analyst approves
+    // Macro 4 (Compléments): unlocked only when project status is info_requested
     if (config.macro === 3) {
+      return s.projectStatus !== 'info_requested' && s.projectStatus !== 'info_resubmitted';
+    }
+
+    // Macro 5 (Signature): always locked until analyst approves
+    if (config.macro === 4) {
       return true;
     }
 
@@ -636,6 +651,8 @@ const useProjectFormStore = create((set, get) => ({
       isDirty: false,
       flaggedFields: {},
       completedSteps: new Set(),
+      loadedProjectId: null,
+      projectStatus: null,
     });
   },
 }));
