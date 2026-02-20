@@ -9,11 +9,11 @@ import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { PROJECT_DETAIL_STATUS_LABELS as STATUS_LABELS, PROJECT_DETAIL_STATUS_BADGES as STATUS_BADGE } from '../../utils';
 import { LoadingSpinner } from '../../components/ui';
-import ProjectDetailsTab from './tabs/ProjectDetailsTab';
-import ProjectPhotosTab from './tabs/ProjectPhotosTab';
-import ProjectDividendsTab from './tabs/ProjectDividendsTab';
-import ProjectReportsTab from './tabs/ProjectReportsTab';
-import ProjectInvestorsTab from './tabs/ProjectInvestorsTab';
+import ProjectDetailsTab from '../../components/project-tabs/ProjectDetailsTab';
+import ProjectPhotosTab from '../../components/project-tabs/ProjectPhotosTab';
+import ProjectDividendsTab from '../../components/project-tabs/ProjectDividendsTab';
+import ProjectReportsTab from '../../components/project-tabs/ProjectReportsTab';
+import ProjectInvestorsTab from '../../components/project-tabs/ProjectInvestorsTab';
 
 export default function ProjectDetailPage() {
   const { id } = useParams();

@@ -1,4 +1,4 @@
-import MyInvestmentsPage from '../investments/MyInvestmentsPage';
+import MyInvestmentsPage from '../shared/MyInvestmentsPage';
 
 export default function InvestorInvestmentsPage() {
   return <MyInvestmentsPage />;

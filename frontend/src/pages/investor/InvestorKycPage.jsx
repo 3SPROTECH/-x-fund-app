@@ -1,4 +1,4 @@
-import KycPage from '../profile/KycPage';
+import KycPage from '../shared/KycPage';
 
 export default function InvestorKycPage() {
   return <KycPage />;

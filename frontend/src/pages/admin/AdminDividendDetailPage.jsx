@@ -1,4 +1,4 @@
-import DividendDetailPage from '../projects/DividendDetailPage';
+import DividendDetailPage from '../shared/DividendDetailPage';
 
 export default function AdminDividendDetailPage() {
   return <DividendDetailPage />;

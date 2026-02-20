@@ -1,4 +1,4 @@
-import CreateProjectPage from '../projects/CreateProjectPage';
+import CreateProjectPage from '../shared/CreateProjectPage';
 
 export default function PorteurCreateProjectPage() {
   return <CreateProjectPage />;
