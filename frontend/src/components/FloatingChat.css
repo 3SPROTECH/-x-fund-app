@@ -1,0 +1,286 @@
+/* ============================================================
+   FLOATING CHAT WIDGET
+   ============================================================ */
+
+/* ── FAB (floating action button) ── */
+.fc-fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 900;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #DAA520 0%, #b8860b 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(218, 165, 32, .35), 0 2px 8px rgba(0, 0, 0, .15);
+    transition: transform .2s ease, opacity .2s ease, box-shadow .2s ease;
+}
+
+.fc-fab:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 28px rgba(218, 165, 32, .45), 0 3px 12px rgba(0, 0, 0, .2);
+}
+
+.fc-fab--hidden {
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.fc-fab-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: #fff;
+    font-size: .65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .15);
+}
+
+/* ── Chat Panel ── */
+.fc-panel {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 910;
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    height: 520px;
+    max-height: calc(100vh - 80px);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, .18), 0 4px 16px rgba(0, 0, 0, .08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0) translateY(20px);
+    transform-origin: bottom right;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), opacity .2s ease;
+}
+
+.fc-panel--open {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ── Header ── */
+.fc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .75rem 1rem;
+    background: #111;
+    color: #fff;
+    gap: .75rem;
+    flex-shrink: 0;
+}
+
+.fc-header-info {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+
+.fc-header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(218, 165, 32, .5);
+}
+
+.fc-header-name {
+    display: block;
+    font-weight: 600;
+    font-size: .85rem;
+    line-height: 1.2;
+}
+
+.fc-header-role {
+    display: block;
+    font-size: .7rem;
+    color: rgba(218, 165, 32, .85);
+    font-weight: 500;
+    letter-spacing: .03em;
+}
+
+.fc-header-actions {
+    display: flex;
+    gap: .25rem;
+}
+
+.fc-header-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, .6);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background .15s, color .15s;
+}
+
+.fc-header-btn:hover {
+    background: rgba(255, 255, 255, .1);
+    color: #fff;
+}
+
+/* ── Messages ── */
+.fc-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    background: #f8f9fb;
+}
+
+.fc-msg {
+    display: flex;
+    gap: .5rem;
+    max-width: 85%;
+}
+
+.fc-msg--analyst {
+    align-self: flex-start;
+}
+
+.fc-msg--user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.fc-msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.fc-msg-bubble {
+    padding: .6rem .85rem;
+    border-radius: 14px;
+    font-size: .82rem;
+    line-height: 1.45;
+    position: relative;
+}
+
+.fc-msg-bubble p {
+    margin: 0;
+}
+
+.fc-msg--analyst .fc-msg-bubble {
+    background: #fff;
+    color: #1a1a2e;
+    border: 1px solid #e8e8ec;
+    border-bottom-left-radius: 4px;
+}
+
+.fc-msg--user .fc-msg-bubble {
+    background: linear-gradient(135deg, #DAA520, #c5941a);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.fc-msg-time {
+    display: block;
+    font-size: .6rem;
+    margin-top: .3rem;
+    opacity: .55;
+    text-align: right;
+}
+
+/* ── Input Bar ── */
+.fc-input-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: .5rem;
+    padding: .65rem .75rem;
+    border-top: 1px solid #eee;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.fc-input {
+    flex: 1;
+    border: 1px solid #e0e0e4;
+    border-radius: 12px;
+    padding: .55rem .75rem;
+    font-size: .82rem;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    line-height: 1.4;
+    max-height: 80px;
+    transition: border-color .15s;
+}
+
+.fc-input:focus {
+    border-color: #DAA520;
+}
+
+.fc-input::placeholder {
+    color: #aaa;
+}
+
+.fc-send-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #DAA520, #b8860b);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity .15s, transform .15s;
+}
+
+.fc-send-btn:disabled {
+    opacity: .4;
+    cursor: default;
+    transform: none;
+}
+
+.fc-send-btn:not(:disabled):hover {
+    transform: scale(1.06);
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+    .fc-panel {
+        bottom: 0;
+        right: 0;
+        width: 100vw;
+        height: 100vh;
+        max-width: 100vw;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .fc-fab {
+        bottom: 18px;
+        right: 18px;
+    }
+}

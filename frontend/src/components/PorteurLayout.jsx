@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, LogOut, ChevronDown } from 'lucide-react';
+import FloatingChat from './FloatingChat';
 
 export default function PorteurLayout() {
     const { user, signOut } = useAuth();
@@ -85,6 +86,8 @@ export default function PorteurLayout() {
             <main className="porteur-main">
                 <Outlet />
             </main>
+
+            <FloatingChat />
         </div>
     );
 }
