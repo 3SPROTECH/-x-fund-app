@@ -7,6 +7,7 @@ import {
   Menu, X,
 } from 'lucide-react';
 import Navbar from './Navbar';
+import { ROLE_LABELS } from '../utils';
 
 export default function Layout() {
   const { user, signOut } = useAuth();
@@ -23,15 +24,10 @@ export default function Layout() {
     navigate('/login');
   };
 
-  const roleLabel = {
-    investisseur: 'Investisseur',
-    porteur_de_projet: 'Porteur de projet',
-    administrateur: 'Administrateur',
-  };
-
   const isAdmin = user?.role === 'administrateur';
   const isPorteur = user?.role === 'porteur_de_projet';
   const isInvestor = user?.role === 'investisseur';
+  const porteurBase = '/porteur';
 
   // Layout pour investisseurs: navbar horizontale
   if (isInvestor) {
@@ -60,7 +56,7 @@ export default function Layout() {
             <NavLink to="/admin/dashboard" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
               <BarChart3 size={18} /><span>Tableau de bord</span>
             </NavLink>
-            <NavLink to="/wallet" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            <NavLink to="/admin/wallet" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
               <Wallet size={18} /><span>Portefeuille</span>
             </NavLink>
 
@@ -93,9 +89,9 @@ export default function Layout() {
           </nav>
 
           <div className="sidebar-footer">
-            <div className="user-info user-info-clickable" onClick={() => navigate('/profile')} title="Voir le profil">
+            <div className="user-info user-info-clickable" onClick={() => navigate('/admin/profile')} title="Voir le profil">
               <span className="user-name">{user?.first_name} {user?.last_name}</span>
-              <span className="user-role">{roleLabel[user?.role] || user?.role}</span>
+              <span className="user-role">{ROLE_LABELS[user?.role] || user?.role}</span>
             </div>
             <button onClick={handleSignOut} className="btn-icon" title="Se déconnecter" style={{ color: '#DAA520' }}>
               <LogOut size={18} />
@@ -115,7 +111,7 @@ export default function Layout() {
         {/* Menu mobile déroulant admin */}
         {showAdminMobileMenu && (
           <div className="admin-mobile-dropdown">
-            <NavLink to="/wallet" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
+            <NavLink to="/admin/wallet" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
               <Wallet size={20} /><span>Portefeuille</span>
             </NavLink>
             <NavLink to="/admin/investments" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
@@ -130,9 +126,9 @@ export default function Layout() {
             <NavLink to="/admin/settings" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
               <Settings size={20} /><span>Parametres</span>
             </NavLink>
-            <div className="admin-mobile-item admin-mobile-user" onClick={() => { navigate('/profile'); setShowAdminMobileMenu(false); }}>
+            <div className="admin-mobile-item admin-mobile-user" onClick={() => { navigate('/admin/profile'); setShowAdminMobileMenu(false); }}>
               <User size={20} />
-              <div><span>{user?.first_name} {user?.last_name}</span><small>{roleLabel[user?.role]}</small></div>
+              <div><span>{user?.first_name} {user?.last_name}</span><small>{ROLE_LABELS[user?.role]}</small></div>
             </div>
             <button className="admin-mobile-item admin-mobile-logout" onClick={handleSignOut}>
               <LogOut size={20} /><span>Deconnexion</span>
@@ -182,30 +178,30 @@ export default function Layout() {
 
         <nav className="sidebar-nav">
           <div className="nav-section"><span className="nav-section-label">Principal</span></div>
-          <NavLink to="/dashboard" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+          <NavLink to={`${porteurBase}/dashboard`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             <LayoutDashboard size={18} /><span>Tableau de bord</span>
           </NavLink>
-          <NavLink to="/wallet" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+          <NavLink to={`${porteurBase}/wallet`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             <Wallet size={18} /><span>Portefeuille</span>
           </NavLink>
-          <NavLink to="/projects" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+          <NavLink to={`${porteurBase}/projects`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             <TrendingUp size={18} /><span>Projets</span>
           </NavLink>
 
           {isPorteur && (
             <>
               <div className="nav-section"><span className="nav-section-label">Immobilier</span></div>
-              <NavLink to="/properties" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+              <NavLink to={`${porteurBase}/properties`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
                 <Building size={18} /><span>Biens immobiliers</span>
               </NavLink>
             </>
           )}
 
           <div className="nav-section"><span className="nav-section-label">Compte</span></div>
-          <NavLink to="/profile" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+          <NavLink to={`${porteurBase}/profile`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             <User size={18} /><span>Profil</span>
           </NavLink>
-          <NavLink to="/kyc" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+          <NavLink to={`${porteurBase}/kyc`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             <FileCheck size={18} /><span>KYC</span>
           </NavLink>
         </nav>
@@ -213,7 +209,7 @@ export default function Layout() {
         <div className="sidebar-footer">
           <div className="user-info">
             <span className="user-name">{user?.first_name} {user?.last_name}</span>
-            <span className="user-role">{roleLabel[user?.role] || user?.role}</span>
+            <span className="user-role">{ROLE_LABELS[user?.role] || user?.role}</span>
           </div>
           <button onClick={handleSignOut} className="btn-icon" title="Se déconnecter" style={{ color: '#DAA520' }}>
             <LogOut size={18} />
@@ -233,18 +229,18 @@ export default function Layout() {
       {/* Menu mobile déroulant porteur */}
       {showPorteurMobileMenu && (
         <div className="admin-mobile-dropdown">
-          <NavLink to="/wallet" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowPorteurMobileMenu(false)}>
+          <NavLink to={`${porteurBase}/wallet`} className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowPorteurMobileMenu(false)}>
             <Wallet size={20} /><span>Portefeuille</span>
           </NavLink>
-          <NavLink to="/profile" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowPorteurMobileMenu(false)}>
+          <NavLink to={`${porteurBase}/profile`} className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowPorteurMobileMenu(false)}>
             <User size={20} /><span>Profil</span>
           </NavLink>
-          <NavLink to="/kyc" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowPorteurMobileMenu(false)}>
+          <NavLink to={`${porteurBase}/kyc`} className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowPorteurMobileMenu(false)}>
             <FileCheck size={20} /><span>KYC</span>
           </NavLink>
-          <div className="admin-mobile-item admin-mobile-user" onClick={() => { navigate('/profile'); setShowPorteurMobileMenu(false); }}>
+          <div className="admin-mobile-item admin-mobile-user" onClick={() => { navigate(`${porteurBase}/profile`); setShowPorteurMobileMenu(false); }}>
             <User size={20} />
-            <div><span>{user?.first_name} {user?.last_name}</span><small>{roleLabel[user?.role]}</small></div>
+            <div><span>{user?.first_name} {user?.last_name}</span><small>{ROLE_LABELS[user?.role]}</small></div>
           </div>
           <button className="admin-mobile-item admin-mobile-logout" onClick={handleSignOut}>
             <LogOut size={20} /><span>Déconnexion</span>
@@ -258,14 +254,14 @@ export default function Layout() {
 
       {/* Bottom tab bar porteur mobile */}
       <div className="porteur-bottom-nav">
-        <NavLink to="/dashboard" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
+        <NavLink to={`${porteurBase}/dashboard`} className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
           <LayoutDashboard size={22} /><span>Accueil</span>
         </NavLink>
-        <NavLink to="/projects" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
+        <NavLink to={`${porteurBase}/projects`} className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
           <TrendingUp size={22} /><span>Projets</span>
         </NavLink>
         {isPorteur && (
-          <NavLink to="/properties" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
+          <NavLink to={`${porteurBase}/properties`} className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
             <Building size={22} /><span>Biens</span>
           </NavLink>
         )}

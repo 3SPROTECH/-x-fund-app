@@ -2,28 +2,18 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../../api/admin';
 import {
-  Briefcase, CheckCircle, XCircle, ChevronLeft,
-  ChevronRight, Search, Plus, Eye, FileText, AlertCircle, ArrowRight,
+  Briefcase, CheckCircle, XCircle,
+  Search, Plus, Eye, FileText, AlertCircle, ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
 import FormSelect from '../../components/FormSelect';
-
-const STATUS_LABELS = {
-  draft: 'Brouillon', pending_analysis: 'En Analyse', info_requested: 'Compléments requis',
-  rejected: 'Refusé', approved: 'Approuvé', legal_structuring: 'Montage Juridique',
-  signing: 'En Signature', funding_active: 'En Collecte', funded: 'Financé',
-  under_construction: 'En Travaux', operating: 'En Exploitation', repaid: 'Remboursé',
-};
-const STATUS_BADGE = {
-  draft: 'badge-warning', pending_analysis: 'badge-info', info_requested: 'badge-warning',
-  rejected: 'badge-danger', approved: 'badge-success', legal_structuring: 'badge-info',
-  signing: 'badge-info', funding_active: 'badge-success', funded: 'badge-success',
-  under_construction: 'badge-warning', operating: 'badge-info', repaid: 'badge-success',
-};
-
-const fmt = (cents) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100);
+import {
+  formatBalance as fmt,
+  PROJECT_STATUS_LABELS as STATUS_LABELS,
+  PROJECT_STATUS_BADGES as STATUS_BADGE,
+} from '../../utils';
+import { LoadingSpinner, Pagination } from '../../components/ui';
 
 export default function AdminProjectsPage() {
   const navigate = useNavigate();
@@ -121,7 +111,7 @@ export default function AdminProjectsPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
           <span className="badge"><Briefcase size={12} /> {meta.total_count ?? projects.length} projet(s)</span>
-          <button className="btn btn-primary" onClick={() => navigate('/projects/new')}>
+          <button className="btn btn-primary" onClick={() => navigate('/admin/projects/new')}>
             <Plus size={16} /> Créer un projet
           </button>
         </div>
@@ -143,7 +133,7 @@ export default function AdminProjectsPage() {
       <div className="admin-layout">
         <div>
           {loading ? (
-            <div className="page-loading"><div className="spinner" /></div>
+            <LoadingSpinner />
           ) : projects.length === 0 ? (
             <div className="card">
               <div className="empty-state">
@@ -166,7 +156,7 @@ export default function AdminProjectsPage() {
                       const a = p.attributes || p;
                       const progress = a.funding_progress_percent || 0;
                       return (
-                        <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/projects/${p.id}`)}>
+                        <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/projects/${p.id}`)}>
                           <td data-label="Titre" style={{ fontWeight: 550 }}>{a.title}</td>
                           <td data-label="Propriété">{a.property_title || '—'}</td>
                           <td data-label="Porteur">{a.owner_name || '—'}</td>
@@ -182,7 +172,7 @@ export default function AdminProjectsPage() {
                           </td>
                           <td data-label="Actions">
                             <div className="actions-cell" onClick={(e) => e.stopPropagation()}>
-                              <button className="btn-icon" title="Voir le détail" onClick={() => navigate(`/projects/${p.id}`)}><Eye size={16} /></button>
+                              <button className="btn-icon" title="Voir le détail" onClick={() => navigate(`/admin/projects/${p.id}`)}><Eye size={16} /></button>
                               <button className="btn-icon" title="Rapport MVP" onClick={() => navigate(`/admin/projects/${p.id}/mvp-report`)}><FileText size={16} /></button>
                               {a.status === 'pending_analysis' && (
                                 <>
@@ -203,13 +193,7 @@ export default function AdminProjectsPage() {
                 </table>
               </div>
 
-              {meta.total_pages > 1 && (
-                <div className="pagination">
-                  <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
-                  <span>Page {page} / {meta.total_pages}</span>
-                  <button disabled={page >= meta.total_pages} onClick={() => setPage(page + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
-                </div>
-              )}
+              <Pagination page={page} totalPages={meta.total_pages} onPageChange={setPage} />
             </>
           )}
         </div>

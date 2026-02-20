@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
-import { ScrollText, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ScrollText, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
-
-const ACTION_BADGE = { create: 'badge-success', update: 'badge-info', delete: 'badge-danger' };
-const ACTION_LABELS = { create: 'Création', update: 'Modification', delete: 'Suppression' };
+import { ACTION_LABELS, ACTION_BADGES as ACTION_BADGE } from '../../utils';
+import { LoadingSpinner, Pagination, EmptyState } from '../../components/ui';
 
 export default function AdminAuditLogsPage() {
   const [logs, setLogs] = useState([]);
@@ -69,13 +68,10 @@ export default function AdminAuditLogsPage() {
       <div className="admin-layout">
         <div>
           {loading ? (
-            <div className="page-loading"><div className="spinner" /></div>
+            <LoadingSpinner />
           ) : logs.length === 0 ? (
             <div className="card">
-              <div className="empty-state">
-                <ScrollText size={48} />
-                <p>Aucun log d'audit</p>
-              </div>
+              <EmptyState icon={ScrollText} message="Aucun log d'audit" />
             </div>
           ) : (
             <>
@@ -100,13 +96,7 @@ export default function AdminAuditLogsPage() {
                   </tbody>
                 </table>
               </div>
-              {meta.total_pages > 1 && (
-                <div className="pagination">
-                  <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
-                  <span>Page {page} / {meta.total_pages}</span>
-                  <button disabled={page >= meta.total_pages} onClick={() => setPage(page + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
-                </div>
-              )}
+              <Pagination page={page} totalPages={meta.total_pages} onPageChange={setPage} />
             </>
           )}
         </div>

@@ -1,22 +1,58 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import { withRolePath } from './utils';
 
-/** Redirige un admin vers la page admin équivalente */
-function AdminRedirect({ adminPath, children }) {
-  const { user, loading } = useAuth();
-  if (loading) return null;
-  if (user?.role === 'administrateur') return <Navigate to={adminPath} replace />;
-  return children;
-}
+// Auth
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 
-/** Redirige vers le tableau de bord adapté au rôle après login / accès à / */
+// Admin pages
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage';
+import AdminPropertiesPage from './pages/admin/AdminPropertiesPage';
+import AdminProjectsPage from './pages/admin/AdminProjectsPage';
+import AdminProjectDetailPage from './pages/admin/AdminProjectDetailPage';
+import AdminInvestmentsPage from './pages/admin/AdminInvestmentsPage';
+import AdminTransactionsPage from './pages/admin/AdminTransactionsPage';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import AdminWalletPage from './pages/admin/AdminWalletPage';
+import AdminProfilePage from './pages/admin/AdminProfilePage';
+import AdminCreateProjectPage from './pages/admin/AdminCreateProjectPage';
+import AdminEditProjectPage from './pages/admin/AdminEditProjectPage';
+import AdminDividendDetailPage from './pages/admin/AdminDividendDetailPage';
+
+// Investor pages
+import InvestorDashboardPage from './pages/investor/InvestorDashboardPage';
+import InvestorPropertiesPage from './pages/investor/InvestorPropertiesPage';
+import InvestorProjectsPage from './pages/investor/InvestorProjectsPage';
+import InvestorProjectDetailPage from './pages/investor/InvestorProjectDetailPage';
+import InvestorWalletPage from './pages/investor/InvestorWalletPage';
+import InvestorProfilePage from './pages/investor/InvestorProfilePage';
+import InvestorKycPage from './pages/investor/InvestorKycPage';
+import InvestorInvestmentsPage from './pages/investor/InvestorInvestmentsPage';
+import InvestorDividendDetailPage from './pages/investor/InvestorDividendDetailPage';
+
+// Porteur pages
+import PorteurDashboardPage from './pages/porteur/PorteurDashboardPage';
+import PorteurPropertiesPage from './pages/porteur/PorteurPropertiesPage';
+import PorteurProjectsPage from './pages/porteur/PorteurProjectsPage';
+import PorteurProjectDetailPage from './pages/porteur/PorteurProjectDetailPage';
+import PorteurCreateProjectPage from './pages/porteur/PorteurCreateProjectPage';
+import PorteurEditProjectPage from './pages/porteur/PorteurEditProjectPage';
+import PorteurDividendDetailPage from './pages/porteur/PorteurDividendDetailPage';
+import PorteurWalletPage from './pages/porteur/PorteurWalletPage';
+import PorteurProfilePage from './pages/porteur/PorteurProfilePage';
+import PorteurKycPage from './pages/porteur/PorteurKycPage';
+
 function DashboardRedirect() {
   const { user, loading } = useAuth();
 
-  // Attendre que le profil soit chargé avant de rediriger
   if (loading) {
     return (
       <div className="loading-screen">
@@ -27,152 +63,221 @@ function DashboardRedirect() {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  if (user?.role === 'administrateur') return <Navigate to="/admin/dashboard" replace />;
-  if (user?.role === 'investisseur') return <Navigate to="/projects" replace />;
-  return <Navigate to="/dashboard" replace />;
+  return <Navigate to={withRolePath(user.role, 'dashboard')} replace />;
 }
 
-// Auth
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
-import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+function LegacyRoleRedirect({ suffix, allowAdmin = true }) {
+  const { user, loading } = useAuth();
 
-// Dashboard
-import DashboardPage from './pages/dashboard/DashboardPage';
-import WalletPage from './pages/dashboard/WalletPage';
-import PropertiesPage from './pages/dashboard/PropertiesPage';
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!allowAdmin && user.role === 'administrateur') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
 
-// Projects & Investments
-import ProjectsPage from './pages/projects/ProjectsPage';
-import ProjectDetailPage from './pages/projects/ProjectDetailPage';
-import DividendDetailPage from './pages/projects/DividendDetailPage';
-import CreateProjectPage from './pages/projects/CreateProjectPage';
-import EditProjectPage from './pages/projects/EditProjectPage';
-import MyInvestmentsPage from './pages/investments/MyInvestmentsPage';
+  return <Navigate to={withRolePath(user.role, suffix)} replace />;
+}
 
-// Profile
-import ProfilePage from './pages/profile/ProfilePage';
-import KycPage from './pages/profile/KycPage';
+function LegacyProjectDetailRedirect() {
+  const { id } = useParams();
+  return <LegacyRoleRedirect suffix={`projects/${id}`} />;
+}
 
-// Admin
-import AdminDashboardPage from './pages/admin/AdminDashboardPage';
-import AdminUsersPage from './pages/admin/AdminUsersPage';
-import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage';
-import AdminPropertiesPage from './pages/admin/AdminPropertiesPage';
-import AdminProjectsPage from './pages/admin/AdminProjectsPage';
-import AdminInvestmentsPage from './pages/admin/AdminInvestmentsPage';
-import AdminTransactionsPage from './pages/admin/AdminTransactionsPage';
-import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+function LegacyProjectEditRedirect() {
+  const { id } = useParams();
+  return <LegacyRoleRedirect suffix={`projects/${id}/edit`} allowAdmin={false} />;
+}
+
+function LegacyDividendRedirect() {
+  const { projectId, dividendId } = useParams();
+  return <LegacyRoleRedirect suffix={`projects/${projectId}/dividends/${dividendId}`} />;
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Toaster position="top-right" toastOptions={{ duration: 4000, style: { borderRadius: '10px', background: '#1a1a2e', color: '#fff', fontSize: '.875rem' } }} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              borderRadius: '10px',
+              background: '#1a1a2e',
+              color: '#fff',
+              fontSize: '.875rem',
+            },
+          }}
+        />
+
         <Routes>
-          {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-          {/* Protected routes */}
           <Route
-            element={
+            element={(
               <ProtectedRoute>
                 <Layout />
               </ProtectedRoute>
-            }
+            )}
           >
-            <Route path="/dashboard" element={<AdminRedirect adminPath="/admin/dashboard"><DashboardPage /></AdminRedirect>} />
-            <Route path="/wallet" element={<WalletPage />} />
-            <Route path="/properties" element={<AdminRedirect adminPath="/admin/properties"><PropertiesPage /></AdminRedirect>} />
-            <Route path="/projects" element={<AdminRedirect adminPath="/admin/projects"><ProjectsPage /></AdminRedirect>} />
-            <Route path="/projects/new" element={<CreateProjectPage />} />
-            <Route path="/projects/:id/edit" element={<EditProjectPage />} />
-            <Route path="/projects/:projectId/dividends/:dividendId" element={<DividendDetailPage />} />
-            <Route path="/projects/:id" element={<ProjectDetailPage />} />
-            <Route path="/investments" element={<AdminRedirect adminPath="/admin/investments"><MyInvestmentsPage /></AdminRedirect>} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/kyc" element={<KycPage />} />
-
-            {/* Admin routes */}
             <Route
               path="/admin/dashboard"
-              element={
-                <ProtectedRoute roles={['administrateur']}>
-                  <AdminDashboardPage />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute roles={['administrateur']}><AdminDashboardPage /></ProtectedRoute>}
             />
             <Route
               path="/admin/users"
-              element={
-                <ProtectedRoute roles={['administrateur']}>
-                  <AdminUsersPage />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute roles={['administrateur']}><AdminUsersPage /></ProtectedRoute>}
             />
             <Route
               path="/admin/properties"
-              element={
-                <ProtectedRoute roles={['administrateur']}>
-                  <AdminPropertiesPage />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute roles={['administrateur']}><AdminPropertiesPage /></ProtectedRoute>}
             />
             <Route
               path="/admin/projects"
-              element={
-                <ProtectedRoute roles={['administrateur']}>
-                  <AdminProjectsPage />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute roles={['administrateur']}><AdminProjectsPage /></ProtectedRoute>}
             />
-            {/* <Route
+            <Route
+              path="/admin/projects/new"
+              element={<ProtectedRoute roles={['administrateur']}><AdminCreateProjectPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/admin/projects/:id"
+              element={<ProtectedRoute roles={['administrateur']}><AdminProjectDetailPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/admin/projects/:id/edit"
+              element={<ProtectedRoute roles={['administrateur']}><AdminEditProjectPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/admin/projects/:projectId/dividends/:dividendId"
+              element={<ProtectedRoute roles={['administrateur']}><AdminDividendDetailPage /></ProtectedRoute>}
+            />
+            <Route
               path="/admin/projects/:id/mvp-report"
-              element={
-                <ProtectedRoute roles={['administrateur']}>
-                  <AdminMvpReportPage />
-                </ProtectedRoute>
-              }
-            /> */}
+              element={<ProtectedRoute roles={['administrateur']}><Navigate to="/admin/projects" replace /></ProtectedRoute>}
+            />
             <Route
               path="/admin/investments"
-              element={
-                <ProtectedRoute roles={['administrateur']}>
-                  <AdminInvestmentsPage />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute roles={['administrateur']}><AdminInvestmentsPage /></ProtectedRoute>}
             />
             <Route
               path="/admin/transactions"
-              element={
-                <ProtectedRoute roles={['administrateur']}>
-                  <AdminTransactionsPage />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute roles={['administrateur']}><AdminTransactionsPage /></ProtectedRoute>}
             />
             <Route
               path="/admin/audit"
-              element={
-                <ProtectedRoute roles={['administrateur']}>
-                  <AdminAuditLogsPage />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute roles={['administrateur']}><AdminAuditLogsPage /></ProtectedRoute>}
             />
             <Route
               path="/admin/settings"
-              element={
-                <ProtectedRoute roles={['administrateur']}>
-                  <AdminSettingsPage />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute roles={['administrateur']}><AdminSettingsPage /></ProtectedRoute>}
             />
+            <Route
+              path="/admin/wallet"
+              element={<ProtectedRoute roles={['administrateur']}><AdminWalletPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/admin/profile"
+              element={<ProtectedRoute roles={['administrateur']}><AdminProfilePage /></ProtectedRoute>}
+            />
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+
+            <Route
+              path="/investor/dashboard"
+              element={<ProtectedRoute roles={['investisseur']}><InvestorDashboardPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/investor/wallet"
+              element={<ProtectedRoute roles={['investisseur']}><InvestorWalletPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/investor/properties"
+              element={<ProtectedRoute roles={['investisseur']}><InvestorPropertiesPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/investor/projects"
+              element={<ProtectedRoute roles={['investisseur']}><InvestorProjectsPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/investor/projects/:id"
+              element={<ProtectedRoute roles={['investisseur']}><InvestorProjectDetailPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/investor/projects/:projectId/dividends/:dividendId"
+              element={<ProtectedRoute roles={['investisseur']}><InvestorDividendDetailPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/investor/investments"
+              element={<ProtectedRoute roles={['investisseur']}><InvestorInvestmentsPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/investor/profile"
+              element={<ProtectedRoute roles={['investisseur']}><InvestorProfilePage /></ProtectedRoute>}
+            />
+            <Route
+              path="/investor/kyc"
+              element={<ProtectedRoute roles={['investisseur']}><InvestorKycPage /></ProtectedRoute>}
+            />
+            <Route path="/investor" element={<Navigate to="/investor/dashboard" replace />} />
+
+            <Route
+              path="/porteur/dashboard"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurDashboardPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/porteur/wallet"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurWalletPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/porteur/properties"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurPropertiesPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/porteur/projects"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurProjectsPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/porteur/projects/new"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurCreateProjectPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/porteur/projects/:id/edit"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurEditProjectPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/porteur/projects/:id"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurProjectDetailPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/porteur/projects/:projectId/dividends/:dividendId"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurDividendDetailPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/porteur/profile"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurProfilePage /></ProtectedRoute>}
+            />
+            <Route
+              path="/porteur/kyc"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurKycPage /></ProtectedRoute>}
+            />
+            <Route path="/porteur" element={<Navigate to="/porteur/dashboard" replace />} />
+
+            <Route path="/dashboard" element={<LegacyRoleRedirect suffix="dashboard" />} />
+            <Route path="/wallet" element={<LegacyRoleRedirect suffix="wallet" />} />
+            <Route path="/properties" element={<LegacyRoleRedirect suffix="properties" />} />
+            <Route path="/projects" element={<LegacyRoleRedirect suffix="projects" />} />
+            <Route path="/projects/new" element={<LegacyRoleRedirect suffix="projects/new" allowAdmin={false} />} />
+            <Route path="/projects/:id/edit" element={<LegacyProjectEditRedirect />} />
+            <Route path="/projects/:id" element={<LegacyProjectDetailRedirect />} />
+            <Route path="/projects/:projectId/dividends/:dividendId" element={<LegacyDividendRedirect />} />
+            <Route path="/investments" element={<LegacyRoleRedirect suffix="investments" allowAdmin={false} />} />
+            <Route path="/profile" element={<LegacyRoleRedirect suffix="profile" />} />
+            <Route path="/kyc" element={<LegacyRoleRedirect suffix="kyc" allowAdmin={false} />} />
           </Route>
 
-          {/* Redirect root to dashboard selon le rôle */}
           <Route path="/" element={<DashboardRedirect />} />
           <Route path="*" element={<DashboardRedirect />} />
         </Routes>

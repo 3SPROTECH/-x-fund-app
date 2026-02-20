@@ -4,6 +4,8 @@ import { investmentProjectsApi } from '../../api/investments';
 import { useAuth } from '../../context/AuthContext';
 import { ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { LoadingSpinner } from '../../components/ui';
+import { withRolePath } from '../../utils';
 
 export default function EditProjectPage() {
   const { id } = useParams();
@@ -54,7 +56,7 @@ export default function EditProjectPage() {
       });
     } catch (err) {
       toast.error('Erreur lors du chargement du projet');
-      navigate(user?.role === 'administrateur' ? '/admin/projects' : '/projects');
+      navigate(withRolePath(user?.role, 'projects'));
     } finally {
       setLoading(false);
     }
@@ -119,7 +121,7 @@ export default function EditProjectPage() {
 
       await investmentProjectsApi.update(id, data);
       toast.success('Projet mis à jour avec succès !');
-      navigate(`/projects/${id}`);
+      navigate(withRolePath(user?.role, `projects/${id}`));
     } catch (err) {
       const res = err.response;
       const msg = res?.data?.errors?.join(', ') || res?.data?.error || 'Erreur lors de la mise à jour';
@@ -148,18 +150,12 @@ export default function EditProjectPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="page-loading">
-        <div className="spinner" />
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="page">
       <div style={{ marginBottom: '2rem' }}>
-        <button className="btn btn-ghost" onClick={() => navigate(`/projects/${id}`)}>
+        <button className="btn btn-ghost" onClick={() => navigate(withRolePath(user?.role, `projects/${id}`))}>
           <ArrowLeft size={16} /> Retour au projet
         </button>
       </div>
@@ -354,7 +350,7 @@ export default function EditProjectPage() {
           <button
             type="button"
             className="btn btn-ghost"
-            onClick={() => navigate(`/projects/${id}`)}
+            onClick={() => navigate(withRolePath(user?.role, `projects/${id}`))}
             disabled={submitting}
           >
             Annuler

@@ -1,34 +1,20 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import {
-  Building, Trash2, ChevronLeft, ChevronRight,
+  Building, Trash2,
   Search, MapPin, Home, Plus, Pencil, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
 import FormSelect from '../../components/FormSelect';
-
-const STATUS_LABELS = {
-  brouillon: 'Brouillon', en_financement: 'En financement', finance: 'Financé',
-  en_gestion: 'En gestion', vendu: 'Vendu', annule: 'Annulé',
-};
-const STATUS_BADGE = {
-  brouillon: 'badge-warning', en_financement: 'badge-info', finance: 'badge-success',
-  en_gestion: 'badge-primary', vendu: 'badge', annule: 'badge-danger',
-};
-const TYPE_LABELS = {
-  appartement: 'Appartement', maison: 'Maison', immeuble: 'Immeuble',
-  commercial: 'Commercial', terrain: 'Terrain',
-};
-
-const EMPTY_PROPERTY = {
-  title: '', description: '', property_type: 'appartement', address_line1: '', address_line2: '',
-  city: '', postal_code: '', country: 'France', surface_area_sqm: '', acquisition_price_cents: '',
-  estimated_value_cents: '', status: 'brouillon', number_of_lots: '', lots: [],
-};
-
-const fmt = (cents) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100);
+import {
+  formatBalance as fmt,
+  PROPERTY_STATUS_LABELS as STATUS_LABELS,
+  PROPERTY_STATUS_BADGES as STATUS_BADGE,
+  PROPERTY_TYPE_LABELS as TYPE_LABELS,
+  EMPTY_PROPERTY,
+} from '../../utils';
+import { LoadingSpinner, Pagination, EmptyState } from '../../components/ui';
 
 export default function AdminPropertiesPage() {
   const [properties, setProperties] = useState([]);
@@ -224,13 +210,10 @@ export default function AdminPropertiesPage() {
       <div className="admin-layout">
         <div>
           {loading ? (
-            <div className="page-loading"><div className="spinner" /></div>
+            <LoadingSpinner />
           ) : properties.length === 0 ? (
             <div className="card">
-              <div className="empty-state">
-                <Search size={48} />
-                <p>Aucun bien trouvé</p>
-              </div>
+              <EmptyState icon={Search} message="Aucun bien trouvé" />
             </div>
           ) : (
             <>
@@ -263,13 +246,7 @@ export default function AdminPropertiesPage() {
                 </table>
               </div>
 
-              {meta.total_pages > 1 && (
-                <div className="pagination">
-                  <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
-                  <span>Page {page} / {meta.total_pages}</span>
-                  <button disabled={page >= meta.total_pages} onClick={() => setPage(page + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
-                </div>
-              )}
+              <Pagination page={page} totalPages={meta.total_pages} onPageChange={setPage} />
             </>
           )}
         </div>

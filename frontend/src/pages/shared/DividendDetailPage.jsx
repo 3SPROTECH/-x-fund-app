@@ -4,13 +4,8 @@ import { dividendsApi } from '../../api/dividends';
 import { useAuth } from '../../context/AuthContext';
 import { ArrowLeft, DollarSign, Calendar, Users, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const STATUS_LABELS = { planifie: 'Planifié', distribue: 'Distribué', annule: 'Annulé' };
-const STATUS_BADGE = { planifie: 'badge-warning', distribue: 'badge-success', annule: 'badge-danger' };
-const PAYMENT_STATUS = { en_attente: 'En attente', verse: 'Versé', echoue: 'Échoué' };
-
-const fmt = (c) => c == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(c / 100);
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+import { formatCents as fmt, formatDate as fmtDate, DIVIDEND_STATUS_LABELS as STATUS_LABELS, DIVIDEND_STATUS_BADGES as STATUS_BADGE, PAYMENT_STATUS_LABELS as PAYMENT_STATUS, withRolePath } from '../../utils';
+import { LoadingSpinner, EmptyState } from '../../components/ui';
 
 export default function DividendDetailPage() {
   const { projectId, dividendId } = useParams();
@@ -66,14 +61,14 @@ export default function DividendDetailPage() {
     }
   };
 
-  if (loading) return <div className="page-loading"><div className="spinner" /></div>;
+  if (loading) return <LoadingSpinner />;
   if (!dividend) return <div className="page"><div className="card"><p>Dividende introuvable</p></div></div>;
 
   const a = dividend.attributes || dividend;
 
   return (
     <div className="page">
-      <button className="btn btn-ghost" onClick={() => navigate(`/projects/${projectId}`)} style={{ marginBottom: '1rem' }}>
+      <button className="btn btn-ghost" onClick={() => navigate(withRolePath(user?.role, `projects/${projectId}`))} style={{ marginBottom: '1rem' }}>
         <ArrowLeft size={16} /> Retour au projet
       </button>
 

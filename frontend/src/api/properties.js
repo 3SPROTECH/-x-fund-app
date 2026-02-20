@@ -9,16 +9,12 @@ export const propertiesApi = {
     return client.get(`/properties/${id}`);
   },
 
-  create(formData) {
-    return client.post('/properties', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+  create(data) {
+    return client.post('/properties', data);
   },
 
-  update(id, formData) {
-    return client.patch(`/properties/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+  update(id, data) {
+    return client.patch(`/properties/${id}`, data);
   },
 
   delete(id) {

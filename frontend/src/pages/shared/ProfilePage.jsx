@@ -3,6 +3,8 @@ import { profileApi } from '../../api/profile';
 import { useAuth } from '../../context/AuthContext';
 import { Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { KYC_STATUS_LABELS } from '../../utils';
+import { LoadingSpinner } from '../../components/ui';
 
 export default function ProfilePage() {
   const { user, refreshProfile } = useAuth();
@@ -48,7 +50,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) return <div className="page-loading"><div className="spinner" /></div>;
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="page">
@@ -139,7 +141,7 @@ export default function ProfilePage() {
                 <div className="detail-row">
                   <span>KYC</span>
                   <span className={`badge kyc-${user?.kyc_status || 'pending'}`}>
-                    {{ pending: 'En attente', submitted: 'Soumis', verified: 'Vérifié', rejected: 'Rejeté' }[user?.kyc_status] || 'En attente'}
+                    {KYC_STATUS_LABELS[user?.kyc_status] || 'En attente'}
                   </span>
                 </div>
               )}

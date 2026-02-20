@@ -3,26 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { investmentProjectsApi } from '../../api/investments';
 import { projectDraftsApi } from '../../api/projectDrafts';
 import { useAuth } from '../../context/AuthContext';
-import { TrendingUp, MapPin, ChevronLeft, ChevronRight, Plus, Calendar, Image as ImageIcon, Trash2, FileEdit, Clock } from 'lucide-react';
+import { TrendingUp, MapPin, Plus, Calendar, Image as ImageIcon, Trash2, FileEdit, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../api/client';
 import TableFilters from '../../components/TableFilters';
-
-const STATUS_LABELS = {
-  draft: 'Brouillon', pending_analysis: 'En Analyse', info_requested: 'Compléments requis',
-  rejected: 'Refusé', approved: 'Approuvé', legal_structuring: 'Montage Juridique',
-  signing: 'En Signature', funding_active: 'En Collecte', funded: 'Financé',
-  under_construction: 'En Travaux', operating: 'En Exploitation', repaid: 'Remboursé',
-};
-const STATUS_BADGE = {
-  draft: 'badge-warning', pending_analysis: 'badge-info', info_requested: 'badge-warning',
-  rejected: 'badge-danger', approved: 'badge-success', legal_structuring: 'badge-info',
-  signing: 'badge-info', funding_active: 'badge-success', funded: 'badge-success',
-  under_construction: 'badge-warning', operating: 'badge-info', repaid: 'badge-success',
-};
-
-const formatCents = (c) => c == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(c / 100);
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+import { formatCents, formatDate as fmtDate, PROJECT_STATUS_LABELS as STATUS_LABELS, PROJECT_STATUS_BADGES as STATUS_BADGE } from '../../utils';
+import { LoadingSpinner, EmptyState, Pagination } from '../../components/ui';
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
@@ -99,7 +85,7 @@ export default function ProjectsPage() {
           <p className="text-muted">Découvrez les opportunités et suivez l'avancement du financement</p>
         </div>
         {canCreateProject && (
-          <button type="button" className="btn gold-color" onClick={() => navigate('/projects/new')}>
+          <button type="button" className="btn gold-color" onClick={() => navigate('/porteur/projects/new')}>
             <Plus size={16} /> Créer un projet
           </button>
         )}
@@ -135,7 +121,7 @@ export default function ProjectsPage() {
               const updatedAt = draft.updated_at ? new Date(draft.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
 
               return (
-                <div key={`draft-${draft.id}`} className="project-card" onClick={() => navigate(`/projects/new?draft=${draft.id}`)} style={{ cursor: 'pointer' }}>
+                <div key={`draft-${draft.id}`} className="project-card" onClick={() => navigate(`/porteur/projects/new?draft=${draft.id}`)} style={{ cursor: 'pointer' }}>
                   <div style={{
                     width: '100%',
                     aspectRatio: '16/9',
@@ -177,18 +163,16 @@ export default function ProjectsPage() {
       )}
 
       {loading ? (
-        <div className="page-loading"><div className="spinner" /></div>
+        <LoadingSpinner />
       ) : projects.length === 0 ? (
         <div className="card">
-          <div className="empty-state">
-            <TrendingUp size={48} />
-            <p>Aucun projet disponible</p>
+          <EmptyState icon={TrendingUp} message="Aucun projet disponible">
             {canCreateProject && (
-              <button type="button" className="btn btn-primary" onClick={() => navigate('/properties')}>
+              <button type="button" className="btn btn-primary" onClick={() => navigate('/porteur/properties')}>
                 <Plus size={16} /> Créer un projet depuis Mes biens
               </button>
             )}
-          </div>
+          </EmptyState>
         </div>
       ) : (
         <>
@@ -205,8 +189,8 @@ export default function ProjectsPage() {
               // Navigate to read-only form for owner's draft or pending_analysis projects
               const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis');
               const cardHref = showForm
-                ? `/projects/new?project=${p.id}`
-                : `/projects/${p.id}`;
+                ? `/porteur/projects/new?project=${p.id}`
+                : `/porteur/projects/${p.id}`;
 
               return (
                 <div key={p.id} className="project-card" onClick={() => navigate(cardHref)}>
@@ -315,13 +299,7 @@ export default function ProjectsPage() {
               );
             })}
           </div>
-          {meta.total_pages > 1 && (
-            <div className="pagination">
-              <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="btn btn-sm"><ChevronLeft size={16} /></button>
-              <span>Page {page} / {meta.total_pages}</span>
-              <button disabled={page >= meta.total_pages} onClick={() => setPage(page + 1)} className="btn btn-sm"><ChevronRight size={16} /></button>
-            </div>
-          )}
+          <Pagination page={page} totalPages={meta.total_pages} onPageChange={setPage} />
         </>
       )}
     </div>

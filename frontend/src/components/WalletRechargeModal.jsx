@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, CreditCard, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { walletApi } from '../api/wallet';
+import useWalletStore from '../stores/useWalletStore';
 
 export default function WalletRechargeModal({ isOpen, onClose, onSuccess }) {
   const [amount, setAmount] = useState('');
@@ -27,6 +28,7 @@ export default function WalletRechargeModal({ isOpen, onClose, onSuccess }) {
       await walletApi.deposit(amountCents);
       toast.success(`${amountNum.toFixed(2)} € ajoutés à votre portefeuille`);
       setAmount('');
+      useWalletStore.getState().fetchWallet();
       onSuccess && onSuccess();
       onClose();
     } catch (err) {

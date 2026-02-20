@@ -5,7 +5,8 @@ import {
   LayoutDashboard, TrendingUp, Briefcase, User, LogOut, FileCheck, ChevronDown, Plus, Wallet, Menu, X
 } from 'lucide-react';
 import WalletRechargeModal from './WalletRechargeModal';
-import { walletApi } from '../api/wallet';
+import useWalletStore from '../stores/useWalletStore';
+import { formatBalance, ROLE_LABELS } from '../utils';
 
 export default function Navbar() {
   const { user, signOut } = useAuth();
@@ -14,7 +15,9 @@ export default function Navbar() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
-  const [walletBalance, setWalletBalance] = useState(0);
+  const { wallet, fetchWallet } = useWalletStore();
+  const investorBase = '/investor';
+  const walletBalance = wallet?.balance_cents || 0;
   const profileRef = useRef(null);
 
   // Fermer le menu mobile lors du changement de page
@@ -34,45 +37,18 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    loadWalletBalance();
+    fetchWallet();
   }, []);
-
-  const loadWalletBalance = async () => {
-    try {
-      const res = await walletApi.getWallet();
-      const wallet = res.data.data?.attributes || res.data;
-      setWalletBalance(wallet.balance_cents || 0);
-    } catch (err) {
-      console.error('Erreur chargement wallet:', err);
-    }
-  };
-
-  const handleWalletRechargeSuccess = () => {
-    loadWalletBalance();
-  };
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
   };
 
-  const roleLabel = {
-    investisseur: 'Investisseur',
-    porteur_de_projet: 'Porteur de projet',
-    administrateur: 'Administrateur',
-  };
-
   const getInitials = () => {
     const first = user?.first_name?.charAt(0) || '';
     const last = user?.last_name?.charAt(0) || '';
     return (first + last).toUpperCase() || 'U';
-  };
-
-  const formatBalance = (cents) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format((cents || 0) / 100);
   };
 
   return (
@@ -88,7 +64,7 @@ export default function Navbar() {
           </button>
 
           {/* Logo */}
-          <div className="navbar-brand" onClick={() => navigate('/projects')}>
+          <div className="navbar-brand" onClick={() => navigate(`${investorBase}/projects`)}>
             <div className="brand-text">
               <span className="brand-title">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
               <span className="brand-subtitle">Plateforme d'investissement</span>
@@ -97,19 +73,19 @@ export default function Navbar() {
 
           {/* Navigation desktop */}
           <div className="navbar-nav">
-            <NavLink to="/dashboard" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            <NavLink to={`${investorBase}/dashboard`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
               <div className="nav-link-content">
                 <LayoutDashboard size={18} />
                 <span>Tableau de bord</span>
               </div>
             </NavLink>
-            <NavLink to="/projects" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            <NavLink to={`${investorBase}/projects`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
               <div className="nav-link-content">
                 <TrendingUp size={18} />
                 <span>Projets</span>
               </div>
             </NavLink>
-            <NavLink to="/investments" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            <NavLink to={`${investorBase}/investments`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
               <div className="nav-link-content">
                 <Briefcase size={18} />
                 <span>Investissements</span>
@@ -152,27 +128,27 @@ export default function Navbar() {
                     <div className="profile-header-info">
                       <h4>{user?.first_name} {user?.last_name}</h4>
                       <p>{user?.email}</p>
-                      <span className="role-badge">{roleLabel[user?.role]}</span>
+                      <span className="role-badge">{ROLE_LABELS[user?.role]}</span>
                     </div>
                   </div>
 
                   <div className="profile-menu-section">
                     <span className="section-label">Mon Compte</span>
-                    <NavLink to="/wallet" className="menu-item" onClick={() => setShowProfileMenu(false)}>
+                    <NavLink to={`${investorBase}/wallet`} className="menu-item" onClick={() => setShowProfileMenu(false)}>
                       <div className="menu-item-icon"><Wallet size={18} /></div>
                       <div className="menu-item-content">
                         <span>Portefeuille</span>
                         <small>Gérer mon solde</small>
                       </div>
                     </NavLink>
-                    <NavLink to="/profile" className="menu-item" onClick={() => setShowProfileMenu(false)}>
+                    <NavLink to={`${investorBase}/profile`} className="menu-item" onClick={() => setShowProfileMenu(false)}>
                       <div className="menu-item-icon"><User size={18} /></div>
                       <div className="menu-item-content">
                         <span>Mon Profil</span>
                         <small>Gérer mes informations</small>
                       </div>
                     </NavLink>
-                    <NavLink to="/kyc" className="menu-item" onClick={() => setShowProfileMenu(false)}>
+                    <NavLink to={`${investorBase}/kyc`} className="menu-item" onClick={() => setShowProfileMenu(false)}>
                       <div className="menu-item-icon"><FileCheck size={18} /></div>
                       <div className="menu-item-content">
                         <span>Vérification KYC</span>
@@ -196,21 +172,21 @@ export default function Navbar() {
         {/* Menu mobile déroulant */}
         {showMobileMenu && (
           <div className="mobile-menu-dropdown">
-            <NavLink to="/wallet" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
+            <NavLink to={`${investorBase}/wallet`} className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
               <Wallet size={20} />
               <div>
                 <span>Portefeuille</span>
                 <small>{formatBalance(walletBalance)}</small>
               </div>
             </NavLink>
-            <NavLink to="/profile" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
+            <NavLink to={`${investorBase}/profile`} className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
               <User size={20} />
               <div>
                 <span>Mon Profil</span>
                 <small>{user?.first_name} {user?.last_name}</small>
               </div>
             </NavLink>
-            <NavLink to="/kyc" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
+            <NavLink to={`${investorBase}/kyc`} className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
               <FileCheck size={20} />
               <div>
                 <span>Vérification KYC</span>
@@ -226,11 +202,11 @@ export default function Navbar() {
 
       {/* Bottom Tab Bar mobile */}
       <div className="mobile-bottom-nav">
-        <NavLink to="/dashboard" className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
+        <NavLink to={`${investorBase}/dashboard`} className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
           <LayoutDashboard size={22} />
           <span>Accueil</span>
         </NavLink>
-        <NavLink to="/projects" className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
+        <NavLink to={`${investorBase}/projects`} className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
           <TrendingUp size={22} />
           <span>Projets</span>
         </NavLink>
@@ -240,11 +216,11 @@ export default function Navbar() {
           </div>
           <span>Recharger</span>
         </button>
-        <NavLink to="/investments" className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
+        <NavLink to={`${investorBase}/investments`} className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
           <Briefcase size={22} />
           <span>Invest.</span>
         </NavLink>
-        <NavLink to="/profile" className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
+        <NavLink to={`${investorBase}/profile`} className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
           <User size={22} />
           <span>Profil</span>
         </NavLink>
@@ -253,7 +229,6 @@ export default function Navbar() {
       <WalletRechargeModal
         isOpen={showWalletModal}
         onClose={() => setShowWalletModal(false)}
-        onSuccess={handleWalletRechargeSuccess}
       />
     </>
   );
