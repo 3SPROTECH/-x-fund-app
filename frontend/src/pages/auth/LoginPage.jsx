@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { LogIn } from 'lucide-react';
@@ -7,10 +7,8 @@ import { LogIn } from 'lucide-react';
 export default function LoginPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [submitting, setSubmitting] = useState(false);
-  const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +16,7 @@ export default function LoginPage() {
     try {
       await signIn(form);
       toast.success('Connexion réussie');
-      navigate(from, { replace: true });
+      navigate('/', { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.error || 'Identifiants invalides');
     } finally {
