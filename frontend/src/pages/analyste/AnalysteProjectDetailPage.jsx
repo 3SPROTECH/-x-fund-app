@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { analysteApi } from '../../api/analyste';
 import {
   ArrowLeft, CheckCircle, AlertCircle, XCircle, FileText, DollarSign, Shield,
-  Building, User, Calendar, TrendingUp, Scale, AlertTriangle, MessageSquare,
+  Building, User, Calendar, TrendingUp, Scale, AlertTriangle, MessageSquare, Upload,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatCents, PROJECT_STATUS_LABELS, PROJECT_STATUS_BADGES, ANALYST_OPINION_LABELS, ANALYST_OPINION_BADGES } from '../../utils';
@@ -205,23 +205,68 @@ export default function AnalysteProjectDetailPage() {
               </h3>
               {infoRequests.map((ir) => {
                 const irAttr = ir.attributes || ir;
+                const fields = irAttr.fields || [];
+                const responses = irAttr.responses || {};
+                const hasResponses = Object.keys(responses).length > 0;
                 return (
-                  <div key={ir.id} style={{ padding: '1rem', borderRadius: '8px', background: '#f8f9fa', marginBottom: '.75rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.5rem' }}>
-                      <span className={`badge ${irAttr.status === 'submitted' ? 'badge-success' : irAttr.status === 'reviewed' ? 'badge-info' : 'badge-warning'}`}>
-                        {irAttr.status === 'pending' ? 'En attente' : irAttr.status === 'submitted' ? 'Soumis' : 'Examine'}
-                      </span>
+                  <div key={ir.id} style={{ padding: '1rem', borderRadius: '8px', background: '#f8f9fa', marginBottom: '.75rem', border: '1px solid #e9ecef' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
+                        <span className={`badge ${irAttr.status === 'submitted' ? 'badge-success' : irAttr.status === 'reviewed' ? 'badge-info' : 'badge-warning'}`}>
+                          {irAttr.status === 'pending' ? 'En attente' : irAttr.status === 'submitted' ? 'Soumis' : 'Examine'}
+                        </span>
+                        {irAttr.requested_by_name && <span className="text-muted" style={{ fontSize: '.85rem' }}>par {irAttr.requested_by_name}</span>}
+                      </div>
                       <span className="text-muted" style={{ fontSize: '.85rem' }}>
                         {new Date(irAttr.created_at).toLocaleDateString('fr-FR')}
                       </span>
                     </div>
-                    <div style={{ fontSize: '.9rem' }}>
-                      <strong>{(irAttr.fields || []).length} champ(s) demande(s)</strong>
-                      {irAttr.requested_by_name && <span className="text-muted"> par {irAttr.requested_by_name}</span>}
+
+                    {/* Fields + Responses */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
+                      {fields.map((field, idx) => {
+                        const response = responses[String(idx)];
+                        return (
+                          <div key={idx} style={{ padding: '.5rem .75rem', background: '#fff', borderRadius: '6px', border: '1px solid #dee2e6' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontWeight: 600, fontSize: '.9rem' }}>
+                                {field.label}
+                                {field.required && <span style={{ color: '#dc3545' }}> *</span>}
+                              </span>
+                              <span className="text-muted" style={{ fontSize: '.75rem' }}>
+                                {field.field_type === 'text' ? 'Texte' : field.field_type === 'textarea' ? 'Texte long' : field.field_type === 'number' ? 'Nombre' : 'Fichier'}
+                              </span>
+                            </div>
+                            {field.comment && (
+                              <p style={{ fontSize: '.8rem', color: '#6c757d', margin: '.25rem 0 0' }}>{field.comment}</p>
+                            )}
+                            {hasResponses && (
+                              <div style={{ marginTop: '.5rem', paddingTop: '.5rem', borderTop: '1px solid #e9ecef' }}>
+                                {response ? (
+                                  field.field_type === 'file' ? (
+                                    <a
+                                      href={response}
+                                      download
+                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '.35rem', fontSize: '.85rem', color: '#0d6efd', textDecoration: 'none' }}
+                                    >
+                                      <Upload size={14} /> {response}
+                                    </a>
+                                  ) : (
+                                    <span style={{ fontSize: '.85rem', whiteSpace: 'pre-wrap' }}>{response}</span>
+                                  )
+                                ) : (
+                                  <span style={{ fontSize: '.85rem', color: '#adb5bd', fontStyle: 'italic' }}>Non renseigne</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                    {irAttr.responses && Object.keys(irAttr.responses).length > 0 && (
-                      <div style={{ marginTop: '.5rem', fontSize: '.85rem', color: '#666' }}>
-                        Reponses soumises{irAttr.submitted_at && ` le ${new Date(irAttr.submitted_at).toLocaleDateString('fr-FR')}`}
+
+                    {hasResponses && irAttr.submitted_at && (
+                      <div style={{ marginTop: '.5rem', fontSize: '.8rem', color: '#6c757d', textAlign: 'right' }}>
+                        Reponses soumises le {new Date(irAttr.submitted_at).toLocaleDateString('fr-FR')}
                       </div>
                     )}
                   </div>

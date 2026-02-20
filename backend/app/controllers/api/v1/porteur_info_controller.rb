@@ -3,39 +3,43 @@ module Api
     class PorteurInfoController < ApplicationController
       before_action :require_porteur!
       before_action :set_project
-      before_action :set_info_request, only: [:show, :submit]
-
       # GET /api/v1/porteur/projects/:project_id/info_request
       def show
-        if @info_request
-          render json: {
-            data: InfoRequestSerializer.new(@info_request).serializable_hash[:data]
-          }
-        else
-          render json: { data: nil }
-        end
+        all_requests = @project.info_requests.order(created_at: :desc)
+        render json: {
+          data: all_requests.map { |ir| InfoRequestSerializer.new(ir).serializable_hash[:data] }
+        }
       end
 
       # PATCH /api/v1/porteur/projects/:project_id/info_request/submit
+      # Accepts { submissions: { "ir_id": { "0": "val", ... }, ... } }
       def submit
-        unless @info_request
-          return render json: { errors: ["Aucune demande de compléments trouvée."] }, status: :not_found
-        end
-
-        unless @info_request.ir_pending?
-          return render json: { errors: ["Cette demande a déjà été soumise."] }, status: :unprocessable_entity
-        end
-
-        responses = params[:responses]
-        unless responses.present?
+        submissions = params[:submissions]
+        unless submissions.present?
           return render json: { errors: ["Les réponses sont requises."] }, status: :unprocessable_entity
         end
 
-        @info_request.update!(
-          responses: responses,
-          status: :submitted,
-          submitted_at: Time.current
-        )
+        pending = @project.info_requests.where(status: :pending)
+        if pending.empty?
+          return render json: { errors: ["Aucune demande de compléments en attente."] }, status: :not_found
+        end
+
+        submitted_requests = []
+        pending.each do |ir|
+          ir_responses = submissions[ir.id.to_s]
+          next unless ir_responses.present?
+
+          ir.update!(
+            responses: ir_responses,
+            status: :submitted,
+            submitted_at: Time.current
+          )
+          submitted_requests << ir
+        end
+
+        if submitted_requests.empty?
+          return render json: { errors: ["Aucune réponse fournie pour les demandes en attente."] }, status: :unprocessable_entity
+        end
 
         @project.update!(
           status: :info_resubmitted,
@@ -44,7 +48,7 @@ module Api
 
         render json: {
           message: "Compléments d'information soumis avec succès.",
-          data: InfoRequestSerializer.new(@info_request).serializable_hash[:data]
+          data: submitted_requests.map { |ir| InfoRequestSerializer.new(ir).serializable_hash[:data] }
         }
       end
 
@@ -61,10 +65,6 @@ module Api
         unless @project.owner_id == current_user.id
           render json: { error: "Vous n'êtes pas le propriétaire de ce projet." }, status: :forbidden
         end
-      end
-
-      def set_info_request
-        @info_request = @project.info_requests.order(created_at: :desc).first
       end
     end
   end

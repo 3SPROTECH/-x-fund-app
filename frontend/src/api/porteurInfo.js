@@ -5,7 +5,7 @@ export const porteurInfoApi = {
     return client.get(`/porteur/projects/${projectId}/info_request`);
   },
 
-  submitInfoResponse(projectId, responses) {
-    return client.patch(`/porteur/projects/${projectId}/info_request/submit`, { responses });
+  submitInfoResponse(projectId, submissions) {
+    return client.patch(`/porteur/projects/${projectId}/info_request/submit`, { submissions });
   },
 };
