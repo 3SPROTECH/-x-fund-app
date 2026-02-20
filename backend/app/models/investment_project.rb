@@ -12,6 +12,7 @@ class InvestmentProject < ApplicationRecord
   has_many :financial_statements, dependent: :destroy
   has_many :mvp_reports, dependent: :destroy
   has_many :demo_info_requests, dependent: :destroy
+  has_many :project_delays, dependent: :destroy
 
   has_one_attached :contrat_obligataire
   has_one_attached :fici_document

@@ -59,6 +59,7 @@ Rails.application.routes.draw do
             patch :submit
           end
         end
+        resources :project_delays, only: [:index, :create]
         resources :investors, only: [:index], controller: "project_investors"
         # Images management for projects
         member do
@@ -66,6 +67,9 @@ Rails.application.routes.draw do
           delete 'delete_image/:image_id', action: :delete_image, as: :delete_image
         end
       end
+
+      # === Project Delays (standalone for show/update/destroy + global index) ===
+      resources :project_delays, only: [:index, :show, :update, :destroy]
 
       # === Investments (user's own) ===
       resources :investments, only: [:index, :show]
