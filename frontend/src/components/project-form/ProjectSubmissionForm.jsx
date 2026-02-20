@@ -284,15 +284,17 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
     try {
       const state = getSerializableState();
       const owner = state.projectOwner;
+      const VALID_CORE_EXPERTISE = ['marchand_biens', 'promoteur', 'renovation', 'gestion_locative', 'autre_expertise'];
+      const VALID_GEO_EXPERIENCE = ['first_operation', 'one_to_three', 'expert_local'];
       await companiesApi.createOrUpdate({
         company_name: owner.companyName,
         legal_form: owner.structure,
         website_url: owner.linkedinUrl,
         years_of_experience: owner.yearsExperience ? parseInt(owner.yearsExperience) : undefined,
-        core_expertise: owner.coreExpertise || undefined,
+        core_expertise: VALID_CORE_EXPERTISE.includes(owner.coreExpertise) ? owner.coreExpertise : undefined,
         completed_operations_count: owner.completedProjects ? parseInt(owner.completedProjects) : undefined,
         managed_volume_cents: owner.businessVolume ? Math.round(parseFloat(owner.businessVolume) * 100) : undefined,
-        geo_experience: owner.geoExperience || undefined,
+        geo_experience: VALID_GEO_EXPERIENCE.includes(owner.geoExperience) ? owner.geoExperience : undefined,
         certifications: owner.certifications || undefined,
         team_description: owner.teamDescription || undefined,
         additional_info: owner.additionalInfo || undefined,
@@ -388,10 +390,10 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         s.updatePresentation('expertName', 'Cabinet Durand Expertise');
         s.updatePresentation('expertDate', '2026-01-15');
         s.updatePresentation('durationMonths', '18');
-        s.updatePresentation('exploitationStrategy', 'revente_lots');
-        s.updatePresentation('marketSegment', 'residentiel_standing');
+        s.updatePresentation('exploitationStrategy', 'resale');
+        s.updatePresentation('marketSegment', 'Résidentiel standing');
         s.updatePresentation('projectedRevenue', '820000');
-        s.updatePresentation('revenuePeriod', 'fin_projet');
+        s.updatePresentation('revenuePeriod', 'annual');
         s.updatePresentation('additionalInfo', 'Quartier en pleine revalorisation, proximité métro.');
         break;
       case 1: // Location
@@ -399,7 +401,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         s.updateLocation('postalCode', '13008');
         s.updateLocation('city', 'Marseille');
         s.updateLocation('neighborhood', 'Rouet - Menpenti');
-        s.updateLocation('zoneTypology', 'urbain_dense');
+        s.updateLocation('zoneTypology', 'hypercentre');
         s.updateLocation('transportAccess', ['metro', 'bus', 'tramway']);
         s.updateLocation('nearbyAmenities', ['commerces', 'ecoles', 'sante']);
         s.updateLocation('strategicAdvantages', 'Quartier en forte revalorisation, proche du Prado et du Vélodrome.');
@@ -409,10 +411,10 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         s.updateProjectOwner('companyName', 'Immo Sud Développement SAS');
         s.updateProjectOwner('linkedinUrl', 'https://linkedin.com/company/immo-sud-dev');
         s.updateProjectOwner('yearsExperience', '8');
-        s.updateProjectOwner('coreExpertise', 'Réhabilitation d\'immeubles anciens en centre-ville');
+        s.updateProjectOwner('coreExpertise', 'renovation');
         s.updateProjectOwner('completedProjects', '12');
         s.updateProjectOwner('businessVolume', '6500000');
-        s.updateProjectOwner('geoExperience', 'Marseille, Aix-en-Provence, Toulon');
+        s.updateProjectOwner('geoExperience', 'expert_local');
         s.updateProjectOwner('certifications', 'RGE, Qualibat');
         s.updateProjectOwner('teamDescription', 'Équipe de 5 personnes : 2 chefs de projet, 1 architecte partenaire, 1 comptable, 1 commercial.');
         s.updateProjectOwner('additionalInfo', 'Partenariat bancaire avec CIC et Crédit Agricole.');
