@@ -1,0 +1,562 @@
+/* ====== Report Viewer Modal ====== */
+:root {
+    --rv-navy: #1a1a2e;
+    --rv-gold: #DAA520;
+    --rv-gold-light: #f5e6b8;
+    --rv-emerald: #10b981;
+    --rv-amber: #f59e0b;
+    --rv-orange: #f97316;
+    --rv-red: #ef4444;
+    --rv-bg: #f8f9fc;
+    --rv-card: #ffffff;
+    --rv-border: #e5e7eb;
+    --rv-text: #1e1e32;
+    --rv-muted: #6b7280;
+}
+
+.rv-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: rv-fade-in 0.2s ease;
+}
+
+@keyframes rv-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.rv-modal {
+    background: var(--rv-bg);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    animation: rv-slide-up 0.3s ease;
+}
+
+@keyframes rv-slide-up {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ====== Header ====== */
+.rv-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    background: var(--rv-navy);
+    border-bottom: 3px solid var(--rv-gold);
+    flex-shrink: 0;
+}
+
+.rv-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: white;
+}
+
+.rv-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+}
+
+.rv-subtitle {
+    font-size: 0.8rem;
+    color: var(--rv-gold);
+    margin: 0;
+}
+
+.rv-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rv-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.rv-btn-gold {
+    background: var(--rv-gold);
+    color: var(--rv-navy);
+}
+
+.rv-btn-gold:hover {
+    background: #c4941c;
+    transform: translateY(-1px);
+}
+
+.rv-btn-gold:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.rv-btn-close {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 0.4rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+}
+
+.rv-btn-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ====== Content ====== */
+.rv-content {
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ====== Score Gauges Row ====== */
+.rv-scores-row {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+.rv-score-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    background: var(--rv-card);
+    border-radius: 12px;
+    border: 1px solid var(--rv-border);
+}
+
+.rv-gauge {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
+
+.rv-gauge-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.rv-gauge-bg {
+    fill: none;
+    stroke: #e5e7eb;
+    stroke-width: 8;
+}
+
+.rv-gauge-fill {
+    fill: none;
+    stroke: var(--gauge-color);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease;
+}
+
+.rv-gauge-value {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rv-gauge-number {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--rv-text);
+}
+
+.rv-gauge-pct {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--rv-muted);
+    margin-top: 0.3rem;
+}
+
+.rv-score-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--rv-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Recommendation card */
+.rv-recommendation-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    background: var(--rv-navy);
+    border-radius: 12px;
+    color: white;
+    border: 2px solid var(--rv-gold);
+}
+
+.rv-recommendation-card svg {
+    color: var(--rv-gold);
+}
+
+.rv-recommendation-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.rv-recommendation-value {
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.rv-rec-good {
+    color: var(--rv-emerald);
+}
+
+.rv-rec-ok {
+    color: var(--rv-amber);
+}
+
+.rv-rec-bad {
+    color: var(--rv-red);
+}
+
+.rv-analyst-name {
+    font-size: 0.75rem;
+    color: var(--rv-gold-light);
+}
+
+.rv-report-date {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* ====== Sections ====== */
+.rv-section {
+    background: var(--rv-card);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid var(--rv-border);
+}
+
+.rv-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--rv-navy);
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--rv-gold);
+}
+
+/* ====== Score Breakdown ====== */
+.rv-scores-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.rv-score-bar-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.rv-score-bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rv-score-bar-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--rv-text);
+}
+
+.rv-score-weight {
+    font-weight: 400;
+    color: var(--rv-muted);
+    font-size: 0.75rem;
+}
+
+.rv-score-bar-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.rv-progress-bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.rv-progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease;
+}
+
+.rv-progress-gold {
+    background: var(--rv-gold) !important;
+}
+
+/* ====== Metrics Grid ====== */
+.rv-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.rv-metric-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background: var(--rv-bg);
+    border-radius: 8px;
+    border: 1px solid var(--rv-border);
+}
+
+.rv-metric-label {
+    font-size: 0.7rem;
+    color: var(--rv-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.rv-metric-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--rv-navy);
+}
+
+/* ====== Cost Breakdown ====== */
+.rv-cost-breakdown {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--rv-border);
+}
+
+.rv-cost-breakdown h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--rv-text);
+    margin: 0 0 0.75rem;
+}
+
+.rv-cost-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rv-cost-bar-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.rv-cost-bar-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+}
+
+.rv-cost-bar-header span:first-child {
+    color: var(--rv-muted);
+    text-transform: capitalize;
+}
+
+.rv-cost-bar-header span:last-child {
+    font-weight: 600;
+    color: var(--rv-text);
+}
+
+/* ====== Risk Factors ====== */
+.rv-risk-factors {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.rv-risk-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.rv-risk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rv-risk-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--rv-text);
+}
+
+.rv-risk-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.rv-risk-detail {
+    font-size: 0.75rem;
+    color: var(--rv-muted);
+}
+
+.rv-risk-summary {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: var(--rv-bg);
+    border-radius: 8px;
+    border: 1px solid var(--rv-border);
+}
+
+.rv-risk-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex: 1;
+}
+
+.rv-risk-summary-item span:first-child {
+    font-size: 0.75rem;
+    color: var(--rv-muted);
+}
+
+.rv-risk-summary-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+/* ====== Guarantees ====== */
+.rv-guarantees-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.rv-guarantee-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.rv-guarantee-yes {
+    background: rgba(16, 185, 129, 0.08);
+    color: var(--rv-emerald);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.rv-guarantee-no {
+    background: rgba(239, 68, 68, 0.06);
+    color: var(--rv-red);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+/* ====== Comment ====== */
+.rv-comment-box {
+    padding: 1rem;
+    background: var(--rv-bg);
+    border-radius: 8px;
+    border-left: 3px solid var(--rv-gold);
+    font-size: 0.9rem;
+    color: var(--rv-text);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 768px) {
+    .rv-modal {
+        max-height: 95vh;
+        border-radius: 12px;
+    }
+
+    .rv-scores-row {
+        grid-template-columns: 1fr;
+    }
+
+    .rv-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .rv-guarantees-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rv-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    .rv-header-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

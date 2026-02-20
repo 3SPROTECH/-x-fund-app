@@ -106,6 +106,8 @@ Rails.application.routes.draw do
             post :request_info
             patch :approve
             patch :reject
+            post :generate_report
+            get :report
           end
         end
       end

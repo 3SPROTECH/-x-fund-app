@@ -4,11 +4,13 @@ import { analysteApi } from '../../api/analyste';
 import {
   ArrowLeft, CheckCircle, AlertCircle, XCircle, FileText, DollarSign, Shield,
   Building, User, Calendar, TrendingUp, Scale, AlertTriangle, MessageSquare, Upload,
+  FileBarChart,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatCents, PROJECT_STATUS_LABELS, PROJECT_STATUS_BADGES, ANALYST_OPINION_LABELS, ANALYST_OPINION_BADGES } from '../../utils';
 import { LoadingSpinner } from '../../components/ui';
 import InfoRequestForm from '../../components/InfoRequestForm';
+import ReportViewerModal from '../../components/ReportViewerModal';
 
 export default function AnalysteProjectDetailPage() {
   const { id } = useParams();
@@ -26,6 +28,9 @@ export default function AnalysteProjectDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showInfoForm, setShowInfoForm] = useState(false);
   const [infoRequests, setInfoRequests] = useState([]);
+  const [reportData, setReportData] = useState(null);
+  const [showReport, setShowReport] = useState(false);
+  const [generatingReport, setGeneratingReport] = useState(false);
 
   useEffect(() => { loadProject(); }, [id]);
 
@@ -67,13 +72,10 @@ export default function AnalysteProjectDetailPage() {
         financial_check: financialCheck,
         risk_check: riskCheck,
       };
-      if (modalAction === 'opinion_approved') {
-        await analysteApi.approveProject(id, data);
-      } else if (modalAction === 'opinion_rejected') {
+      if (modalAction === 'opinion_rejected') {
         await analysteApi.rejectProject(id, data);
       }
       const labels = {
-        opinion_approved: 'Projet valide',
         opinion_rejected: 'Projet refuse',
       };
       toast.success(labels[modalAction] || 'Avis soumis');
@@ -83,6 +85,42 @@ export default function AnalysteProjectDetailPage() {
       toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la soumission');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!comment.trim()) {
+      toast.error('Le commentaire est obligatoire pour generer le rapport');
+      return;
+    }
+    setGeneratingReport(true);
+    try {
+      const data = {
+        comment,
+        legal_check: legalCheck,
+        financial_check: financialCheck,
+        risk_check: riskCheck,
+      };
+      const res = await analysteApi.generateReport(id, data);
+      const report = res.data.report;
+      setReportData(report);
+      setShowReport(true);
+      toast.success('Rapport genere et projet pre-approuve');
+      loadProject();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la generation du rapport');
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
+  const handleViewReport = async () => {
+    try {
+      const res = await analysteApi.getReport(id);
+      setReportData(res.data.report);
+      setShowReport(true);
+    } catch {
+      toast.error('Erreur lors du chargement du rapport');
     }
   };
 
@@ -184,10 +222,10 @@ export default function AnalysteProjectDetailPage() {
               {a.has_gfa && <span className="badge badge-success">GFA</span>}
               {a.has_open_banking && <span className="badge badge-success">Open Banking</span>}
               {!a.has_first_rank_mortgage && !a.has_share_pledge && !a.has_fiducie &&
-               !a.has_interest_escrow && !a.has_works_escrow && !a.has_personal_guarantee &&
-               !a.has_gfa && !a.has_open_banking && (
-                <span className="text-muted">Aucune garantie renseignee</span>
-              )}
+                !a.has_interest_escrow && !a.has_works_escrow && !a.has_personal_guarantee &&
+                !a.has_gfa && !a.has_open_banking && (
+                  <span className="text-muted">Aucune garantie renseignee</span>
+                )}
             </div>
             {a.risk_description && (
               <div style={{ marginTop: '1rem' }}>
@@ -360,9 +398,10 @@ export default function AnalysteProjectDetailPage() {
               <div className="analyste-actions">
                 <button
                   className="btn btn-success"
-                  onClick={() => openSubmitModal('opinion_approved')}
+                  onClick={handleGenerateReport}
+                  disabled={generatingReport}
                 >
-                  <CheckCircle size={16} /> Valider le projet
+                  <FileBarChart size={16} /> {generatingReport ? 'Generation...' : 'Generer le rapport d\'analyse'}
                 </button>
                 <button
                   className="btn btn-warning"
@@ -378,20 +417,27 @@ export default function AnalysteProjectDetailPage() {
                 </button>
               </div>
             )}
+
+            {/* View existing report */}
+            {a.has_analyst_report && (
+              <div style={{ marginTop: alreadyReviewed ? 0 : '0.75rem' }}>
+                <button className="btn btn-primary" onClick={handleViewReport} style={{ width: '100%' }}>
+                  <FileBarChart size={16} /> Voir le rapport d'analyse
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Confirmation Modal */}
+      {/* Confirmation Modal (for reject only now) */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>
-              {modalAction === 'opinion_approved' && 'Confirmer la validation'}
               {modalAction === 'opinion_rejected' && 'Confirmer le refus'}
             </h3>
             <p className="text-muted" style={{ marginBottom: '1rem' }}>
-              {modalAction === 'opinion_approved' && 'Vous etes sur le point de valider ce projet. Votre avis sera transmis a l\'administrateur.'}
               {modalAction === 'opinion_rejected' && 'Vous etes sur le point de refuser ce projet. Votre avis sera transmis a l\'administrateur.'}
             </p>
 
@@ -435,6 +481,15 @@ export default function AnalysteProjectDetailPage() {
             setShowInfoForm(false);
             loadProject();
           }}
+        />
+      )}
+
+      {/* Report Viewer Modal */}
+      {showReport && reportData && (
+        <ReportViewerModal
+          report={reportData}
+          projectAttrs={a}
+          onClose={() => setShowReport(false)}
         />
       )}
     </div>

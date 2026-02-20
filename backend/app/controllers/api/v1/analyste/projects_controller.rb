@@ -3,7 +3,7 @@ module Api
     module Analyste
       class ProjectsController < ApplicationController
         before_action :require_analyste!
-        before_action :set_project, only: [:show, :submit_opinion, :request_info, :approve, :reject]
+        before_action :set_project, only: [:show, :submit_opinion, :request_info, :approve, :reject, :generate_report, :report]
 
         def index
           projects = InvestmentProject.where(analyst_id: current_user.id)
@@ -133,6 +133,63 @@ module Api
           render json: {
             message: "Projet rejeté.",
             data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
+          }
+        end
+
+        # POST /api/v1/analyste/projects/:id/generate_report
+        def generate_report
+          checks = {
+            legal_check: params[:legal_check] || false,
+            financial_check: params[:financial_check] || false,
+            risk_check: params[:risk_check] || false
+          }
+
+          generator = AnalystReportGenerator.new(@project, current_user, checks: checks)
+          result = generator.generate
+
+          report = @project.analyst_reports.create!(
+            analyst: current_user,
+            report_data: result[:report_data],
+            risk_score: result[:risk_score],
+            success_score: result[:success_score],
+            financial_metrics: result[:financial_metrics],
+            risk_factors: result[:risk_factors],
+            recommendation: result[:recommendation],
+            comment: params[:comment]
+          )
+
+          # Pre-approve the project
+          @project.update!(
+            status: :analyst_approved,
+            analyst_opinion: :opinion_approved,
+            analyst_comment: params[:comment].presence || @project.analyst_comment,
+            analyst_legal_check: checks[:legal_check],
+            analyst_financial_check: checks[:financial_check],
+            analyst_risk_check: checks[:risk_check],
+            analyst_reviewed_at: Time.current,
+            reviewed_by_id: current_user.id,
+            reviewed_at: Time.current,
+            review_comment: params[:comment]
+          )
+
+          @project.info_requests.where(status: :submitted).update_all(status: :reviewed)
+
+          render json: {
+            message: "Rapport généré et projet pré-approuvé.",
+            data: InvestmentProjectSerializer.new(@project.reload).serializable_hash[:data],
+            report: AnalystReportSerializer.new(report).serializable_hash[:data]
+          }, status: :created
+        end
+
+        # GET /api/v1/analyste/projects/:id/report
+        def report
+          report = @project.analyst_reports.order(created_at: :desc).first
+          unless report
+            return render json: { error: "Aucun rapport trouvé." }, status: :not_found
+          end
+
+          render json: {
+            report: AnalystReportSerializer.new(report).serializable_hash[:data]
           }
         end
 

@@ -24,4 +24,12 @@ export const analysteApi = {
   rejectProject(id, data = {}) {
     return client.patch(`/analyste/projects/${id}/reject`, data);
   },
+
+  generateReport(id, data = {}) {
+    return client.post(`/analyste/projects/${id}/generate_report`, data);
+  },
+
+  getReport(id) {
+    return client.get(`/analyste/projects/${id}/report`);
+  },
 };

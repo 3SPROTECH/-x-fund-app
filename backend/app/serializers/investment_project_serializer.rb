@@ -102,6 +102,14 @@ class InvestmentProjectSerializer
     end
   end
 
+  attribute :has_analyst_report do |project|
+    project.analyst_reports.exists?
+  end
+
+  attribute :latest_analyst_report_id do |project|
+    project.analyst_reports.order(created_at: :desc).first&.id
+  end
+
   attribute :has_pending_info_request do |project|
     project.info_requests.where(status: :pending).exists?
   end
