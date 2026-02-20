@@ -5,7 +5,7 @@ class User < ApplicationRecord
          :recoverable, :validatable, :trackable,
          :jwt_authenticatable, jwt_revocation_strategy: self
 
-  enum :role, { investisseur: 0, porteur_de_projet: 1, administrateur: 2 }
+  enum :role, { investisseur: 0, porteur_de_projet: 1, administrateur: 2, analyste: 3 }
   enum :kyc_status, { pending: 0, submitted: 1, verified: 2, rejected: 3 }, prefix: :kyc
 
   has_one :wallet, dependent: :destroy
@@ -38,7 +38,7 @@ class User < ApplicationRecord
   private
 
   def auto_verify_kyc_for_admin
-    if administrateur? && !kyc_verified?
+    if (administrateur? || analyste?) && !kyc_verified?
       self.kyc_status = :verified
       self.kyc_verified_at = Time.current
     end

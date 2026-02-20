@@ -5,6 +5,15 @@ module Api
         before_action :require_admin!
         before_action :set_user, only: [:show, :update, :destroy, :verify_kyc, :reject_kyc]
 
+        def create
+          user = User.new(create_user_params)
+          if user.save
+            render json: { data: UserSerializer.new(user).serializable_hash[:data] }, status: :created
+          else
+            render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+          end
+        end
+
         def index
           users = User.all
           users = users.where(role: params[:role]) if params[:role].present?
@@ -62,6 +71,10 @@ module Api
 
         def admin_user_params
           params.require(:user).permit(:first_name, :last_name, :phone, :role, :kyc_status)
+        end
+
+        def create_user_params
+          params.require(:user).permit(:first_name, :last_name, :email, :password, :password_confirmation, :phone, :role)
         end
       end
     end

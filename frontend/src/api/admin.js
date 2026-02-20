@@ -26,6 +26,10 @@ export const adminApi = {
     return client.patch(`/admin/users/${userId}/reject_kyc`, { reason });
   },
 
+  createUser(data) {
+    return client.post('/admin/users', { user: data });
+  },
+
   // Properties
   getProperties(params = {}) {
     return client.get('/admin/properties', { params });
@@ -74,6 +78,10 @@ export const adminApi = {
 
   advanceStatus(id, status, comment = '') {
     return client.patch(`/admin/investment_projects/${id}/advance_status`, { status, comment });
+  },
+
+  assignAnalyst(projectId, analystId) {
+    return client.patch(`/admin/investment_projects/${projectId}/assign_analyst`, { analyst_id: analystId });
   },
 
   // MVP Reports

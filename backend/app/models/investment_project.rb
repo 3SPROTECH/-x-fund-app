@@ -5,6 +5,7 @@ class InvestmentProject < ApplicationRecord
   has_many :properties, through: :investment_project_properties
   belongs_to :owner, class_name: "User"
   belongs_to :reviewer, class_name: "User", foreign_key: :reviewed_by_id, optional: true
+  belongs_to :analyst, class_name: "User", optional: true
   has_many :investments, dependent: :restrict_with_error
   has_many :investors, through: :investments, source: :user
   has_many :dividends, dependent: :restrict_with_error
@@ -56,6 +57,12 @@ class InvestmentProject < ApplicationRecord
   enum :bank_loan_status, { en_negociation: 0, accord_principe: 1, offre_editee: 2, offre_signee: 3 }, prefix: :bank
   enum :payment_frequency, { mensuel: 0, trimestriel: 1, annuel: 2, in_fine: 3 }, prefix: :freq
   enum :exit_scenario, { unit_sale: 0, block_sale: 1, refinance_exit: 2 }, prefix: :exit
+  enum :analyst_opinion, {
+    opinion_pending: 0,
+    opinion_approved: 1,
+    opinion_info_requested: 2,
+    opinion_rejected: 3
+  }, prefix: :analyst
 
   validates :title, presence: true
   validates :total_amount_cents, presence: true, numericality: { greater_than: 0 }

@@ -8,6 +8,21 @@ export const ROLE_LABELS = {
   investisseur: 'Investisseur',
   porteur_de_projet: 'Porteur de projet',
   administrateur: 'Administrateur',
+  analyste: 'Analyste',
+};
+
+// ─── Analyst opinion statuses ───
+export const ANALYST_OPINION_LABELS = {
+  opinion_pending: 'En attente',
+  opinion_approved: 'Validé',
+  opinion_info_requested: 'Infos demandées',
+  opinion_rejected: 'Refusé',
+};
+export const ANALYST_OPINION_BADGES = {
+  opinion_pending: 'badge-warning',
+  opinion_approved: 'badge-success',
+  opinion_info_requested: 'badge-info',
+  opinion_rejected: 'badge-danger',
 };
 
 // ─── Project statuses ───

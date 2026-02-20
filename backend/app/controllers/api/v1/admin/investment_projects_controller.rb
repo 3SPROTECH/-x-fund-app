@@ -3,7 +3,7 @@ module Api
     module Admin
       class InvestmentProjectsController < ApplicationController
         before_action :require_admin!
-        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :advance_status]
+        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :advance_status, :assign_analyst]
 
         def index
           projects = InvestmentProject.includes(properties: :owner).all
@@ -106,6 +106,28 @@ module Api
           )
           render json: {
             message: "Complements d'information demandes.",
+            data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
+          }
+        end
+
+        def assign_analyst
+          analyst = User.analyste.find_by(id: params[:analyst_id])
+          unless analyst
+            return render json: { errors: ["Analyste introuvable"] }, status: :unprocessable_entity
+          end
+
+          @project.update!(
+            analyst_id: analyst.id,
+            analyst_opinion: :opinion_pending,
+            analyst_comment: nil,
+            analyst_legal_check: false,
+            analyst_financial_check: false,
+            analyst_risk_check: false,
+            analyst_reviewed_at: nil
+          )
+
+          render json: {
+            message: "Analyste assigne avec succes.",
             data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
           }
         end

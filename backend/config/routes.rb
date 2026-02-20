@@ -81,9 +81,18 @@ Rails.application.routes.draw do
       resource :dashboard, only: [:show], controller: "investor_dashboard"
       resource :porteur_dashboard, only: [:show], controller: "porteur_dashboard"
 
+      # === Analyste ===
+      namespace :analyste do
+        resources :projects, only: [:index, :show], controller: "projects" do
+          member do
+            patch :submit_opinion
+          end
+        end
+      end
+
       # === Admin ===
       namespace :admin do
-        resources :users, only: [:index, :show, :update, :destroy] do
+        resources :users, only: [:index, :show, :create, :update, :destroy] do
           member do
             patch :verify_kyc
             patch :reject_kyc
@@ -98,6 +107,7 @@ Rails.application.routes.draw do
             patch :reject
             patch :request_info
             patch :advance_status
+            patch :assign_analyst
           end
           resources :mvp_reports, only: [:index, :show, :create, :update, :destroy] do
             member do
