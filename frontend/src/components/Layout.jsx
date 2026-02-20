@@ -25,9 +25,7 @@ export default function Layout() {
   };
 
   const isAdmin = user?.role === 'administrateur';
-  const isPorteur = user?.role === 'porteur_de_projet';
   const isInvestor = user?.role === 'investisseur';
-  const porteurBase = '/porteur';
 
   // Layout pour investisseurs: navbar horizontale
   if (isInvestor) {
@@ -162,113 +160,6 @@ export default function Layout() {
     );
   }
 
-  // Layout pour porteurs de projet: sidebar verticale
-  const [showPorteurMobileMenu, setShowPorteurMobileMenu] = useState(false);
-
-  useEffect(() => {
-    setShowPorteurMobileMenu(false);
-  }, [location.pathname]);
-
-  return (
-    <div className="layout porteur-mobile-layout">
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <span className="logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
-        </div>
-
-        <nav className="sidebar-nav">
-          <div className="nav-section"><span className="nav-section-label">Principal</span></div>
-          <NavLink to={`${porteurBase}/dashboard`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <LayoutDashboard size={18} /><span>Tableau de bord</span>
-          </NavLink>
-          <NavLink to={`${porteurBase}/wallet`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <Wallet size={18} /><span>Portefeuille</span>
-          </NavLink>
-          <NavLink to={`${porteurBase}/projects`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <TrendingUp size={18} /><span>Projets</span>
-          </NavLink>
-
-          {isPorteur && (
-            <>
-              <div className="nav-section"><span className="nav-section-label">Immobilier</span></div>
-              <NavLink to={`${porteurBase}/properties`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                <Building size={18} /><span>Biens immobiliers</span>
-              </NavLink>
-            </>
-          )}
-
-          <div className="nav-section"><span className="nav-section-label">Compte</span></div>
-          <NavLink to={`${porteurBase}/profile`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <User size={18} /><span>Profil</span>
-          </NavLink>
-          <NavLink to={`${porteurBase}/kyc`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <FileCheck size={18} /><span>KYC</span>
-          </NavLink>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="user-info">
-            <span className="user-name">{user?.first_name} {user?.last_name}</span>
-            <span className="user-role">{ROLE_LABELS[user?.role] || user?.role}</span>
-          </div>
-          <button onClick={handleSignOut} className="btn-icon" title="Se déconnecter" style={{ color: '#DAA520' }}>
-            <LogOut size={18} />
-          </button>
-        </div>
-      </aside>
-
-      {/* Topbar mobile porteur */}
-      <div className="porteur-mobile-topbar">
-        <button className="admin-mobile-menu-btn" onClick={() => setShowPorteurMobileMenu(!showPorteurMobileMenu)}>
-          {showPorteurMobileMenu ? <X size={22} /> : <Menu size={22} />}
-        </button>
-        <span className="admin-mobile-logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
-        <span className="admin-mobile-role">Porteur</span>
-      </div>
-
-      {/* Menu mobile déroulant porteur */}
-      {showPorteurMobileMenu && (
-        <div className="admin-mobile-dropdown">
-          <NavLink to={`${porteurBase}/wallet`} className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowPorteurMobileMenu(false)}>
-            <Wallet size={20} /><span>Portefeuille</span>
-          </NavLink>
-          <NavLink to={`${porteurBase}/profile`} className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowPorteurMobileMenu(false)}>
-            <User size={20} /><span>Profil</span>
-          </NavLink>
-          <NavLink to={`${porteurBase}/kyc`} className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowPorteurMobileMenu(false)}>
-            <FileCheck size={20} /><span>KYC</span>
-          </NavLink>
-          <div className="admin-mobile-item admin-mobile-user" onClick={() => { navigate(`${porteurBase}/profile`); setShowPorteurMobileMenu(false); }}>
-            <User size={20} />
-            <div><span>{user?.first_name} {user?.last_name}</span><small>{ROLE_LABELS[user?.role]}</small></div>
-          </div>
-          <button className="admin-mobile-item admin-mobile-logout" onClick={handleSignOut}>
-            <LogOut size={20} /><span>Déconnexion</span>
-          </button>
-        </div>
-      )}
-
-      <main className="main-content">
-        <Outlet />
-      </main>
-
-      {/* Bottom tab bar porteur mobile */}
-      <div className="porteur-bottom-nav">
-        <NavLink to={`${porteurBase}/dashboard`} className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
-          <LayoutDashboard size={22} /><span>Accueil</span>
-        </NavLink>
-        <NavLink to={`${porteurBase}/projects`} className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
-          <TrendingUp size={22} /><span>Projets</span>
-        </NavLink>
-        {isPorteur && (
-          <NavLink to={`${porteurBase}/properties`} className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
-            <Building size={22} /><span>Biens</span>
-          </NavLink>
-        )}
-        <button className="admin-bottom-tab" onClick={() => setShowPorteurMobileMenu(!showPorteurMobileMenu)}>
-          <Menu size={22} /><span>Plus</span>
-        </button>
-      </div>
-    </div>
-  );
+  // Porteur users now use PorteurLayout (see App.jsx routing)
+  return null;
 }
