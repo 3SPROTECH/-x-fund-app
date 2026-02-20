@@ -504,15 +504,11 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
 
   return (
     <div className="pf-app-container">
-      {/* ── Back to previous page ── */}
-      <div className="pf-back-bar">
-        <button type="button" className="pf-back-btn" onClick={() => navigate(-1)}>
-          <ChevronLeft size={18} /> Retour
-        </button>
-      </div>
-
-      {/* ── Macro Navigation ── */}
+      {/* ── Macro Navigation (with integrated back link) ── */}
       <nav className="pf-macro-nav">
+        <button type="button" className="pf-back-btn" onClick={() => navigate(-1)}>
+          <ChevronLeft size={16} /> Retour
+        </button>
         {MACRO_STEPS.map((macro, idx) => {
           const Icon = MACRO_ICONS[idx];
           const isActive = currentMacro === idx;
