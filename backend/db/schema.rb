@@ -189,6 +189,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_120000) do
 
   create_table "investment_projects", force: :cascade do |t|
     t.text "additional_info"
+    t.text "analyst_comment"
+    t.boolean "analyst_financial_check", default: false, null: false
+    t.bigint "analyst_id"
+    t.boolean "analyst_legal_check", default: false, null: false
+    t.integer "analyst_opinion", default: 0, null: false
+    t.datetime "analyst_reviewed_at"
+    t.boolean "analyst_risk_check", default: false, null: false
     t.bigint "bank_loan_cents"
     t.integer "bank_loan_status"
     t.string "bank_name"
@@ -245,6 +252,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_120000) do
     t.datetime "updated_at", null: false
     t.bigint "works_budget_cents"
     t.text "yield_justification"
+    t.index ["analyst_id"], name: "index_investment_projects_on_analyst_id"
+    t.index ["analyst_opinion"], name: "index_investment_projects_on_analyst_opinion"
     t.index ["bank_loan_status"], name: "index_investment_projects_on_bank_loan_status"
     t.index ["exit_scenario"], name: "index_investment_projects_on_exit_scenario"
     t.index ["exploitation_strategy"], name: "index_investment_projects_on_exploitation_strategy"
@@ -501,6 +510,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_120000) do
   add_foreign_key "financial_statements", "investment_projects"
   add_foreign_key "investment_project_properties", "investment_projects"
   add_foreign_key "investment_project_properties", "properties"
+  add_foreign_key "investment_projects", "users", column: "analyst_id"
   add_foreign_key "investment_projects", "users", column: "owner_id"
   add_foreign_key "investment_projects", "users", column: "reviewed_by_id"
   add_foreign_key "investments", "investment_projects"
