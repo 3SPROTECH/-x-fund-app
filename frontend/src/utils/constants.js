@@ -276,6 +276,25 @@ export const REVIEW_STATUS_BADGES = {
 export const FREQ_MONTHS = { mensuel: 1, trimestriel: 3, semestriel: 6, annuel: 12 };
 export const FREQ_LABELS = { mensuel: 'Mensuel', trimestriel: 'Trimestriel', semestriel: 'Semestriel', annuel: 'Annuel' };
 
+// ─── Project Delays ───
+export const DELAY_TYPE_LABELS = {
+  livraison: 'Livraison',
+  travaux: 'Travaux',
+  financement: 'Financement',
+  administratif: 'Administratif',
+  autre: 'Autre',
+};
+export const DELAY_STATUS_LABELS = {
+  declared: 'Declare',
+  acknowledged: 'Pris en compte',
+  resolved: 'Resolu',
+};
+export const DELAY_STATUS_BADGES = {
+  declared: 'badge-warning',
+  acknowledged: 'badge-info',
+  resolved: 'badge-success',
+};
+
 // ─── Empty form templates ───
 export const EMPTY_PROPERTY = {
   title: '', description: '', property_type: 'appartement', address_line1: '', address_line2: '',
