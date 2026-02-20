@@ -39,6 +39,12 @@ import InvestorKycPage from './pages/investor/InvestorKycPage';
 import InvestorInvestmentsPage from './pages/investor/InvestorInvestmentsPage';
 import InvestorDividendDetailPage from './pages/investor/InvestorDividendDetailPage';
 
+// Analyste pages
+import AnalysteDashboardPage from './pages/analyste/AnalysteDashboardPage';
+import AnalysteProjectsPage from './pages/analyste/AnalysteProjectsPage';
+import AnalysteProjectDetailPage from './pages/analyste/AnalysteProjectDetailPage';
+import AnalysteProfilePage from './pages/analyste/AnalysteProfilePage';
+
 // Porteur pages
 import PorteurDashboardPage from './pages/porteur/PorteurDashboardPage';
 import PorteurPropertiesPage from './pages/porteur/PorteurPropertiesPage';
@@ -199,6 +205,24 @@ export default function App() {
               path="/demo/analyst/projects/:id"
               element={<ProtectedRoute roles={['administrateur']}><DemoAnalystProjectReview /></ProtectedRoute>}
             />
+            {/* Analyste routes */}
+            <Route
+              path="/analyste/dashboard"
+              element={<ProtectedRoute roles={['analyste']}><AnalysteDashboardPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/analyste/projects"
+              element={<ProtectedRoute roles={['analyste']}><AnalysteProjectsPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/analyste/projects/:id"
+              element={<ProtectedRoute roles={['analyste']}><AnalysteProjectDetailPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/analyste/profile"
+              element={<ProtectedRoute roles={['analyste']}><AnalysteProfilePage /></ProtectedRoute>}
+            />
+            <Route path="/analyste" element={<Navigate to="/analyste/dashboard" replace />} />
 
             <Route
               path="/investor/dashboard"

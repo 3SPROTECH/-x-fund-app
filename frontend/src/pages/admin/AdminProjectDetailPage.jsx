@@ -4,9 +4,9 @@ import { investmentProjectsApi, projectInvestorsApi } from '../../api/investment
 import { dividendsApi } from '../../api/dividends';
 import { financialStatementsApi } from '../../api/financialStatements';
 import useWalletStore from '../../stores/useWalletStore';
-import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Scale, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { PROJECT_DETAIL_STATUS_LABELS as STATUS_LABELS, PROJECT_DETAIL_STATUS_BADGES as STATUS_BADGE } from '../../utils';
+import { PROJECT_DETAIL_STATUS_LABELS as STATUS_LABELS, PROJECT_DETAIL_STATUS_BADGES as STATUS_BADGE, ANALYST_OPINION_LABELS, ANALYST_OPINION_BADGES } from '../../utils';
 import { LoadingSpinner } from '../../components/ui';
 import ProjectDetailsTab from '../../components/project-tabs/ProjectDetailsTab';
 import ProjectPhotosTab from '../../components/project-tabs/ProjectPhotosTab';
@@ -107,12 +107,59 @@ export default function AdminProjectDetailPage() {
         </div>
       </div>
 
+      {/* Analyst Review Banner */}
+      {a.analyst_id && (
+        <div className={`card analyste-review-section ${a.analyst_opinion !== 'opinion_pending' ? 'has-opinion' : ''}`} style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '1rem' }}>
+            <Scale size={18} /> Avis de l'analyste
+          </h3>
+          <div className="detail-grid">
+            <div className="detail-row">
+              <span>Analyste assigne</span>
+              <span style={{ fontWeight: 600 }}>{a.analyst_name}</span>
+            </div>
+            <div className="detail-row">
+              <span>Avis</span>
+              <span className={`badge ${ANALYST_OPINION_BADGES[a.analyst_opinion] || ''}`}>
+                {ANALYST_OPINION_LABELS[a.analyst_opinion] || 'En attente'}
+              </span>
+            </div>
+            {a.analyst_reviewed_at && (
+              <div className="detail-row">
+                <span>Date de l'avis</span>
+                <span>{new Date(a.analyst_reviewed_at).toLocaleDateString('fr-FR')}</span>
+              </div>
+            )}
+            <div className="detail-row">
+              <span>Juridique</span>
+              <span>{a.analyst_legal_check ? <CheckCircle size={16} style={{ color: 'var(--success)' }} /> : <XCircle size={16} style={{ color: 'var(--danger)' }} />}</span>
+            </div>
+            <div className="detail-row">
+              <span>Financier</span>
+              <span>{a.analyst_financial_check ? <CheckCircle size={16} style={{ color: 'var(--success)' }} /> : <XCircle size={16} style={{ color: 'var(--danger)' }} />}</span>
+            </div>
+            <div className="detail-row">
+              <span>Risques</span>
+              <span>{a.analyst_risk_check ? <CheckCircle size={16} style={{ color: 'var(--success)' }} /> : <XCircle size={16} style={{ color: 'var(--danger)' }} />}</span>
+            </div>
+            {a.analyst_comment && (
+              <div className="detail-row" style={{ flexDirection: 'column' }}>
+                <span>Commentaire</span>
+                <p style={{ marginTop: '.25rem', whiteSpace: 'pre-wrap', background: 'rgba(0,0,0,0.03)', padding: '.75rem', borderRadius: '8px' }}>
+                  {a.analyst_comment}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="tabs">
-        <button className={`tab${tab === 'details' ? ' active' : ''}`} onClick={() => setTab('details')}>Détails</button>
+        <button className={`tab${tab === 'details' ? ' active' : ''}`} onClick={() => setTab('details')}>Details</button>
         <button className={`tab${tab === 'photos' ? ' active' : ''}`} onClick={() => setTab('photos')}>Photos</button>
         <button className={`tab${tab === 'dividends' ? ' active' : ''}`} onClick={() => setTab('dividends')}>Dividendes ({dividends.length})</button>
         <button className={`tab${tab === 'statements' ? ' active' : ''}`} onClick={() => setTab('statements')}>Rapports ({statements.length})</button>
-        <button className={`tab${tab === 'investors' ? ' active' : ''}`} onClick={() => setTab('investors')}>Associés ({investorsMeta?.total_investors || 0})</button>
+        <button className={`tab${tab === 'investors' ? ' active' : ''}`} onClick={() => setTab('investors')}>Associes ({investorsMeta?.total_investors || 0})</button>
       </div>
 
       {tab === 'details' && <ProjectDetailsTab project={project} projectId={id} wallet={wallet} isAdmin={true} basePath="/admin" onRefresh={loadAll} />}

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../../api/admin';
 import {
   Briefcase, CheckCircle, XCircle,
-  Search, Plus, Eye, FileText, AlertCircle, ArrowRight,
+  Search, Plus, Eye, FileText, AlertCircle, ArrowRight, UserCheck,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
@@ -12,6 +12,8 @@ import {
   formatBalance as fmt,
   PROJECT_STATUS_LABELS as STATUS_LABELS,
   PROJECT_STATUS_BADGES as STATUS_BADGE,
+  ANALYST_OPINION_LABELS,
+  ANALYST_OPINION_BADGES,
 } from '../../utils';
 import { LoadingSpinner, Pagination } from '../../components/ui';
 
@@ -29,6 +31,9 @@ export default function AdminProjectsPage() {
   const [targetId, setTargetId] = useState(null);
   const [modalComment, setModalComment] = useState('');
   const [advanceStatus, setAdvanceStatus] = useState('');
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [analysts, setAnalysts] = useState([]);
+  const [selectedAnalystId, setSelectedAnalystId] = useState('');
 
   useEffect(() => { load(); }, [page, filters, search]);
 
@@ -84,6 +89,31 @@ export default function AdminProjectsPage() {
       load();
     } catch (err) {
       toast.error(err.response?.data?.errors?.[0] || err.response?.data?.error || 'Erreur');
+    }
+  };
+
+  const openAssignModal = async (projectId) => {
+    setTargetId(projectId);
+    setSelectedAnalystId('');
+    try {
+      const res = await adminApi.getUsers({ role: 'analyste', per_page: 100 });
+      setAnalysts(res.data.data || []);
+    } catch {
+      toast.error('Erreur lors du chargement des analystes');
+    }
+    setShowAssignModal(true);
+  };
+
+  const handleAssignAnalyst = async () => {
+    if (!selectedAnalystId) { toast.error('Veuillez selectionner un analyste'); return; }
+    try {
+      await adminApi.assignAnalyst(targetId, selectedAnalystId);
+      toast.success('Analyste assigne avec succes');
+      setShowAssignModal(false);
+      setTargetId(null);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de l\'assignation');
     }
   };
 
@@ -147,8 +177,9 @@ export default function AdminProjectsPage() {
                 <table className="table">
                   <thead>
                     <tr>
-                      <th>Titre</th><th>Propriété</th><th>Porteur</th><th>Statut</th>
-                      <th>Montant total</th><th>Progression</th><th>Actions</th>
+                      <th>Titre</th><th>Porteur</th><th>Statut</th>
+                      <th>Analyste</th><th>Avis</th>
+                      <th>Montant total</th><th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -158,27 +189,29 @@ export default function AdminProjectsPage() {
                       return (
                         <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/projects/${p.id}`)}>
                           <td data-label="Titre" style={{ fontWeight: 550 }}>{a.title}</td>
-                          <td data-label="Propriété">{a.property_title || '—'}</td>
                           <td data-label="Porteur">{a.owner_name || '—'}</td>
                           <td data-label="Statut"><span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span></td>
-                          <td data-label="Montant">{fmt(a.total_amount_cents)}</td>
-                          <td data-label="Progression">
-                            <div style={{ minWidth: 80 }}>
-                              <div className="progress-bar-container">
-                                <div className="progress-bar" style={{ width: `${Math.min(progress, 100)}%` }} />
-                              </div>
-                              <span style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>{progress}%</span>
-                            </div>
+                          <td data-label="Analyste">{a.analyst_name || <span className="text-muted">—</span>}</td>
+                          <td data-label="Avis">
+                            {a.analyst_id ? (
+                              <span className={`badge ${ANALYST_OPINION_BADGES[a.analyst_opinion] || ''}`}>
+                                {ANALYST_OPINION_LABELS[a.analyst_opinion] || '—'}
+                              </span>
+                            ) : '—'}
                           </td>
+                          <td data-label="Montant">{fmt(a.total_amount_cents)}</td>
                           <td data-label="Actions">
                             <div className="actions-cell" onClick={(e) => e.stopPropagation()}>
                               <button className="btn-icon" title="Voir le détail" onClick={() => navigate(`/admin/projects/${p.id}`)}><Eye size={16} /></button>
                               <button className="btn-icon" title="Rapport MVP" onClick={() => navigate(`/admin/projects/${p.id}/mvp-report`)}><FileText size={16} /></button>
+                              {(a.status === 'pending_analysis' || a.status === 'info_requested') && (
+                                <button className="btn-icon" title="Assigner un analyste" onClick={() => openAssignModal(p.id)} style={{ color: '#DAA520' }}><UserCheck size={16} /></button>
+                              )}
                               {a.status === 'pending_analysis' && (
                                 <>
                                   <button className="btn-icon btn-success" title="Approuver" onClick={() => handleApprove(p.id)}><CheckCircle size={16} /></button>
                                   <button className="btn-icon btn-danger" title="Rejeter" onClick={() => { setTargetId(p.id); setShowRejectModal(true); }}><XCircle size={16} /></button>
-                                  <button className="btn-icon" title="Demander des compléments" onClick={() => { setTargetId(p.id); setShowInfoModal(true); }}><AlertCircle size={16} /></button>
+                                  <button className="btn-icon" title="Demander des complements" onClick={() => { setTargetId(p.id); setShowInfoModal(true); }}><AlertCircle size={16} /></button>
                                 </>
                               )}
                               {!['draft', 'rejected', 'repaid'].includes(a.status) && (
@@ -265,6 +298,40 @@ export default function AdminProjectsPage() {
             <div className="modal-actions">
               <button className="btn" onClick={() => setShowAdvanceModal(false)}>Annuler</button>
               <button className="btn btn-primary" onClick={handleAdvanceStatus}>Mettre à jour</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAssignModal && (
+        <div className="modal-overlay" onClick={() => setShowAssignModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Assigner un analyste</h3>
+            <p className="text-muted" style={{ marginBottom: '1rem' }}>
+              Selectionnez l'analyste qui sera charge d'evaluer ce projet.
+            </p>
+            <div className="form-group">
+              <label>Analyste</label>
+              <FormSelect
+                value={selectedAnalystId}
+                onChange={(e) => setSelectedAnalystId(e.target.value)}
+                placeholder="Selectionnez un analyste..."
+                options={analysts.map((a) => {
+                  const attrs = a.attributes || a;
+                  return { value: String(a.id), label: `${attrs.first_name} ${attrs.last_name} (${attrs.email})` };
+                })}
+              />
+              {analysts.length === 0 && (
+                <p className="text-muted" style={{ fontSize: '.8rem', marginTop: '.25rem' }}>
+                  Aucun analyste disponible. Creez d'abord un analyste dans la gestion des utilisateurs.
+                </p>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setShowAssignModal(false)}>Annuler</button>
+              <button className="btn btn-primary" onClick={handleAssignAnalyst} disabled={!selectedAnalystId}>
+                Assigner
+              </button>
             </div>
           </div>
         </div>

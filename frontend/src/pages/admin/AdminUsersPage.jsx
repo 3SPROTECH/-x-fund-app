@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import {
-  ShieldCheck, ShieldX, Trash2, Eye,
+  ShieldCheck, ShieldX, Trash2, Eye, UserPlus,
   Users, UserCheck, UserX, Search, FileText, Download, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../api/client';
 import TableFilters from '../../components/TableFilters';
+import FormSelect from '../../components/FormSelect';
 import { ROLE_LABELS, KYC_STATUS_LABELS as KYC_LABELS } from '../../utils';
 import { LoadingSpinner, Pagination, EmptyState } from '../../components/ui';
 
@@ -21,6 +22,9 @@ export default function AdminUsersPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectUserId, setRejectUserId] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newUser, setNewUser] = useState({ first_name: '', last_name: '', email: '', password: '', password_confirmation: '', role: 'analyste' });
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => { loadUsers(); }, [page, filters, search]);
 
@@ -78,6 +82,29 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleCreateUser = async () => {
+    if (!newUser.first_name || !newUser.last_name || !newUser.email || !newUser.password) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+    if (newUser.password !== newUser.password_confirmation) {
+      toast.error('Les mots de passe ne correspondent pas');
+      return;
+    }
+    setCreating(true);
+    try {
+      await adminApi.createUser(newUser);
+      toast.success('Utilisateur cree avec succes');
+      setShowCreateModal(false);
+      setNewUser({ first_name: '', last_name: '', email: '', password: '', password_confirmation: '', role: 'analyste' });
+      loadUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la creation');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const loadUserDetail = async (userId) => {
     try {
       const res = await adminApi.getUser(userId);
@@ -94,7 +121,12 @@ export default function AdminUsersPage() {
           <h1>Gestion des Utilisateurs</h1>
           <p className="text-muted">Gérez les comptes et les vérifications KYC</p>
         </div>
-        <span className="badge"><Users size={12} /> {meta.total_count ?? users.length} utilisateur(s)</span>
+        <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
+          <span className="badge"><Users size={12} /> {meta.total_count ?? users.length} utilisateur(s)</span>
+          <button className="btn btn-sm btn-primary" onClick={() => setShowCreateModal(true)}>
+            <UserPlus size={14} /> Creer un utilisateur
+          </button>
+        </div>
       </div>
 
       <TableFilters
@@ -104,6 +136,7 @@ export default function AdminUsersPage() {
             { value: 'investisseur', label: 'Investisseur' },
             { value: 'porteur_de_projet', label: 'Porteur de projet' },
             { value: 'administrateur', label: 'Administrateur' },
+            { value: 'analyste', label: 'Analyste' },
           ]},
           { key: 'kyc_status', label: 'Statut KYC', value: filters.kyc_status, options: [
             { value: '', label: 'Tous les statuts' },
@@ -299,6 +332,57 @@ export default function AdminUsersPage() {
             <div className="modal-actions">
               <button className="btn" onClick={() => setShowRejectModal(false)}>Annuler</button>
               <button className="btn btn-danger" onClick={handleRejectKyc}>Rejeter</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCreateModal && (
+        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Creer un utilisateur</h3>
+            <div className="form-group">
+              <label>Role</label>
+              <FormSelect
+                value={newUser.role}
+                onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                options={[
+                  { value: 'analyste', label: 'Analyste' },
+                  { value: 'administrateur', label: 'Administrateur' },
+                  { value: 'investisseur', label: 'Investisseur' },
+                  { value: 'porteur_de_projet', label: 'Porteur de projet' },
+                ]}
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
+              <div className="form-group">
+                <label>Prenom *</label>
+                <input type="text" value={newUser.first_name} onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })} placeholder="Prenom" />
+              </div>
+              <div className="form-group">
+                <label>Nom *</label>
+                <input type="text" value={newUser.last_name} onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })} placeholder="Nom" />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Email *</label>
+              <input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} placeholder="email@exemple.com" />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
+              <div className="form-group">
+                <label>Mot de passe *</label>
+                <input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} placeholder="Mot de passe" />
+              </div>
+              <div className="form-group">
+                <label>Confirmer *</label>
+                <input type="password" value={newUser.password_confirmation} onChange={(e) => setNewUser({ ...newUser, password_confirmation: e.target.value })} placeholder="Confirmer" />
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setShowCreateModal(false)} disabled={creating}>Annuler</button>
+              <button className="btn btn-primary" onClick={handleCreateUser} disabled={creating}>
+                {creating ? 'Creation...' : 'Creer'}
+              </button>
             </div>
           </div>
         </div>

@@ -58,6 +58,38 @@ class InvestmentProjectSerializer
     project.reviewer&.full_name
   end
 
+  attribute :analyst_id do |project|
+    project.analyst_id
+  end
+
+  attribute :analyst_name do |project|
+    project.analyst&.full_name
+  end
+
+  attribute :analyst_opinion do |project|
+    project.analyst_opinion
+  end
+
+  attribute :analyst_comment do |project|
+    project.analyst_comment
+  end
+
+  attribute :analyst_legal_check do |project|
+    project.analyst_legal_check
+  end
+
+  attribute :analyst_financial_check do |project|
+    project.analyst_financial_check
+  end
+
+  attribute :analyst_risk_check do |project|
+    project.analyst_risk_check
+  end
+
+  attribute :analyst_reviewed_at do |project|
+    project.analyst_reviewed_at
+  end
+
   attribute :has_form_snapshot do |project|
     project.form_snapshot.present?
   end

@@ -2,6 +2,7 @@ export const ROLE_BASE_PATHS = {
   administrateur: '/admin',
   investisseur: '/investor',
   porteur_de_projet: '',
+  analyste: '/analyste',
 };
 
 export function getRoleBasePath(role) {

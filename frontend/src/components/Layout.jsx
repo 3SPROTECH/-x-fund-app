@@ -26,6 +26,7 @@ export default function Layout() {
 
   const isAdmin = user?.role === 'administrateur';
   const isInvestor = user?.role === 'investisseur';
+  const isAnalyste = user?.role === 'analyste';
 
   // Layout pour investisseurs: navbar horizontale
   if (isInvestor) {
@@ -150,6 +151,82 @@ export default function Layout() {
             <Building size={22} /><span>Biens</span>
           </NavLink>
           <NavLink to="/admin/projects" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
+            <Briefcase size={22} /><span>Projets</span>
+          </NavLink>
+          <button className="admin-bottom-tab" onClick={() => setShowAdminMobileMenu(!showAdminMobileMenu)}>
+            <Menu size={22} /><span>Plus</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Analyste sidebar
+  if (isAnalyste) {
+    return (
+      <div className="layout admin-mobile-layout">
+        <aside className="sidebar">
+          <div className="sidebar-header">
+            <span className="logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+          </div>
+
+          <nav className="sidebar-nav">
+            <div className="nav-section"><span className="nav-section-label">Vue d'ensemble</span></div>
+            <NavLink to="/analyste/dashboard" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+              <BarChart3 size={18} /><span>Tableau de bord</span>
+            </NavLink>
+
+            <div className="nav-section"><span className="nav-section-label">Analyse</span></div>
+            <NavLink to="/analyste/projects" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+              <Briefcase size={18} /><span>Projets a analyser</span>
+            </NavLink>
+          </nav>
+
+          <div className="sidebar-footer">
+            <div className="user-info user-info-clickable" onClick={() => navigate('/analyste/profile')} title="Voir le profil">
+              <span className="user-name">{user?.first_name} {user?.last_name}</span>
+              <span className="user-role">{ROLE_LABELS[user?.role] || user?.role}</span>
+            </div>
+            <button onClick={handleSignOut} className="btn-icon" title="Se deconnecter" style={{ color: '#DAA520' }}>
+              <LogOut size={18} />
+            </button>
+          </div>
+        </aside>
+
+        {/* Topbar mobile analyste */}
+        <div className="admin-mobile-topbar">
+          <button className="admin-mobile-menu-btn" onClick={() => setShowAdminMobileMenu(!showAdminMobileMenu)}>
+            {showAdminMobileMenu ? <X size={22} /> : <Menu size={22} />}
+          </button>
+          <span className="admin-mobile-logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+          <span className="admin-mobile-role">Analyste</span>
+        </div>
+
+        {showAdminMobileMenu && (
+          <div className="admin-mobile-dropdown">
+            <NavLink to="/analyste/projects" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
+              <Briefcase size={20} /><span>Projets</span>
+            </NavLink>
+            <div className="admin-mobile-item admin-mobile-user" onClick={() => { navigate('/analyste/profile'); setShowAdminMobileMenu(false); }}>
+              <User size={20} />
+              <div><span>{user?.first_name} {user?.last_name}</span><small>{ROLE_LABELS[user?.role]}</small></div>
+            </div>
+            <button className="admin-mobile-item admin-mobile-logout" onClick={handleSignOut}>
+              <LogOut size={20} /><span>Deconnexion</span>
+            </button>
+          </div>
+        )}
+
+        <main className="main-content">
+          <Outlet />
+        </main>
+
+        {/* Bottom tab bar analyste mobile */}
+        <div className="admin-bottom-nav">
+          <NavLink to="/analyste/dashboard" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
+            <BarChart3 size={22} /><span>Dashboard</span>
+          </NavLink>
+          <NavLink to="/analyste/projects" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
             <Briefcase size={22} /><span>Projets</span>
           </NavLink>
           <button className="admin-bottom-tab" onClick={() => setShowAdminMobileMenu(!showAdminMobileMenu)}>
