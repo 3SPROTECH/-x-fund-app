@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import PorteurLayout from './components/PorteurLayout';
 import { withRolePath } from './utils';
 
 // Auth
@@ -222,7 +223,16 @@ export default function App() {
               element={<ProtectedRoute roles={['investisseur']}><InvestorKycPage /></ProtectedRoute>}
             />
             <Route path="/investor" element={<Navigate to="/investor/dashboard" replace />} />
+          </Route>
 
+          {/* Porteur routes — separate layout */}
+          <Route
+            element={(
+              <ProtectedRoute>
+                <PorteurLayout />
+              </ProtectedRoute>
+            )}
+          >
             <Route
               path="/porteur/dashboard"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurDashboardPage /></ProtectedRoute>}
@@ -264,19 +274,20 @@ export default function App() {
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurKycPage /></ProtectedRoute>}
             />
             <Route path="/porteur" element={<Navigate to="/porteur/dashboard" replace />} />
-
-            <Route path="/dashboard" element={<LegacyRoleRedirect suffix="dashboard" />} />
-            <Route path="/wallet" element={<LegacyRoleRedirect suffix="wallet" />} />
-            <Route path="/properties" element={<LegacyRoleRedirect suffix="properties" />} />
-            <Route path="/projects" element={<LegacyRoleRedirect suffix="projects" />} />
-            <Route path="/projects/new" element={<LegacyRoleRedirect suffix="projects/new" allowAdmin={false} />} />
-            <Route path="/projects/:id/edit" element={<LegacyProjectEditRedirect />} />
-            <Route path="/projects/:id" element={<LegacyProjectDetailRedirect />} />
-            <Route path="/projects/:projectId/dividends/:dividendId" element={<LegacyDividendRedirect />} />
-            <Route path="/investments" element={<LegacyRoleRedirect suffix="investments" allowAdmin={false} />} />
-            <Route path="/profile" element={<LegacyRoleRedirect suffix="profile" />} />
-            <Route path="/kyc" element={<LegacyRoleRedirect suffix="kyc" allowAdmin={false} />} />
           </Route>
+
+          {/* Legacy redirect routes */}
+          <Route path="/dashboard" element={<LegacyRoleRedirect suffix="dashboard" />} />
+          <Route path="/wallet" element={<LegacyRoleRedirect suffix="wallet" />} />
+          <Route path="/properties" element={<LegacyRoleRedirect suffix="properties" />} />
+          <Route path="/projects" element={<LegacyRoleRedirect suffix="projects" />} />
+          <Route path="/projects/new" element={<LegacyRoleRedirect suffix="projects/new" allowAdmin={false} />} />
+          <Route path="/projects/:id/edit" element={<LegacyProjectEditRedirect />} />
+          <Route path="/projects/:id" element={<LegacyProjectDetailRedirect />} />
+          <Route path="/projects/:projectId/dividends/:dividendId" element={<LegacyDividendRedirect />} />
+          <Route path="/investments" element={<LegacyRoleRedirect suffix="investments" allowAdmin={false} />} />
+          <Route path="/profile" element={<LegacyRoleRedirect suffix="profile" />} />
+          <Route path="/kyc" element={<LegacyRoleRedirect suffix="kyc" allowAdmin={false} />} />
 
           <Route path="/" element={<DashboardRedirect />} />
           <Route path="*" element={<DashboardRedirect />} />
