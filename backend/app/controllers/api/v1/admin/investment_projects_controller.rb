@@ -52,6 +52,7 @@ module Api
           if @project.save
             property_ids.each { |pid| InvestmentProjectProperty.create!(investment_project_id: @project.id, property_id: pid) }
             props.each { |p| p.update!(status: :en_financement) if p.brouillon? }
+            Assignments::AnalystAssignmentService.assign!(@project) if @project.pending_analysis?
             render json: { data: InvestmentProjectSerializer.new(@project).serializable_hash[:data] }, status: :created
           else
             render json: { errors: @project.errors.full_messages }, status: :unprocessable_entity
