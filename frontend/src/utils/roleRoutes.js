@@ -1,7 +1,7 @@
 export const ROLE_BASE_PATHS = {
   administrateur: '/admin',
   investisseur: '/investor',
-  porteur_de_projet: '/porteur',
+  porteur_de_projet: '',
 };
 
 export function getRoleBasePath(role) {
@@ -15,7 +15,7 @@ export function getRoleHomePath(role) {
 
 export function withRolePath(role, path = '') {
   const basePath = getRoleBasePath(role);
-  if (basePath === '/') return path || '/';
+  if (basePath === '/' || basePath === '') return path ? `/${path.replace(/^\/+/, '')}` : '/';
   if (!path) return basePath;
   return `${basePath}/${path.replace(/^\/+/, '')}`;
 }

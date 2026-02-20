@@ -148,9 +148,12 @@ export default function PorteurDashboardPage() {
   /* ── Merge drafts + projects for unified grid ── */
   const allItems = [];
 
-  drafts.forEach((draft) => {
-    allItems.push({ type: 'draft', data: draft });
-  });
+  // Only show drafts when filter is empty or explicitly set to 'draft'
+  if (!statusFilter || statusFilter === 'draft') {
+    drafts.forEach((draft) => {
+      allItems.push({ type: 'draft', data: draft });
+    });
+  }
 
   projects.forEach((p) => {
     allItems.push({ type: 'project', data: p });
@@ -170,7 +173,7 @@ export default function PorteurDashboardPage() {
         <div
           key={`draft-${draft.id}`}
           className="porteur-project-card"
-          onClick={() => navigate(`/porteur/projects/new?draft=${draft.id}`)}
+          onClick={() => navigate(`/projects/new?draft=${draft.id}`)}
         >
           <div className="porteur-card-visual porteur-card-visual--draft">
             <FileEdit size={32} opacity={0.3} color="var(--gold-color)" />
@@ -207,7 +210,7 @@ export default function PorteurDashboardPage() {
     const isOwner = user?.id === a.owner_id;
     const canDelete = user?.role === 'porteur_de_projet' && isOwner && a.status === 'draft';
     const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis');
-    const cardHref = showForm ? `/porteur/projects/new?project=${p.id}` : `/porteur/projects/${p.id}`;
+    const cardHref = showForm ? `/projects/new?project=${p.id}` : `/projects/${p.id}`;
 
     return (
       <div
@@ -243,15 +246,17 @@ export default function PorteurDashboardPage() {
           {a.property_city && (
             <p className="porteur-card-location"><MapPin size={13} /> {a.property_city}</p>
           )}
-          <div className="porteur-card-progress">
-            <div className="progress-bar-container">
-              <div className="progress-bar" style={{ width: `${progress}%` }} />
+          {a.status === 'funding_active' && (
+            <div className="porteur-card-progress">
+              <div className="progress-bar-container">
+                <div className="progress-bar" style={{ width: `${progress}%` }} />
+              </div>
+              <div className="porteur-card-progress-info">
+                <span>{formatCents(a.amount_raised_cents)} leves</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
             </div>
-            <div className="porteur-card-progress-info">
-              <span>{formatCents(a.amount_raised_cents)} leves</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     );
@@ -281,15 +286,7 @@ export default function PorteurDashboardPage() {
           {a.property_city && (
             <p className="porteur-card-location"><MapPin size={13} /> {a.property_city}</p>
           )}
-          <div className="porteur-card-progress">
-            <div className="progress-bar-container">
-              <div className="progress-bar" style={{ width: `${progress}%` }} />
-            </div>
-            <div className="porteur-card-progress-info">
-              <span>{formatCents(a.amount_raised_cents)} leves</span>
-              <span>100%</span>
-            </div>
-          </div>
+
         </div>
       </div>
     );
@@ -325,7 +322,7 @@ export default function PorteurDashboardPage() {
             {/* CTA Card */}
             <div
               className="porteur-cta-card"
-              onClick={() => navigate('/porteur/projects/new')}
+              onClick={() => navigate('/projects/new')}
             >
               <div className="porteur-cta-icon">
                 <Plus size={28} strokeWidth={2} />

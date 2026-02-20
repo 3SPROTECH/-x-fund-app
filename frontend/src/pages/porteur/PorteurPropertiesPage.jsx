@@ -84,11 +84,11 @@ export default function PorteurPropertiesPage() {
       const isImmeuble = formData.property_type === 'immeuble';
       const lotsAttributes = isImmeuble
         ? formData.lots.map(l => ({
-            ...(l.id ? { id: l.id } : {}),
-            lot_number: l.lot_number,
-            surface_area_sqm: parseFloat(l.surface_area_sqm) || null,
-            description: l.description || '',
-          }))
+          ...(l.id ? { id: l.id } : {}),
+          lot_number: l.lot_number,
+          surface_area_sqm: parseFloat(l.surface_area_sqm) || null,
+          description: l.description || '',
+        }))
         : [];
       const existingLotIds = (formData.lots || []).filter(l => l.id).map(l => ({ id: l.id, _destroy: true }));
       const data = {
@@ -139,7 +139,7 @@ export default function PorteurPropertiesPage() {
       toast.error('Erreur: ID du bien non valide');
       return;
     }
-    navigate(`/porteur/projects/new?propertyId=${propertyId}`);
+    navigate(`/projects/new?propertyId=${propertyId}`);
   };
 
   if (loading) return <LoadingSpinner />;

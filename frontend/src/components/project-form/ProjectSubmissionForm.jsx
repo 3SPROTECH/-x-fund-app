@@ -180,14 +180,14 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         }
         setSubmitted(true);
         setGlobalStep(SUBMIT_STEP);
-      }).catch(() => {});
+      }).catch(() => { });
     } else if (initialDraftId) {
       projectDraftsApi.get(initialDraftId).then((res) => {
         const draft = res.data.data || res.data;
         if (draft?.form_data && Object.keys(draft.form_data).length > 0) {
           loadFromDraft(draft.form_data, draft.id);
         }
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     return () => {
@@ -220,6 +220,11 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
 
     // Validate current step
     if (!validateCurrentStep()) return;
+
+    // Save draft immediately before navigating (covers auto-fill scenario)
+    if (isDirty && !submitted && !initialProjectId) {
+      saveDraft();
+    }
 
     // Hub: skip sub-flow, jump to projections
     if (isOnHub) {
@@ -356,7 +361,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
       await investmentProjectsApi.create({ ...projectPayload, properties_data: propertiesData, form_snapshot: state });
 
       if (draftId) {
-        try { await projectDraftsApi.delete(draftId); } catch {}
+        try { await projectDraftsApi.delete(draftId); } catch { }
       }
 
       setSubmitting(false);
@@ -476,18 +481,18 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
   const nextLabel = submitted
     ? (isLastNavigable ? 'Dossier envoyé' : 'Suivant')
     : submitting
-    ? 'Envoi en cours...'
-    : isSubmitStep
-    ? 'Envoyer mon dossier en analyse'
-    : isEndOfSubFlow
-    ? 'Terminer cet actif'
-    : 'Suivant';
+      ? 'Envoi en cours...'
+      : isSubmitStep
+        ? 'Envoyer mon dossier en analyse'
+        : isEndOfSubFlow
+          ? 'Terminer cet actif'
+          : 'Suivant';
 
   const prevLabel = (globalStepIndex === SUB_FLOW_START && selectedAssetIndex !== null)
     ? 'Retour au Hub'
     : globalStepIndex === PROJECTION_START
-    ? 'Retour au Hub'
-    : 'Précédent';
+      ? 'Retour au Hub'
+      : 'Précédent';
 
   const nextDisabled = submitting
     || (submitted && isLastNavigable)

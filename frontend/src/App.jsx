@@ -225,7 +225,7 @@ export default function App() {
             <Route path="/investor" element={<Navigate to="/investor/dashboard" replace />} />
           </Route>
 
-          {/* Porteur routes — separate layout */}
+          {/* Porteur routes — root-level paths, separate layout */}
           <Route
             element={(
               <ProtectedRoute>
@@ -234,60 +234,46 @@ export default function App() {
             )}
           >
             <Route
-              path="/porteur/dashboard"
+              path="/dashboard"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurDashboardPage /></ProtectedRoute>}
             />
             <Route
-              path="/porteur/wallet"
+              path="/wallet"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurWalletPage /></ProtectedRoute>}
             />
             <Route
-              path="/porteur/properties"
+              path="/properties"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurPropertiesPage /></ProtectedRoute>}
             />
             <Route
-              path="/porteur/projects"
+              path="/projects"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurProjectsPage /></ProtectedRoute>}
             />
             <Route
-              path="/porteur/projects/new"
+              path="/projects/new"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurCreateProjectPage /></ProtectedRoute>}
             />
             <Route
-              path="/porteur/projects/:id/edit"
+              path="/projects/:id/edit"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurEditProjectPage /></ProtectedRoute>}
             />
             <Route
-              path="/porteur/projects/:id"
+              path="/projects/:id"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurProjectDetailPage /></ProtectedRoute>}
             />
             <Route
-              path="/porteur/projects/:projectId/dividends/:dividendId"
+              path="/projects/:projectId/dividends/:dividendId"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurDividendDetailPage /></ProtectedRoute>}
             />
             <Route
-              path="/porteur/profile"
+              path="/profile"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurProfilePage /></ProtectedRoute>}
             />
             <Route
-              path="/porteur/kyc"
+              path="/kyc"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurKycPage /></ProtectedRoute>}
             />
-            <Route path="/porteur" element={<Navigate to="/porteur/dashboard" replace />} />
           </Route>
-
-          {/* Legacy redirect routes */}
-          <Route path="/dashboard" element={<LegacyRoleRedirect suffix="dashboard" />} />
-          <Route path="/wallet" element={<LegacyRoleRedirect suffix="wallet" />} />
-          <Route path="/properties" element={<LegacyRoleRedirect suffix="properties" />} />
-          <Route path="/projects" element={<LegacyRoleRedirect suffix="projects" />} />
-          <Route path="/projects/new" element={<LegacyRoleRedirect suffix="projects/new" allowAdmin={false} />} />
-          <Route path="/projects/:id/edit" element={<LegacyProjectEditRedirect />} />
-          <Route path="/projects/:id" element={<LegacyProjectDetailRedirect />} />
-          <Route path="/projects/:projectId/dividends/:dividendId" element={<LegacyDividendRedirect />} />
-          <Route path="/investments" element={<LegacyRoleRedirect suffix="investments" allowAdmin={false} />} />
-          <Route path="/profile" element={<LegacyRoleRedirect suffix="profile" />} />
-          <Route path="/kyc" element={<LegacyRoleRedirect suffix="kyc" allowAdmin={false} />} />
 
           <Route path="/" element={<DashboardRedirect />} />
           <Route path="*" element={<DashboardRedirect />} />

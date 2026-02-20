@@ -34,8 +34,11 @@ export default function PorteurLayout() {
         <div className="porteur-layout">
             <header className="porteur-header">
                 <div className="porteur-header-inner">
-                    <div className="porteur-header-logo" onClick={() => navigate('/porteur/dashboard')}>
-                        <span className="porteur-logo-text">X<span className="porteur-logo-accent">-</span>Fund</span>
+                    <div className="porteur-header-logo" onClick={() => navigate('/dashboard')}>
+                        <div className="porteur-logo-wrap">
+                            <span className="porteur-logo-text">X<span className="porteur-logo-accent">-</span>Fund</span>
+                            <span className="porteur-logo-sub">Espace de financement</span>
+                        </div>
                     </div>
 
                     <div className="porteur-header-profile" ref={dropdownRef}>
@@ -63,7 +66,7 @@ export default function PorteurLayout() {
                                 <div className="porteur-dropdown-divider" />
                                 <button
                                     className="porteur-dropdown-item"
-                                    onClick={() => { navigate('/porteur/profile'); setShowDropdown(false); }}
+                                    onClick={() => { navigate('/profile'); setShowDropdown(false); }}
                                 >
                                     <User size={16} />
                                     <span>Mon Profil</span>
