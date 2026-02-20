@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { analysteApi } from '../../api/analyste';
 import {
   ArrowLeft, CheckCircle, AlertCircle, XCircle, FileText, DollarSign, Shield,
-  Building, User, Calendar, TrendingUp, Scale, AlertTriangle,
+  Building, User, Calendar, TrendingUp, Scale, AlertTriangle, MessageSquare,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatCents, PROJECT_STATUS_LABELS, PROJECT_STATUS_BADGES, ANALYST_OPINION_LABELS, ANALYST_OPINION_BADGES } from '../../utils';
 import { LoadingSpinner } from '../../components/ui';
+import InfoRequestForm from '../../components/InfoRequestForm';
 
 export default function AnalysteProjectDetailPage() {
   const { id } = useParams();
@@ -23,6 +24,8 @@ export default function AnalysteProjectDetailPage() {
   const [showModal, setShowModal] = useState(false);
   const [modalAction, setModalAction] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showInfoForm, setShowInfoForm] = useState(false);
+  const [infoRequests, setInfoRequests] = useState([]);
 
   useEffect(() => { loadProject(); }, [id]);
 
@@ -37,6 +40,7 @@ export default function AnalysteProjectDetailPage() {
       setFinancialCheck(a.analyst_financial_check || false);
       setRiskCheck(a.analyst_risk_check || false);
       setComment(a.analyst_comment || '');
+      setInfoRequests(res.data.info_requests || []);
     } catch {
       toast.error('Erreur lors du chargement du projet');
       navigate('/analyste/projects');
@@ -57,16 +61,19 @@ export default function AnalysteProjectDetailPage() {
     }
     setSubmitting(true);
     try {
-      await analysteApi.submitOpinion(id, {
-        opinion: modalAction,
+      const data = {
         comment,
         legal_check: legalCheck,
         financial_check: financialCheck,
         risk_check: riskCheck,
-      });
+      };
+      if (modalAction === 'opinion_approved') {
+        await analysteApi.approveProject(id, data);
+      } else if (modalAction === 'opinion_rejected') {
+        await analysteApi.rejectProject(id, data);
+      }
       const labels = {
         opinion_approved: 'Projet valide',
-        opinion_info_requested: 'Demande d\'informations envoyee',
         opinion_rejected: 'Projet refuse',
       };
       toast.success(labels[modalAction] || 'Avis soumis');
@@ -83,7 +90,7 @@ export default function AnalysteProjectDetailPage() {
   if (!project) return null;
 
   const a = project.attributes || project;
-  const alreadyReviewed = a.analyst_opinion && a.analyst_opinion !== 'opinion_pending';
+  const alreadyReviewed = a.analyst_opinion && a.analyst_opinion !== 'opinion_pending' && a.status !== 'info_resubmitted';
 
   return (
     <div className="page">
@@ -189,6 +196,39 @@ export default function AnalysteProjectDetailPage() {
               </div>
             )}
           </div>
+
+          {/* Info Request History */}
+          {infoRequests.length > 0 && (
+            <div className="card" style={{ marginTop: '1.5rem' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '1rem' }}>
+                <MessageSquare size={18} /> Historique des demandes de complements
+              </h3>
+              {infoRequests.map((ir) => {
+                const irAttr = ir.attributes || ir;
+                return (
+                  <div key={ir.id} style={{ padding: '1rem', borderRadius: '8px', background: '#f8f9fa', marginBottom: '.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.5rem' }}>
+                      <span className={`badge ${irAttr.status === 'submitted' ? 'badge-success' : irAttr.status === 'reviewed' ? 'badge-info' : 'badge-warning'}`}>
+                        {irAttr.status === 'pending' ? 'En attente' : irAttr.status === 'submitted' ? 'Soumis' : 'Examine'}
+                      </span>
+                      <span className="text-muted" style={{ fontSize: '.85rem' }}>
+                        {new Date(irAttr.created_at).toLocaleDateString('fr-FR')}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '.9rem' }}>
+                      <strong>{(irAttr.fields || []).length} champ(s) demande(s)</strong>
+                      {irAttr.requested_by_name && <span className="text-muted"> par {irAttr.requested_by_name}</span>}
+                    </div>
+                    {irAttr.responses && Object.keys(irAttr.responses).length > 0 && (
+                      <div style={{ marginTop: '.5rem', fontSize: '.85rem', color: '#666' }}>
+                        Reponses soumises{irAttr.submitted_at && ` le ${new Date(irAttr.submitted_at).toLocaleDateString('fr-FR')}`}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Right: Analysis Form */}
@@ -281,7 +321,7 @@ export default function AnalysteProjectDetailPage() {
                 </button>
                 <button
                   className="btn btn-warning"
-                  onClick={() => openSubmitModal('opinion_info_requested')}
+                  onClick={() => setShowInfoForm(true)}
                 >
                   <AlertCircle size={16} /> Demander des complements
                 </button>
@@ -303,12 +343,10 @@ export default function AnalysteProjectDetailPage() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>
               {modalAction === 'opinion_approved' && 'Confirmer la validation'}
-              {modalAction === 'opinion_info_requested' && 'Demander des complements'}
               {modalAction === 'opinion_rejected' && 'Confirmer le refus'}
             </h3>
             <p className="text-muted" style={{ marginBottom: '1rem' }}>
               {modalAction === 'opinion_approved' && 'Vous etes sur le point de valider ce projet. Votre avis sera transmis a l\'administrateur.'}
-              {modalAction === 'opinion_info_requested' && 'Vous demandez des informations complementaires au porteur de projet.'}
               {modalAction === 'opinion_rejected' && 'Vous etes sur le point de refuser ce projet. Votre avis sera transmis a l\'administrateur.'}
             </p>
 
@@ -332,7 +370,7 @@ export default function AnalysteProjectDetailPage() {
                 Annuler
               </button>
               <button
-                className={`btn ${modalAction === 'opinion_approved' ? 'btn-success' : modalAction === 'opinion_rejected' ? 'btn-danger' : 'btn-warning'}`}
+                className={`btn ${modalAction === 'opinion_approved' ? 'btn-success' : 'btn-danger'}`}
                 onClick={handleSubmitOpinion}
                 disabled={submitting}
               >
@@ -341,6 +379,18 @@ export default function AnalysteProjectDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Info Request Form Modal */}
+      {showInfoForm && (
+        <InfoRequestForm
+          projectId={id}
+          onClose={() => setShowInfoForm(false)}
+          onSubmitted={() => {
+            setShowInfoForm(false);
+            loadProject();
+          }}
+        />
       )}
     </div>
   );

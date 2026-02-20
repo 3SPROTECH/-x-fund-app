@@ -1,4 +1,4 @@
-class DemoInfoRequestSerializer
+class InfoRequestSerializer
   include JSONAPI::Serializer
 
   attributes :id, :fields, :status, :responses, :submitted_at, :created_at, :updated_at

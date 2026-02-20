@@ -3,7 +3,7 @@ module Api
     module Analyste
       class ProjectsController < ApplicationController
         before_action :require_analyste!
-        before_action :set_project, only: [:show, :submit_opinion]
+        before_action :set_project, only: [:show, :submit_opinion, :request_info, :approve, :reject]
 
         def index
           projects = InvestmentProject.where(analyst_id: current_user.id)
@@ -21,7 +21,12 @@ module Api
         end
 
         def show
-          render json: { data: InvestmentProjectSerializer.new(@project).serializable_hash[:data] }
+          render json: {
+            data: InvestmentProjectSerializer.new(@project, params: { include_snapshot: true }).serializable_hash[:data],
+            info_requests: @project.info_requests.order(created_at: :desc).map { |ir|
+              InfoRequestSerializer.new(ir).serializable_hash[:data]
+            }
+          }
         end
 
         def submit_opinion
@@ -45,6 +50,88 @@ module Api
 
           render json: {
             message: "Avis soumis avec succes.",
+            data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
+          }
+        end
+
+        # POST /api/v1/analyste/projects/:id/request_info
+        def request_info
+          fields = params[:fields]
+          unless fields.is_a?(Array) && fields.present?
+            return render json: { errors: ["Au moins un champ est requis."] }, status: :unprocessable_entity
+          end
+
+          info_request = @project.info_requests.build(
+            requested_by: current_user,
+            fields: fields,
+            status: :pending
+          )
+
+          if info_request.save
+            @project.update!(
+              status: :info_requested,
+              analyst_opinion: :opinion_info_requested,
+              analyst_comment: params[:comment],
+              analyst_reviewed_at: Time.current,
+              reviewed_by_id: current_user.id,
+              reviewed_at: Time.current,
+              review_comment: params[:comment]
+            )
+
+            render json: {
+              message: "Demande de compléments envoyée.",
+              data: InfoRequestSerializer.new(info_request).serializable_hash[:data]
+            }, status: :created
+          else
+            render json: { errors: info_request.errors.full_messages }, status: :unprocessable_entity
+          end
+        end
+
+        # PATCH /api/v1/analyste/projects/:id/approve
+        def approve
+          @project.update!(
+            status: :analyst_approved,
+            analyst_opinion: :opinion_approved,
+            analyst_comment: params[:comment].presence || @project.analyst_comment,
+            analyst_legal_check: params[:legal_check].nil? ? @project.analyst_legal_check : params[:legal_check],
+            analyst_financial_check: params[:financial_check].nil? ? @project.analyst_financial_check : params[:financial_check],
+            analyst_risk_check: params[:risk_check].nil? ? @project.analyst_risk_check : params[:risk_check],
+            analyst_reviewed_at: Time.current,
+            reviewed_by_id: current_user.id,
+            reviewed_at: Time.current,
+            review_comment: params[:comment]
+          )
+
+          # Mark any submitted info requests as reviewed
+          @project.info_requests.where(status: :submitted).update_all(status: :reviewed)
+
+          render json: {
+            message: "Projet pré-approuvé par l'analyste.",
+            data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
+          }
+        end
+
+        # PATCH /api/v1/analyste/projects/:id/reject
+        def reject
+          if params[:comment].blank?
+            return render json: { errors: ["Le commentaire est obligatoire pour un refus."] }, status: :unprocessable_entity
+          end
+
+          @project.update!(
+            status: :rejected,
+            analyst_opinion: :opinion_rejected,
+            analyst_comment: params[:comment],
+            analyst_legal_check: params[:legal_check].nil? ? @project.analyst_legal_check : params[:legal_check],
+            analyst_financial_check: params[:financial_check].nil? ? @project.analyst_financial_check : params[:financial_check],
+            analyst_risk_check: params[:risk_check].nil? ? @project.analyst_risk_check : params[:risk_check],
+            analyst_reviewed_at: Time.current,
+            reviewed_by_id: current_user.id,
+            reviewed_at: Time.current,
+            review_comment: params[:comment]
+          )
+
+          render json: {
+            message: "Projet rejeté.",
             data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
           }
         end

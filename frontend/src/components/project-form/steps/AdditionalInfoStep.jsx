@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { demoPorteurApi } from '../../../api/demoPorteur';
+import { porteurInfoApi } from '../../../api/porteurInfo';
 import useProjectFormStore from '../../../stores/useProjectFormStore';
 import FormGrid from '../shared/FormGrid';
 import FormField from '../shared/FormField';
@@ -23,7 +23,7 @@ export default function AdditionalInfoStep({ onSubmitRef }) {
     const loadInfoRequest = async () => {
         setLoading(true);
         try {
-            const res = await demoPorteurApi.getInfoRequest(projectId);
+            const res = await porteurInfoApi.getInfoRequest(projectId);
             const irData = res.data.data;
             if (irData) {
                 const ir = irData.attributes || irData;
@@ -58,7 +58,7 @@ export default function AdditionalInfoStep({ onSubmitRef }) {
         }
 
         try {
-            await demoPorteurApi.submitInfoResponse(projectId, responses);
+            await porteurInfoApi.submitInfoResponse(projectId, responses);
             setSubmitted(true);
             setProjectStatus('info_resubmitted');
             toast.success('Compléments envoyés avec succès !');

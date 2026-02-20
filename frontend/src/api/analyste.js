@@ -12,4 +12,16 @@ export const analysteApi = {
   submitOpinion(id, data) {
     return client.patch(`/analyste/projects/${id}/submit_opinion`, data);
   },
+
+  requestInfo(id, fields, comment = '') {
+    return client.post(`/analyste/projects/${id}/request_info`, { fields, comment });
+  },
+
+  approveProject(id, data = {}) {
+    return client.patch(`/analyste/projects/${id}/approve`, data);
+  },
+
+  rejectProject(id, data = {}) {
+    return client.patch(`/analyste/projects/${id}/reject`, data);
+  },
 };

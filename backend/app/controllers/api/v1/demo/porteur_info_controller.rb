@@ -10,7 +10,7 @@ module Api
         def show
           if @info_request
             render json: {
-              data: DemoInfoRequestSerializer.new(@info_request).serializable_hash[:data]
+              data: InfoRequestSerializer.new(@info_request).serializable_hash[:data]
             }
           else
             render json: { data: nil }
@@ -23,7 +23,7 @@ module Api
             return render json: { errors: ["Aucune demande de compléments trouvée."] }, status: :not_found
           end
 
-          unless @info_request.demo_pending?
+          unless @info_request.ir_pending?
             return render json: { errors: ["Cette demande a déjà été soumise."] }, status: :unprocessable_entity
           end
 
@@ -45,7 +45,7 @@ module Api
 
           render json: {
             message: "Compléments d'information soumis avec succès.",
-            data: DemoInfoRequestSerializer.new(@info_request).serializable_hash[:data]
+            data: InfoRequestSerializer.new(@info_request).serializable_hash[:data]
           }
         end
 
@@ -65,7 +65,7 @@ module Api
         end
 
         def set_info_request
-          @info_request = @project.demo_info_requests.order(created_at: :desc).first
+          @info_request = @project.info_requests.order(created_at: :desc).first
         end
       end
     end

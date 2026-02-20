@@ -8,7 +8,7 @@ module Api
         # GET /api/v1/demo/analyst/projects
         def index
           projects = InvestmentProject
-            .includes(:owner, :properties, :demo_info_requests)
+            .includes(:owner, :properties, :info_requests)
             .where(status: [:pending_analysis, :info_requested, :info_resubmitted, :analyst_approved, :rejected])
 
           projects = projects.where(status: params[:status]) if params[:status].present?
@@ -41,8 +41,8 @@ module Api
         def show
           render json: {
             data: InvestmentProjectSerializer.new(@project, params: { include_snapshot: true }).serializable_hash[:data],
-            info_requests: @project.demo_info_requests.order(created_at: :desc).map { |ir|
-              DemoInfoRequestSerializer.new(ir).serializable_hash[:data]
+            info_requests: @project.info_requests.order(created_at: :desc).map { |ir|
+              InfoRequestSerializer.new(ir).serializable_hash[:data]
             }
           }
         end
@@ -54,7 +54,7 @@ module Api
             return render json: { errors: ["Au moins un champ est requis."] }, status: :unprocessable_entity
           end
 
-          info_request = @project.demo_info_requests.build(
+          info_request = @project.info_requests.build(
             requested_by: current_user,
             fields: fields,
             status: :pending
@@ -70,7 +70,7 @@ module Api
 
             render json: {
               message: "Demande de compléments envoyée.",
-              data: DemoInfoRequestSerializer.new(info_request).serializable_hash[:data]
+              data: InfoRequestSerializer.new(info_request).serializable_hash[:data]
             }, status: :created
           else
             render json: { errors: info_request.errors.full_messages }, status: :unprocessable_entity
@@ -87,7 +87,7 @@ module Api
           )
 
           # Mark any pending info requests as reviewed
-          @project.demo_info_requests.where(status: :submitted).update_all(status: :reviewed)
+          @project.info_requests.where(status: :submitted).update_all(status: :reviewed)
 
           render json: {
             message: "Projet pré-approuvé par l'analyste.",
@@ -141,8 +141,8 @@ module Api
               updated_at: project.updated_at,
               review_comment: project.review_comment,
               reviewed_at: project.reviewed_at,
-              has_info_requests: project.demo_info_requests.any?,
-              latest_info_request_status: project.demo_info_requests.order(created_at: :desc).first&.status
+              has_info_requests: project.info_requests.any?,
+              latest_info_request_status: project.info_requests.order(created_at: :desc).first&.status
             }
           }
         end

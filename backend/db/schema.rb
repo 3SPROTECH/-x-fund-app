@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_20_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_20_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -93,20 +93,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_120000) do
     t.index ["property_id"], name: "index_cost_line_items_on_property_id"
   end
 
-  create_table "demo_info_requests", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.jsonb "fields", default: [], null: false
-    t.bigint "investment_project_id", null: false
-    t.bigint "requested_by_id", null: false
-    t.jsonb "responses", default: {}, null: false
-    t.integer "status", default: 0, null: false
-    t.datetime "submitted_at"
-    t.datetime "updated_at", null: false
-    t.index ["investment_project_id", "status"], name: "idx_demo_info_requests_on_project_and_status"
-    t.index ["investment_project_id"], name: "index_demo_info_requests_on_investment_project_id"
-    t.index ["requested_by_id"], name: "index_demo_info_requests_on_requested_by_id"
-  end
-
   create_table "dividend_payments", force: :cascade do |t|
     t.bigint "amount_cents", null: false
     t.datetime "created_at", null: false
@@ -173,6 +159,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_120000) do
     t.index ["distributable_cash_cents"], name: "index_financial_statements_on_distributable_cash_cents"
     t.index ["investment_project_id", "period_start", "period_end"], name: "idx_financial_statements_on_project_and_period", unique: true
     t.index ["investment_project_id"], name: "index_financial_statements_on_investment_project_id"
+  end
+
+  create_table "info_requests", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "fields", default: [], null: false
+    t.bigint "investment_project_id", null: false
+    t.bigint "requested_by_id", null: false
+    t.jsonb "responses", default: {}, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "submitted_at"
+    t.datetime "updated_at", null: false
+    t.index ["investment_project_id", "status"], name: "idx_info_requests_on_project_and_status"
+    t.index ["investment_project_id"], name: "index_info_requests_on_investment_project_id"
+    t.index ["requested_by_id"], name: "index_info_requests_on_requested_by_id"
   end
 
   create_table "investment_project_properties", force: :cascade do |t|
@@ -500,14 +500,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_120000) do
   add_foreign_key "audit_logs", "users"
   add_foreign_key "companies", "users"
   add_foreign_key "cost_line_items", "properties"
-  add_foreign_key "demo_info_requests", "investment_projects"
-  add_foreign_key "demo_info_requests", "users", column: "requested_by_id"
   add_foreign_key "dividend_payments", "dividends"
   add_foreign_key "dividend_payments", "investments"
   add_foreign_key "dividend_payments", "users"
   add_foreign_key "dividends", "financial_statements"
   add_foreign_key "dividends", "investment_projects"
   add_foreign_key "financial_statements", "investment_projects"
+  add_foreign_key "info_requests", "investment_projects"
+  add_foreign_key "info_requests", "users", column: "requested_by_id"
   add_foreign_key "investment_project_properties", "investment_projects"
   add_foreign_key "investment_project_properties", "properties"
   add_foreign_key "investment_projects", "users", column: "analyst_id"

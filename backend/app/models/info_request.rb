@@ -1,8 +1,8 @@
-class DemoInfoRequest < ApplicationRecord
+class InfoRequest < ApplicationRecord
   belongs_to :investment_project
   belongs_to :requested_by, class_name: "User"
 
-  enum :status, { pending: 0, submitted: 1, reviewed: 2 }, prefix: :demo
+  enum :status, { pending: 0, submitted: 1, reviewed: 2 }, prefix: :ir
 
   validates :fields, presence: true
   validates :investment_project, presence: true

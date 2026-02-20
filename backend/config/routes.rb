@@ -103,7 +103,17 @@ Rails.application.routes.draw do
         resources :projects, only: [:index, :show], controller: "projects" do
           member do
             patch :submit_opinion
+            post :request_info
+            patch :approve
+            patch :reject
           end
+        end
+      end
+
+      # === Porteur info requests ===
+      scope 'porteur/projects/:project_id' do
+        resource :info_request, only: [:show], controller: 'porteur_info' do
+          patch :submit
         end
       end
 
