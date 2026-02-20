@@ -29,7 +29,9 @@ export default function LoginPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">X-Fund</h1>
+        <div className="auth-logo-header">
+          <span className="logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+        </div>
         <p className="auth-subtitle">Connectez-vous à votre espace investisseur</p>
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
