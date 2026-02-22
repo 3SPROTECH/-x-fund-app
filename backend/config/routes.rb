@@ -114,6 +114,14 @@ Rails.application.routes.draw do
             get :report
           end
         end
+
+        # KYC verification by analyst
+        resources :kyc, only: [:index, :show], controller: "kyc" do
+          member do
+            patch :verify
+            patch :reject
+          end
+        end
       end
 
       # === Porteur info requests ===

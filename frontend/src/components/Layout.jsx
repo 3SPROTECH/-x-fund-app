@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  LogOut, User, LayoutDashboard, Wallet, Building, FileCheck,
+  LogOut, User, LayoutDashboard, Wallet, Building, FileCheck, ClipboardCheck,
   TrendingUp, Briefcase, Shield, BarChart3, ScrollText, CreditCard, Settings,
   Menu, X,
 } from 'lucide-react';
@@ -63,6 +63,9 @@ export default function Layout() {
             <NavLink to="/admin/users" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
               <Shield size={18} /><span>Utilisateurs</span>
             </NavLink>
+            <NavLink to="/admin/kyc" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+              <ClipboardCheck size={18} /><span>Verification KYC</span>
+            </NavLink>
             <NavLink to="/admin/properties" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
               <Building size={18} /><span>Biens immobiliers</span>
             </NavLink>
@@ -110,6 +113,9 @@ export default function Layout() {
         {/* Menu mobile déroulant admin */}
         {showAdminMobileMenu && (
           <div className="admin-mobile-dropdown">
+            <NavLink to="/admin/kyc" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
+              <ClipboardCheck size={20} /><span>Verification KYC</span>
+            </NavLink>
             <NavLink to="/admin/wallet" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
               <Wallet size={20} /><span>Portefeuille</span>
             </NavLink>
@@ -180,6 +186,9 @@ export default function Layout() {
             <NavLink to="/analyste/projects" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
               <Briefcase size={18} /><span>Projets a analyser</span>
             </NavLink>
+            <NavLink to="/analyste/kyc" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+              <ClipboardCheck size={18} /><span>Verification KYC</span>
+            </NavLink>
           </nav>
 
           <div className="sidebar-footer">
@@ -207,6 +216,9 @@ export default function Layout() {
             <NavLink to="/analyste/projects" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
               <Briefcase size={20} /><span>Projets</span>
             </NavLink>
+            <NavLink to="/analyste/kyc" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
+              <ClipboardCheck size={20} /><span>Verification KYC</span>
+            </NavLink>
             <div className="admin-mobile-item admin-mobile-user" onClick={() => { navigate('/analyste/profile'); setShowAdminMobileMenu(false); }}>
               <User size={20} />
               <div><span>{user?.first_name} {user?.last_name}</span><small>{ROLE_LABELS[user?.role]}</small></div>
@@ -228,6 +240,9 @@ export default function Layout() {
           </NavLink>
           <NavLink to="/analyste/projects" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
             <Briefcase size={22} /><span>Projets</span>
+          </NavLink>
+          <NavLink to="/analyste/kyc" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
+            <ClipboardCheck size={22} /><span>KYC</span>
           </NavLink>
           <button className="admin-bottom-tab" onClick={() => setShowAdminMobileMenu(!showAdminMobileMenu)}>
             <Menu size={22} /><span>Plus</span>

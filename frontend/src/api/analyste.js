@@ -32,4 +32,21 @@ export const analysteApi = {
   getReport(id) {
     return client.get(`/analyste/projects/${id}/report`);
   },
+
+  // KYC management
+  getKycList(params = {}) {
+    return client.get('/analyste/kyc', { params });
+  },
+
+  getKycUser(id) {
+    return client.get(`/analyste/kyc/${id}`);
+  },
+
+  verifyKyc(id) {
+    return client.patch(`/analyste/kyc/${id}/verify`);
+  },
+
+  rejectKyc(id, reason) {
+    return client.patch(`/analyste/kyc/${id}/reject`, { reason });
+  },
 };
