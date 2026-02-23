@@ -44,6 +44,7 @@ import AnalysteDashboardPage from './pages/analyste/AnalysteDashboardPage';
 import AnalysteProjectsPage from './pages/analyste/AnalysteProjectsPage';
 import AnalysteProjectDetailPage from './pages/analyste/AnalysteProjectDetailPage';
 import AnalysteProfilePage from './pages/analyste/AnalysteProfilePage';
+import AnalysteKycPage from './pages/analyste/AnalysteKycPage';
 
 // Porteur pages
 import PorteurDashboardPage from './pages/porteur/PorteurDashboardPage';
@@ -144,6 +145,10 @@ export default function App() {
               element={<ProtectedRoute roles={['administrateur']}><AdminUsersPage /></ProtectedRoute>}
             />
             <Route
+              path="/admin/kyc"
+              element={<ProtectedRoute roles={['administrateur']}><AdminUsersPage kycMode /></ProtectedRoute>}
+            />
+            <Route
               path="/admin/properties"
               element={<ProtectedRoute roles={['administrateur']}><AdminPropertiesPage /></ProtectedRoute>}
             />
@@ -218,6 +223,10 @@ export default function App() {
             <Route
               path="/analyste/projects/:id"
               element={<ProtectedRoute roles={['analyste']}><AnalysteProjectDetailPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/analyste/kyc"
+              element={<ProtectedRoute roles={['analyste']}><AnalysteKycPage /></ProtectedRoute>}
             />
             <Route
               path="/analyste/profile"

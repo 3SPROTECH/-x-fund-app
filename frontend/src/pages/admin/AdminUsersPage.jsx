@@ -11,10 +11,10 @@ import FormSelect from '../../components/FormSelect';
 import { ROLE_LABELS, KYC_STATUS_LABELS as KYC_LABELS } from '../../utils';
 import { LoadingSpinner, Pagination, EmptyState } from '../../components/ui';
 
-export default function AdminUsersPage() {
+export default function AdminUsersPage({ kycMode = false }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ role: '', kyc_status: '' });
+  const [filters, setFilters] = useState({ role: '', kyc_status: kycMode ? 'submitted' : '' });
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
@@ -118,14 +118,16 @@ export default function AdminUsersPage() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1>Gestion des Utilisateurs</h1>
-          <p className="text-muted">Gérez les comptes et les vérifications KYC</p>
+          <h1>{kycMode ? 'Verification KYC' : 'Gestion des Utilisateurs'}</h1>
+          <p className="text-muted">{kycMode ? 'Verifiez et validez les documents KYC des utilisateurs' : 'Gérez les comptes et les vérifications KYC'}</p>
         </div>
         <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
-          <span className="badge"><Users size={12} /> {meta.total_count ?? users.length} utilisateur(s)</span>
-          <button className="btn btn-sm btn-primary" onClick={() => setShowCreateModal(true)}>
-            <UserPlus size={14} /> Creer un utilisateur
-          </button>
+          <span className="badge"><Users size={12} /> {meta.total_count ?? users.length} {kycMode ? 'demande(s)' : 'utilisateur(s)'}</span>
+          {!kycMode && (
+            <button className="btn btn-sm btn-primary" onClick={() => setShowCreateModal(true)}>
+              <UserPlus size={14} /> Creer un utilisateur
+            </button>
+          )}
         </div>
       </div>
 
