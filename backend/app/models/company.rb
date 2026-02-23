@@ -1,4 +1,6 @@
 class Company < ApplicationRecord
+  include Auditable
+
   belongs_to :user
 
   has_one_attached :kbis

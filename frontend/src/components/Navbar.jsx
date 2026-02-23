@@ -5,6 +5,7 @@ import {
   LayoutDashboard, TrendingUp, Briefcase, User, LogOut, FileCheck, ChevronDown, Plus, Wallet, Menu, X
 } from 'lucide-react';
 import WalletRechargeModal from './WalletRechargeModal';
+import NotificationBell from './NotificationBell';
 import useWalletStore from '../stores/useWalletStore';
 import { formatBalance, ROLE_LABELS } from '../utils';
 
@@ -95,6 +96,7 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="navbar-actions">
+            <NotificationBell />
             <button
               className="wallet-balance-btn"
               onClick={() => setShowWalletModal(true)}

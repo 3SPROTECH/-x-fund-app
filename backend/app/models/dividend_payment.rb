@@ -1,4 +1,6 @@
 class DividendPayment < ApplicationRecord
+  include Auditable
+
   belongs_to :dividend
   belongs_to :investment
   belongs_to :user

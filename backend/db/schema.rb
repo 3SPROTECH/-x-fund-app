@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_20_200001) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_21_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -362,6 +362,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_200001) do
     t.index ["review_status"], name: "index_mvp_reports_on_review_status"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "actor_id"
+    t.text "body"
+    t.datetime "created_at", null: false
+    t.bigint "notifiable_id"
+    t.string "notifiable_type"
+    t.string "notification_type", null: false
+    t.datetime "read_at"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["actor_id"], name: "index_notifications_on_actor_id"
+    t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
+    t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
   create_table "project_delays", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "delay_days", default: 0, null: false
@@ -558,6 +576,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_200001) do
   add_foreign_key "mvp_reports", "investment_projects"
   add_foreign_key "mvp_reports", "users", column: "author_id"
   add_foreign_key "mvp_reports", "users", column: "reviewed_by_id"
+  add_foreign_key "notifications", "users"
+  add_foreign_key "notifications", "users", column: "actor_id"
   add_foreign_key "project_delays", "investment_projects"
   add_foreign_key "project_delays", "users"
   add_foreign_key "project_drafts", "users"

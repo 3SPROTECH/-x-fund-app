@@ -7,6 +7,7 @@ import {
   Menu, X,
 } from 'lucide-react';
 import Navbar from './Navbar';
+import NotificationBell from './NotificationBell';
 import { ROLE_LABELS } from '../utils';
 
 export default function Layout() {
@@ -107,7 +108,10 @@ export default function Layout() {
             {showAdminMobileMenu ? <X size={22} /> : <Menu size={22} />}
           </button>
           <span className="admin-mobile-logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
-          <span className="admin-mobile-role">Admin</span>
+          <div className="admin-mobile-topbar-actions">
+            <NotificationBell />
+            <span className="admin-mobile-role">Admin</span>
+          </div>
         </div>
 
         {/* Menu mobile déroulant admin */}
@@ -142,6 +146,15 @@ export default function Layout() {
         )}
 
         <main className="main-content">
+          <div className="content-topbar">
+            <div className="content-topbar-left" />
+            <div className="content-topbar-right">
+              <NotificationBell />
+              <div className="content-topbar-user" onClick={() => navigate('/admin/profile')}>
+                <span>{user?.first_name} {user?.last_name}</span>
+              </div>
+            </div>
+          </div>
           <Outlet />
         </main>
 
@@ -208,7 +221,10 @@ export default function Layout() {
             {showAdminMobileMenu ? <X size={22} /> : <Menu size={22} />}
           </button>
           <span className="admin-mobile-logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
-          <span className="admin-mobile-role">Analyste</span>
+          <div className="admin-mobile-topbar-actions">
+            <NotificationBell />
+            <span className="admin-mobile-role">Analyste</span>
+          </div>
         </div>
 
         {showAdminMobileMenu && (
@@ -230,6 +246,15 @@ export default function Layout() {
         )}
 
         <main className="main-content">
+          <div className="content-topbar">
+            <div className="content-topbar-left" />
+            <div className="content-topbar-right">
+              <NotificationBell />
+              <div className="content-topbar-user" onClick={() => navigate('/analyste/profile')}>
+                <span>{user?.first_name} {user?.last_name}</span>
+              </div>
+            </div>
+          </div>
           <Outlet />
         </main>
 

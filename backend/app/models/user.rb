@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   include Devise::JWT::RevocationStrategies::JTIMatcher
+  include Auditable
 
   devise :database_authenticatable, :registerable,
          :recoverable, :validatable, :trackable,
@@ -14,7 +15,8 @@ class User < ApplicationRecord
   has_many :investments, dependent: :restrict_with_error
   has_many :invested_projects, through: :investments, source: :investment_project
   has_many :dividend_payments, dependent: :restrict_with_error
-  has_many :audit_logs, dependent: :nullify
+  has_many :performed_audit_logs, class_name: "AuditLog", foreign_key: :user_id, dependent: :nullify
+  has_many :notifications, dependent: :destroy
   has_many :project_drafts, dependent: :destroy
 
   has_one_attached :kyc_identity_document
@@ -36,6 +38,12 @@ class User < ApplicationRecord
   end
 
   private
+
+  def audit_excluded_fields
+    super + %w[encrypted_password reset_password_token reset_password_sent_at
+               sign_in_count current_sign_in_at last_sign_in_at
+               current_sign_in_ip last_sign_in_ip jti]
+  end
 
   def auto_verify_kyc_for_admin
     if (administrateur? || analyste?) && !kyc_verified?

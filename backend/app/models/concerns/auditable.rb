@@ -11,12 +11,16 @@ module Auditable
 
   private
 
+  def audit_excluded_fields
+    %w[updated_at created_at]
+  end
+
   def log_audit(action)
     AuditLog.create!(
       user: Current.user,
       auditable: self,
       action: action,
-      changes_data: saved_changes.except("updated_at", "created_at"),
+      changes_data: saved_changes.except(*audit_excluded_fields),
       ip_address: Current.ip_address,
       user_agent: Current.user_agent
     )

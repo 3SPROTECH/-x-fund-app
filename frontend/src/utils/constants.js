@@ -202,11 +202,46 @@ export const ACTION_LABELS = {
   create: 'Création',
   update: 'Modification',
   delete: 'Suppression',
+  approve_project: 'Approbation projet',
+  reject_project: 'Rejet projet',
+  request_info: 'Demande infos',
+  assign_analyst: 'Assignation analyste',
+  advance_status: 'Changement statut',
+  verify_kyc: 'Validation KYC',
+  reject_kyc: 'Rejet KYC',
+  validate_report: 'Validation rapport',
+  reject_report: 'Rejet rapport',
 };
 export const ACTION_BADGES = {
   create: 'badge-success',
   update: 'badge-info',
   delete: 'badge-danger',
+  approve_project: 'badge-success',
+  reject_project: 'badge-danger',
+  request_info: 'badge-warning',
+  assign_analyst: 'badge-info',
+  advance_status: 'badge-info',
+  verify_kyc: 'badge-success',
+  reject_kyc: 'badge-danger',
+  validate_report: 'badge-success',
+  reject_report: 'badge-danger',
+};
+
+// ─── Audit log resource types ───
+export const RESOURCE_TYPE_LABELS = {
+  User: 'Utilisateur',
+  InvestmentProject: 'Projet',
+  Property: 'Bien immobilier',
+  Investment: 'Investissement',
+  MvpReport: 'Rapport MVP',
+  Transaction: 'Transaction',
+  Wallet: 'Portefeuille',
+  Dividend: 'Dividende',
+  DividendPayment: 'Paiement dividende',
+  ProjectDelay: 'Retard',
+  AnalystReport: 'Rapport analyste',
+  Setting: 'Paramètre',
+  Company: 'Société',
 };
 
 // ─── MVP / Operation types ───

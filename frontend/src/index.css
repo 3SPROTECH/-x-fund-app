@@ -569,6 +569,73 @@ textarea:focus {
   padding: .5rem;
 }
 
+/* Zone d'upload type dropzone (même design que formulaire projet) */
+.form-group .file-upload-dropzone {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.file-upload-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 0;
+}
+.file-upload-dropzone:hover {
+  border-color: var(--primary);
+  background: #f8fafc;
+}
+.file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: inherit;
+  border: none;
+  background: none;
+  box-sizing: border-box;
+}
+.file-upload-btn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-upload-btn:hover {
+  color: var(--primary);
+}
+.file-upload-btn input[type="file"] {
+  display: none;
+}
+.file-upload-filenames {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  min-width: 0;
+  max-width: 100%;
+}
+.file-upload-filename {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .form-group .form-hint {
   font-size: .75rem;
   color: var(--text-muted);
@@ -1512,6 +1579,29 @@ textarea:focus {
   padding-top: 1rem;
   border-top: 1px solid var(--border-light);
   flex-shrink: 0;
+}
+
+/* Modal avec formulaire scrollable : champs + boutons dans le form, boutons toujours visibles */
+.modal-form-scroll {
+  max-height: 90vh;
+  overflow: hidden;
+}
+.modal-form-scroll .modal-form-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.modal-form-scroll .modal-form-inner .modal-body {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  margin: 0 -0.25rem 0;
+  padding: 0 0.25rem;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-form-scroll .modal-form-inner .modal-actions {
+  margin-top: 1rem;
 }
 
 .modal .form-section {
@@ -4276,7 +4366,7 @@ textarea.error:focus {
 }
 
 .mvp-report-card:hover {
-  border-left-color: var(--info);
+  border-left-color: var(--gold-color);
 }
 
 .operation-type-selector {

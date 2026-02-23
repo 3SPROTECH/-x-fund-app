@@ -109,6 +109,7 @@ module Api
             snapshot = params[:form_snapshot].respond_to?(:to_unsafe_h) ? params[:form_snapshot].to_unsafe_h : params[:form_snapshot]
             @investment_project.update!(form_snapshot: snapshot, status: :pending_analysis)
             Assignments::AnalystAssignmentService.assign!(@investment_project)
+            NotificationService.notify_admins!(actor: current_user, notifiable: @investment_project, type: "project_submitted", title: "Nouveau projet soumis", body: "Le projet « #{@investment_project.title} » a ete soumis par #{current_user.full_name}.")
           end
           render json: { data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data] }, status: :created
         else

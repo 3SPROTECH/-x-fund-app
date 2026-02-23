@@ -48,6 +48,9 @@ module Api
             analyst_reviewed_at: Time.current
           )
 
+          NotificationService.notify_admins!(actor: current_user, notifiable: @project, type: "analyst_opinion_submitted", title: "Avis analyste soumis", body: "L'analyste #{current_user.full_name} a soumis un avis sur le projet « #{@project.title} ».")
+          NotificationService.notify_project_owner!(@project, actor: current_user, type: "analyst_opinion_submitted", title: "Avis analyste soumis", body: "L'analyste a soumis un avis sur votre projet « #{@project.title} ».")
+
           render json: {
             message: "Avis soumis avec succes.",
             data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
@@ -77,6 +80,7 @@ module Api
               reviewed_at: Time.current,
               review_comment: params[:comment]
             )
+            NotificationService.notify_project_owner!(@project, actor: current_user, type: "analyst_info_requested", title: "Complements demandes", body: "L'analyste a demande des complements d'information pour votre projet « #{@project.title} ».")
 
             render json: {
               message: "Demande de compléments envoyée.",
@@ -104,6 +108,8 @@ module Api
 
           # Mark any submitted info requests as reviewed
           @project.info_requests.where(status: :submitted).update_all(status: :reviewed)
+          NotificationService.notify_admins!(actor: current_user, notifiable: @project, type: "analyst_opinion_submitted", title: "Projet pre-approuve", body: "L'analyste #{current_user.full_name} a pre-approuve le projet « #{@project.title} ».")
+          NotificationService.notify_project_owner!(@project, actor: current_user, type: "project_approved", title: "Projet pre-approuve", body: "Votre projet « #{@project.title} » a ete pre-approuve par l'analyste.")
 
           render json: {
             message: "Projet pré-approuvé par l'analyste.",
@@ -129,6 +135,9 @@ module Api
             reviewed_at: Time.current,
             review_comment: params[:comment]
           )
+
+          NotificationService.notify_admins!(actor: current_user, notifiable: @project, type: "analyst_opinion_submitted", title: "Projet rejete par analyste", body: "L'analyste #{current_user.full_name} a rejete le projet « #{@project.title} ».")
+          NotificationService.notify_project_owner!(@project, actor: current_user, type: "project_rejected", title: "Projet rejete", body: "Votre projet « #{@project.title} » a ete rejete par l'analyste.#{params[:comment].present? ? " Motif : #{params[:comment]}" : ''}")
 
           render json: {
             message: "Projet rejeté.",
@@ -173,6 +182,8 @@ module Api
           )
 
           @project.info_requests.where(status: :submitted).update_all(status: :reviewed)
+          NotificationService.notify_admins!(actor: current_user, notifiable: @project, type: "analyst_opinion_submitted", title: "Rapport analyste genere", body: "L'analyste #{current_user.full_name} a genere un rapport et pre-approuve le projet « #{@project.title} ».")
+          NotificationService.notify_project_owner!(@project, actor: current_user, type: "project_approved", title: "Projet pre-approuve", body: "Votre projet « #{@project.title} » a ete pre-approuve suite a l'analyse.")
 
           render json: {
             message: "Rapport généré et projet pré-approuvé.",

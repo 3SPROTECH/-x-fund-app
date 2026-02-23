@@ -12,6 +12,8 @@ module Api
         ).call
 
         if result.success?
+          NotificationService.notify_project_owner!(project, actor: current_user, type: "new_investment", title: "Nouvel investissement", body: "#{current_user.full_name} a investi dans votre projet « #{project.title} ».")
+          NotificationService.notify_admins!(actor: current_user, notifiable: project, type: "new_investment", title: "Nouvel investissement", body: "#{current_user.full_name} a investi dans le projet « #{project.title} ».")
           render json: { data: InvestmentSerializer.new(result.investment).serializable_hash[:data] }, status: :created
         else
           render json: { errors: result.errors }, status: :unprocessable_entity

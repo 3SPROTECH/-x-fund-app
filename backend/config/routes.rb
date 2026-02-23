@@ -71,6 +71,21 @@ Rails.application.routes.draw do
       # === Project Delays (standalone for show/update/destroy + global index) ===
       resources :project_delays, only: [:index, :show, :update, :destroy]
 
+      # === MVP Reports (global index for porteur) ===
+      get :mvp_reports, to: "mvp_reports#global_index"
+
+      # === Notifications ===
+      resources :notifications, only: [:index, :destroy] do
+        collection do
+          get :unread_count
+          patch :mark_all_as_read
+          delete :destroy_all
+        end
+        member do
+          patch :mark_as_read
+        end
+      end
+
       # === Investments (user's own) ===
       resources :investments, only: [:index, :show]
 
@@ -150,7 +165,7 @@ Rails.application.routes.draw do
             patch :advance_status
             patch :assign_analyst
           end
-          resources :mvp_reports, only: [:index, :show, :create, :update, :destroy] do
+          resources :mvp_reports, only: [:index, :show] do
             member do
               patch :validate_report
               patch :reject_report

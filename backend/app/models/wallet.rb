@@ -1,4 +1,6 @@
 class Wallet < ApplicationRecord
+  include Auditable
+
   belongs_to :user
   has_many :transactions, dependent: :restrict_with_error
 

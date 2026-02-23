@@ -215,9 +215,6 @@ export default function AdminUsersPage({ kycMode = false }) {
               return (
                 <>
                   <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                    <div className="avatar avatar-lg" style={{ margin: '0 auto .5rem' }}>
-                      {a.first_name?.[0]}{a.last_name?.[0]}
-                    </div>
                     <h3 style={{ marginBottom: '.15rem' }}>{a.first_name} {a.last_name}</h3>
                     <span className="badge badge-primary">{ROLE_LABELS[a.role] || a.role}</span>
                   </div>

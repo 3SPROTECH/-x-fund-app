@@ -4,7 +4,7 @@ module Api
       class MvpReportsController < ApplicationController
         before_action :require_admin!
         before_action :set_project
-        before_action :set_report, only: [:show, :update, :destroy, :validate_report, :reject_report]
+        before_action :set_report, only: [:show, :validate_report, :reject_report]
 
         def index
           reports = @project.mvp_reports.latest_first
@@ -21,31 +21,6 @@ module Api
           render json: { data: MvpReportSerializer.new(@report).serializable_hash[:data] }
         end
 
-        def create
-          @report = @project.mvp_reports.new(report_params)
-          @report.author = current_user
-          @report.review_status = :valide
-
-          if @report.save
-            render json: { data: MvpReportSerializer.new(@report).serializable_hash[:data] }, status: :created
-          else
-            render json: { errors: @report.errors.full_messages }, status: :unprocessable_entity
-          end
-        end
-
-        def update
-          if @report.update(report_params)
-            render json: { data: MvpReportSerializer.new(@report).serializable_hash[:data] }
-          else
-            render json: { errors: @report.errors.full_messages }, status: :unprocessable_entity
-          end
-        end
-
-        def destroy
-          @report.destroy!
-          render json: { message: "Rapport supprime." }
-        end
-
         # PATCH /admin/investment_projects/:id/mvp_reports/:report_id/validate_report
         def validate_report
           @report.update!(
@@ -54,6 +29,8 @@ module Api
             reviewed_at: Time.current,
             review_comment: params[:comment]
           )
+          log_admin_action("validate_report", @report, { project_title: @report.investment_project.title })
+          NotificationService.notify_project_owner!(@report.investment_project, actor: current_user, type: "report_validated", title: "Rapport valide", body: "Votre rapport de suivi pour le projet « #{@report.investment_project.title} » a ete valide.")
 
           # Approve the project if still pending
           project = @report.investment_project
@@ -64,6 +41,7 @@ module Api
               review_comment: "Rapport valide - projet approuve.",
               status: :approved
             )
+            log_admin_action("approve_project", project, { via: "report_validation" })
           end
 
           render json: {
@@ -84,6 +62,8 @@ module Api
             reviewed_at: Time.current,
             review_comment: params[:comment]
           )
+          log_admin_action("reject_report", @report, { project_title: @report.investment_project.title, comment: params[:comment] })
+          NotificationService.notify_project_owner!(@report.investment_project, actor: current_user, type: "report_rejected", title: "Rapport rejete", body: "Votre rapport de suivi pour le projet « #{@report.investment_project.title} » a ete rejete.#{params[:comment].present? ? " Motif : #{params[:comment]}" : ''}")
 
           render json: {
             message: "Rapport rejete.",
@@ -99,28 +79,25 @@ module Api
           end
         end
 
+        def log_admin_action(action, resource, data = {})
+          AuditLog.create!(
+            user: current_user,
+            auditable: resource,
+            action: action,
+            changes_data: data,
+            ip_address: request.remote_ip,
+            user_agent: request.user_agent
+          )
+        rescue => e
+          Rails.logger.error("Admin audit log failed: #{e.message}")
+        end
+
         def set_project
           @project = InvestmentProject.find(params[:investment_project_id])
         end
 
         def set_report
           @report = @project.mvp_reports.find(params[:id])
-        end
-
-        def report_params
-          params.require(:mvp_report).permit(
-            :operation_status, :expected_repayment_date, :summary,
-            :purchase_price_previsionnel_cents, :purchase_price_realise_cents,
-            :works_previsionnel_cents, :works_realise_cents,
-            :total_cost_previsionnel_cents, :total_cost_realise_cents,
-            :target_sale_price_previsionnel_cents, :target_sale_price_realise_cents,
-            :best_offer_previsionnel_cents, :best_offer_realise_cents,
-            :works_progress_percent, :budget_variance_percent,
-            :sale_start_date, :visits_count, :offers_count, :listed_price_cents,
-            :risk_identified, :risk_impact, :corrective_action,
-            :estimated_compromise_date, :estimated_deed_date,
-            :estimated_repayment_date, :exit_confirmed
-          )
         end
       end
     end

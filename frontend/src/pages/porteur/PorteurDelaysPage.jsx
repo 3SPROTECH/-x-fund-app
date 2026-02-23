@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { delaysApi } from '../../api/delays';
 import { investmentProjectsApi } from '../../api/investments';
 import {
-  AlertTriangle, Plus, Search, Eye, Edit, Trash2, Calendar, Clock,
+  AlertTriangle, Plus, Search, Eye, Edit, Trash2, Calendar, Clock, Paperclip,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import FormSelect from '../../components/FormSelect';
@@ -25,6 +26,7 @@ const EMPTY_FORM = {
 };
 
 export default function PorteurDelaysPage() {
+  const { user } = useAuth();
   const [delays, setDelays] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,8 +64,9 @@ export default function PorteurDelaysPage() {
     try {
       const res = await investmentProjectsApi.list();
       setProjects((res.data.data || []).filter((p) => {
-        const s = (p.attributes || p).status;
-        return !['draft', 'rejected'].includes(s);
+        const a = p.attributes || p;
+        const isOwner = String(a.owner_id) === String(user?.id);
+        return isOwner && !['draft', 'rejected'].includes(a.status);
       }));
     } catch { /* ignore */ }
   };
@@ -246,82 +249,106 @@ export default function PorteurDelaysPage() {
       {/* Create/Edit Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+          <div className="modal modal-form-scroll" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
             <h3>{editingId ? 'Modifier le retard' : 'Declarer un retard'}</h3>
             <p className="text-muted" style={{ marginBottom: '1rem' }}>
               {editingId ? 'Modifiez les informations du retard.' : 'Renseignez les details du retard rencontre.'}
             </p>
 
-            {!editingId && (
-              <div className="form-group">
-                <label>Projet *</label>
-                <FormSelect
-                  value={form.project_id}
-                  onChange={(e) => setForm({ ...form, project_id: e.target.value })}
-                  placeholder="Selectionnez un projet..."
-                  options={projects.map((p) => ({ value: String(p.id), label: (p.attributes || p).title }))}
-                />
+            <form
+              className="modal-form-inner"
+              onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
+            >
+              <div className="modal-body">
+                {!editingId && (
+                  <div className="form-group">
+                    <label>Projet *</label>
+                    <FormSelect
+                      value={form.project_id}
+                      onChange={(e) => setForm({ ...form, project_id: e.target.value })}
+                      placeholder="Selectionnez un projet..."
+                      options={projects.map((p) => ({ value: String(p.id), label: (p.attributes || p).title }))}
+                    />
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>Titre *</label>
+                  <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ex: Retard livraison materiaux" />
+                </div>
+
+                <div className="form-group">
+                  <label>Type de retard</label>
+                  <FormSelect
+                    value={form.delay_type}
+                    onChange={(e) => setForm({ ...form, delay_type: e.target.value })}
+                    options={Object.entries(DELAY_TYPE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label><Calendar size={14} /> Date prevue *</label>
+                    <input type="date" value={form.original_date} onChange={(e) => setForm({ ...form, original_date: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label><Clock size={14} /> Nouvelle date *</label>
+                    <input type="date" value={form.new_estimated_date} onChange={(e) => setForm({ ...form, new_estimated_date: e.target.value })} />
+                  </div>
+                </div>
+
+                {form.original_date && form.new_estimated_date && (
+                  <p style={{ fontSize: '.85rem', color: 'var(--danger)', fontWeight: 600, marginBottom: '1rem' }}>
+                    Retard estime : {calcDays(form.original_date, form.new_estimated_date)}
+                  </p>
+                )}
+
+                <div className="form-group">
+                  <label>Description *</label>
+                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    placeholder="Decrivez le retard rencontre..." rows={3} />
+                </div>
+
+                <div className="form-group">
+                  <label>Justification</label>
+                  <textarea value={form.justification} onChange={(e) => setForm({ ...form, justification: e.target.value })}
+                    placeholder="Justifiez le retard (optionnel)..." rows={3} />
+                </div>
+
+                <div className="form-group">
+                  <label>Documents justificatifs</label>
+                  <div className="file-upload-dropzone">
+                    <label className="file-upload-btn">
+                      <Paperclip size={16} />
+                      <span>
+                        {form.supporting_documents?.length
+                          ? `${form.supporting_documents.length} fichier(s) sélectionné(s)`
+                          : 'Déposez vos documents ici ou cliquez pour sélectionner'}
+                      </span>
+                      <input
+                        type="file"
+                        multiple
+                        onChange={(e) => setForm({ ...form, supporting_documents: Array.from(e.target.files || []) })}
+                      />
+                    </label>
+                    {form.supporting_documents?.length > 0 && (
+                      <div className="file-upload-filenames">
+                        {form.supporting_documents.map((f, i) => (
+                          <span key={i} className="file-upload-filename">{f.name}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
 
-            <div className="form-group">
-              <label>Titre *</label>
-              <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ex: Retard livraison materiaux" />
-            </div>
-
-            <div className="form-group">
-              <label>Type de retard</label>
-              <FormSelect
-                value={form.delay_type}
-                onChange={(e) => setForm({ ...form, delay_type: e.target.value })}
-                options={Object.entries(DELAY_TYPE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div className="form-group">
-                <label><Calendar size={14} /> Date prevue *</label>
-                <input type="date" value={form.original_date} onChange={(e) => setForm({ ...form, original_date: e.target.value })} />
+              <div className="modal-actions">
+                <button type="button" className="btn" onClick={() => setShowModal(false)}>Annuler</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? 'Envoi...' : editingId ? 'Enregistrer' : 'Declarer le retard'}
+                </button>
               </div>
-              <div className="form-group">
-                <label><Clock size={14} /> Nouvelle date *</label>
-                <input type="date" value={form.new_estimated_date} onChange={(e) => setForm({ ...form, new_estimated_date: e.target.value })} />
-              </div>
-            </div>
-
-            {form.original_date && form.new_estimated_date && (
-              <p style={{ fontSize: '.85rem', color: 'var(--danger)', fontWeight: 600, marginBottom: '1rem' }}>
-                Retard estime : {calcDays(form.original_date, form.new_estimated_date)}
-              </p>
-            )}
-
-            <div className="form-group">
-              <label>Description *</label>
-              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Decrivez le retard rencontre..." rows={3} />
-            </div>
-
-            <div className="form-group">
-              <label>Justification</label>
-              <textarea value={form.justification} onChange={(e) => setForm({ ...form, justification: e.target.value })}
-                placeholder="Justifiez le retard (optionnel)..." rows={3} />
-            </div>
-
-            <div className="form-group">
-              <label>Documents justificatifs</label>
-              <input
-                type="file"
-                multiple
-                onChange={(e) => setForm({ ...form, supporting_documents: Array.from(e.target.files) })}
-              />
-            </div>
-
-            <div className="modal-actions">
-              <button className="btn" onClick={() => setShowModal(false)}>Annuler</button>
-              <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
-                {submitting ? 'Envoi...' : editingId ? 'Enregistrer' : 'Declarer le retard'}
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
