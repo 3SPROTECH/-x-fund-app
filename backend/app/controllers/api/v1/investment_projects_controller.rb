@@ -108,6 +108,7 @@ module Api
           if params[:form_snapshot].present?
             snapshot = params[:form_snapshot].respond_to?(:to_unsafe_h) ? params[:form_snapshot].to_unsafe_h : params[:form_snapshot]
             @investment_project.update!(form_snapshot: snapshot, status: :pending_analysis)
+            @investment_project.compute_guarantee_aggregates
             Assignments::AnalystAssignmentService.assign!(@investment_project)
           end
           render json: { data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data] }, status: :created

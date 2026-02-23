@@ -35,6 +35,22 @@ const GUARANTEE_ITEMS = [
   { key: 'has_open_banking', label: 'Open Banking' },
 ];
 
+const GUARANTEE_TYPE_LABELS = {
+  hypotheque: 'Hypothèque',
+  fiducie: 'Fiducie',
+  garantie_premiere_demande: 'Garantie à première demande',
+  caution_personnelle: 'Caution personnelle',
+  garantie_corporate: 'Garantie corporate',
+  aucune: 'Aucune',
+};
+
+const RISK_LEVEL_LABELS = {
+  low: 'Faible risque',
+  moderate: 'Risque modéré',
+  high: 'Risque élevé',
+  critical: 'Risque très élevé',
+};
+
 export default function SignatureStep() {
   const consentGiven = useProjectFormStore((s) => s.consentGiven);
   const setConsentGiven = useProjectFormStore((s) => s.setConsentGiven);
@@ -90,7 +106,9 @@ function ContractView({ projectAttrs }) {
     }
   };
 
-  const activeGuarantees = GUARANTEE_ITEMS.filter((g) => a[g.key]).length;
+  const guaranteeSummary = a.guarantee_type_summary || [];
+  const hasNewGuarantees = guaranteeSummary.length > 0;
+  const activeGuarantees = hasNewGuarantees ? guaranteeSummary.filter(g => g.type !== 'aucune').length : GUARANTEE_ITEMS.filter((g) => a[g.key]).length;
 
   return (
     <div className="contract-view">
@@ -191,15 +209,51 @@ function ContractView({ projectAttrs }) {
 
       {/* Article 4 - Garanties */}
       <div className="cv-section">
-        <h4 className="cv-section-title"><Shield size={16} /> Article 4 — Garanties ({activeGuarantees}/{GUARANTEE_ITEMS.length})</h4>
-        <div className="cv-guarantees">
-          {GUARANTEE_ITEMS.map((g) => (
-            <div key={g.key} className={`cv-guarantee ${a[g.key] ? 'cv-guarantee--yes' : 'cv-guarantee--no'}`}>
-              {a[g.key] ? <CheckCircle size={15} /> : <XCircle size={15} />}
-              <span>{g.label}</span>
-            </div>
-          ))}
-        </div>
+        <h4 className="cv-section-title">
+          <Shield size={16} /> Article 4 — Garanties ({activeGuarantees}/{hasNewGuarantees ? guaranteeSummary.length : GUARANTEE_ITEMS.length})
+          {a.overall_protection_score != null && (
+            <span style={{ marginLeft: 'auto', fontSize: '0.82rem', fontWeight: 600 }}>
+              Score global: {Number(a.overall_protection_score).toFixed(0)}%
+            </span>
+          )}
+        </h4>
+        {hasNewGuarantees ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {guaranteeSummary.map((g, idx) => (
+              <div key={idx} className="cv-card" style={{ padding: '0.85rem 1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <span className="cv-label" style={{ fontWeight: 600 }}>{g.asset_label || `Actif ${idx + 1}`}</span>
+                  <span className={`pf-risk-badge risk-${g.risk_level || 'critical'}`}>
+                    {RISK_LEVEL_LABELS[g.risk_level] || g.risk_level}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                  <div>
+                    <span className="cv-label">Type</span>
+                    <span className="cv-value">{GUARANTEE_TYPE_LABELS[g.type] || g.type}{g.rank ? ` (${g.rank.replace('_', ' ')})` : ''}</span>
+                  </div>
+                  <div>
+                    <span className="cv-label">LTV</span>
+                    <span className="cv-value">{g.ltv != null ? `${Number(g.ltv).toFixed(1)}%` : '—'}</span>
+                  </div>
+                  <div>
+                    <span className="cv-label">Score</span>
+                    <span className="cv-value" style={{ fontWeight: 700 }}>{g.protection_score != null ? `${Number(g.protection_score).toFixed(0)}%` : '—'}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="cv-guarantees">
+            {GUARANTEE_ITEMS.map((g) => (
+              <div key={g.key} className={`cv-guarantee ${a[g.key] ? 'cv-guarantee--yes' : 'cv-guarantee--no'}`}>
+                {a[g.key] ? <CheckCircle size={15} /> : <XCircle size={15} />}
+                <span>{g.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Article 5 - Calendrier */}

@@ -20,6 +20,7 @@ class InvestmentProjectSerializer
              :has_first_rank_mortgage, :has_share_pledge, :has_fiducie,
              :has_interest_escrow, :has_works_escrow, :has_personal_guarantee,
              :has_gfa, :has_open_banking, :risk_description,
+             :overall_protection_score, :overall_risk_level, :guarantee_type_summary,
              :created_at, :updated_at
 
   attribute :status do |project, params|

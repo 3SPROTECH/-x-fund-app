@@ -17,6 +17,7 @@ import AssetHub from './steps/AssetHub';
 import AssetDetails from './steps/AssetDetails';
 import ExpensePlan from './steps/ExpensePlan';
 import SalesPlanLots from './steps/SalesPlanLots';
+import GuaranteeStep from './steps/GuaranteeStep';
 import VerificationDocs from './steps/VerificationDocs';
 import ContributionStep from './steps/ContributionStep';
 import FinancingSimulation from './steps/FinancingSimulation';
@@ -32,29 +33,31 @@ const STEP_COMPONENTS = [
   StepLocation,            // 1
   StepProjectOwner,        // 2
   StepFinancialStructure,  // 3
-  AssetHub,                // 4  - Macro 1 (hub - not a real micro step)
+  AssetHub,                // 4  - Macro 1 (hub)
   AssetDetails,            // 5  - Asset sub-flow step 1
   ExpensePlan,             // 6  - Asset sub-flow step 2
   SalesPlanLots,           // 7  - Asset sub-flow step 3
-  VerificationDocs,        // 8  - Asset sub-flow step 4
-  ContributionStep,        // 9  - Macro 2
-  FinancingSimulation,     // 10
-  AdditionalInfoStep,      // 11 - Macro 3 (Compléments - demo)
-  SignatureStep,           // 12 - Macro 4 (locked until analyst approves)
+  GuaranteeStep,           // 8  - Asset sub-flow step 4 (NEW)
+  VerificationDocs,        // 9  - Asset sub-flow step 5
+  ContributionStep,        // 10 - Macro 2
+  FinancingSimulation,     // 11
+  AdditionalInfoStep,      // 12 - Macro 3 (Compléments)
+  SignatureStep,           // 13 - Macro 4 (locked until signing)
 ];
 
 const HUB_INDEX = 4;
 const SUB_FLOW_START = 5;
-const SUB_FLOW_END = 8;
-const PROJECTION_START = 9;
-const SUBMIT_STEP = 10; // FinancingSimulation — last editable step
-const ADDITIONAL_INFO_STEP = 11; // Compléments step
-const SIGNATURE_STEP = 12; // SignatureStep
+const SUB_FLOW_END = 9;
+const PROJECTION_START = 10;
+const SUBMIT_STEP = 11; // FinancingSimulation — last editable step
+const ADDITIONAL_INFO_STEP = 12; // Compléments step
+const SIGNATURE_STEP = 13; // SignatureStep
 
 const SUB_FLOW_LABELS = [
   'Détails de l\'actif',
   'Plan de dépenses',
   'Revenus par lot',
+  'Garanties',
   'Vérification docs',
 ];
 
@@ -187,7 +190,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
               financialDossierStatus: project.financial_dossier_status || [],
               additionalInfo: '',
             },
-            assets: [{ id: 1, label: project.property_title || 'Actif 1', completed: true, details: { isRefinancing: false, signatureDate: '', lotCount: '1', worksNeeded: false, worksDuration: '' }, costs: { items: [], total: 0 }, lots: [{ id: 1, preCommercialized: 'non', rented: 'non', surface: '', prix: 0, prixM2: 0, promesseRef: '', bailRef: '' }], documents: [], recettesTotal: 0 }],
+            assets: [{ id: 1, label: project.property_title || 'Actif 1', completed: true, details: { isRefinancing: false, signatureDate: '', lotCount: '1', worksNeeded: false, worksDuration: '' }, costs: { items: [], total: 0 }, lots: [{ id: 1, preCommercialized: 'non', rented: 'non', surface: '', prix: 0, prixM2: 0, promesseRef: '', bailRef: '' }], documents: [], recettesTotal: 0, guarantee: { type: '', rank: '', assetValue: 0, debtAmount: 0, ltv: 0, protectionScore: 0, riskLevel: '', description: '', guarantor: '' }, guaranteeDocs: [] }],
             projections: { contributionPct: 20, durationMonths: project.duration_months || 12, proofFileName: '' },
             consentGiven: project.consent_given || false,
           };
@@ -497,7 +500,16 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         }
         break;
       }
-      case 9: // Contribution
+      case 8: { // Guarantee
+        if (s.selectedAssetIndex !== null) {
+          s.updateAssetGuarantee('type', 'hypotheque');
+          s.updateAssetGuarantee('rank', '1er_rang');
+          s.updateAssetGuarantee('description', 'Hypothèque de premier rang sur le bien immobilier objet de l\'opération.');
+          s.updateAssetGuarantee('guarantor', '');
+        }
+        break;
+      }
+      case 10: // Contribution
         s.updateProjections('contributionPct', 25);
         s.updateProjections('durationMonths', 18);
         break;

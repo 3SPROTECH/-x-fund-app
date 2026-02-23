@@ -235,27 +235,80 @@ function buildContractDoc(attrs) {
   // Guarantees
   y = addSectionTitle(doc, 'Article 4 — Garanties', y, margin);
 
-  const guarRows = GUARANTEE_LABELS.map((g) => [
-    g.label,
-    a[g.key] ? '✓ Oui' : '✗ Non',
-  ]);
+  const guaranteeSummary = a.guarantee_type_summary || [];
 
-  autoTable(doc, {
-    startY: y,
-    margin: { left: margin, right: margin },
-    head: [['Garantie', 'Statut']],
-    body: guarRows,
-    theme: 'grid',
-    headStyles: { fillColor: COLORS.primary, textColor: COLORS.white, fontSize: 9, font: 'helvetica', fontStyle: 'bold' },
-    bodyStyles: { fontSize: 9, textColor: COLORS.dark, font: 'helvetica' },
-    alternateRowStyles: { fillColor: [248, 249, 252] },
-    didParseCell: (data) => {
-      if (data.section === 'body' && data.column.index === 1) {
-        data.cell.styles.textColor = data.cell.raw.startsWith('✓') ? COLORS.success : COLORS.danger;
-        data.cell.styles.fontStyle = 'bold';
-      }
-    },
-  });
+  if (guaranteeSummary.length > 0) {
+    // New per-asset guarantee table
+    const GTYPE_LABELS = {
+      hypotheque: 'Hypotheque',
+      fiducie: 'Fiducie',
+      garantie_premiere_demande: 'Garantie a premiere demande',
+      caution_personnelle: 'Caution personnelle',
+      garantie_corporate: 'Garantie corporate',
+      aucune: 'Aucune',
+    };
+    const RISK_LABELS = { low: 'Faible', moderate: 'Modere', high: 'Eleve', critical: 'Tres eleve' };
+
+    const guarRows = guaranteeSummary.map((g) => [
+      g.asset_label || '—',
+      (GTYPE_LABELS[g.type] || g.type || '—') + (g.rank ? ` (${(g.rank || '').replace('_', ' ')})` : ''),
+      g.ltv != null ? `${Number(g.ltv).toFixed(1)}%` : '—',
+      g.protection_score != null ? `${Number(g.protection_score).toFixed(0)}%` : '—',
+      RISK_LABELS[g.risk_level] || g.risk_level || '—',
+    ]);
+
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margin, right: margin },
+      head: [['Actif', 'Type de garantie', 'LTV', 'Score', 'Risque']],
+      body: guarRows,
+      theme: 'grid',
+      headStyles: { fillColor: COLORS.primary, textColor: COLORS.white, fontSize: 8, font: 'helvetica', fontStyle: 'bold' },
+      bodyStyles: { fontSize: 8, textColor: COLORS.dark, font: 'helvetica' },
+      alternateRowStyles: { fillColor: [248, 249, 252] },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 4) {
+          const level = data.cell.raw;
+          if (level === 'Faible') data.cell.styles.textColor = COLORS.success;
+          else if (level === 'Modere') data.cell.styles.textColor = COLORS.warning;
+          else data.cell.styles.textColor = COLORS.danger;
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
+    });
+
+    y = doc.lastAutoTable.finalY + 6;
+    if (a.overall_protection_score != null) {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(...COLORS.dark);
+      doc.text(`Score de protection global : ${Number(a.overall_protection_score).toFixed(0)}%`, margin, y + 4);
+      y += 10;
+    }
+  } else {
+    // Legacy boolean display
+    const guarRows = GUARANTEE_LABELS.map((g) => [
+      g.label,
+      a[g.key] ? '✓ Oui' : '✗ Non',
+    ]);
+
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margin, right: margin },
+      head: [['Garantie', 'Statut']],
+      body: guarRows,
+      theme: 'grid',
+      headStyles: { fillColor: COLORS.primary, textColor: COLORS.white, fontSize: 9, font: 'helvetica', fontStyle: 'bold' },
+      bodyStyles: { fontSize: 9, textColor: COLORS.dark, font: 'helvetica' },
+      alternateRowStyles: { fillColor: [248, 249, 252] },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 1) {
+          data.cell.styles.textColor = data.cell.raw.startsWith('✓') ? COLORS.success : COLORS.danger;
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
+    });
+  }
 
   addPageFooter(doc, 3);
 
