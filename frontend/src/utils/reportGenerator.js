@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const COLORS = {
     primary: [26, 26, 46],       // Deep navy
@@ -16,6 +16,10 @@ const COLORS = {
 
 const fmt = (v) => v != null ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(v) : '—';
 const pct = (v) => v != null ? `${Number(v).toFixed(1)}%` : '—';
+const toNumber = (value, fallback = 0) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+};
 
 export function generatePdfReport(reportData, projectAttrs) {
     const doc = new jsPDF('p', 'mm', 'a4');
@@ -88,8 +92,8 @@ export function generatePdfReport(reportData, projectAttrs) {
 
     // Score gauges on cover
     cy += 15;
-    const successScore = rd.success_score || 0;
-    const riskScore = rd.risk_score || 0;
+    const successScore = toNumber(rd.success_score, 0);
+    const riskScore = toNumber(rd.risk_score, 0);
 
     // Success gauge
     drawGaugeOnPdf(doc, margin + 30, cy + 15, 22, successScore, 'Score de succès', COLORS.success);
@@ -161,7 +165,7 @@ export function generatePdfReport(reportData, projectAttrs) {
         ['Frais financiers', fmt(costData.financial_fees)],
     ];
 
-    doc.autoTable({
+    autoTable(doc, {
         startY: y,
         margin: { left: margin, right: margin },
         head: [['Poste', 'Montant']],
@@ -240,7 +244,7 @@ export function generatePdfReport(reportData, projectAttrs) {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7);
             doc.setTextColor(...COLORS.medium);
-            doc.text(factor.detail || '', margin + 55, barY + 14);
+            doc.text(String(factor.detail || ''), margin + 55, barY + 14);
 
             y += 18;
         });
@@ -280,7 +284,7 @@ export function generatePdfReport(reportData, projectAttrs) {
             g.present ? '✓ Oui' : '✗ Non',
         ]);
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: y,
             margin: { left: margin, right: margin },
             head: [['Garantie', 'Statut']],
@@ -335,7 +339,8 @@ export function generatePdfReport(reportData, projectAttrs) {
         doc.roundedRect(barX, barY, barMaxW, 8, 2, 2, 'F');
 
         // Fill bar
-        const fillW = (cat.value / 100) * barMaxW;
+        const scoreValue = toNumber(cat.value, 0);
+        const fillW = (scoreValue / 100) * barMaxW;
         doc.setFillColor(...cat.color);
         doc.roundedRect(barX, barY, Math.max(fillW, 2), 8, 2, 2, 'F');
 
@@ -343,7 +348,7 @@ export function generatePdfReport(reportData, projectAttrs) {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(9);
         doc.setTextColor(...cat.color);
-        doc.text(`${cat.value.toFixed(1)}%`, margin + contentW - 18, barY + 6);
+        doc.text(`${scoreValue.toFixed(1)}%`, margin + contentW - 18, barY + 6);
 
         y += 14;
     });
@@ -460,13 +465,14 @@ function addPageFooter(doc, pageNum) {
 }
 
 function drawGaugeOnPdf(doc, cx, cy, radius, value, label, color) {
+    const safeValue = toNumber(value, 0);
     // Background circle
     doc.setDrawColor(60, 60, 80);
     doc.setLineWidth(3);
     doc.circle(cx, cy, radius, 'S');
 
     // Value arc (simplified as colored arc)
-    const angle = (value / 100) * 360;
+    const angle = (safeValue / 100) * 360;
     doc.setDrawColor(...color);
     doc.setLineWidth(3.5);
 
@@ -486,7 +492,7 @@ function drawGaugeOnPdf(doc, cx, cy, radius, value, label, color) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     doc.setTextColor(...color);
-    doc.text(`${value.toFixed(0)}%`, cx, cy + 2, { align: 'center' });
+    doc.text(`${safeValue.toFixed(0)}%`, cx, cy + 2, { align: 'center' });
 
     // Label
     doc.setFont('helvetica', 'normal');

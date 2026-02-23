@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_20_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_20_200001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -362,6 +362,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_200000) do
     t.index ["review_status"], name: "index_mvp_reports_on_review_status"
   end
 
+  create_table "project_delays", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "delay_days", default: 0, null: false
+    t.integer "delay_type", default: 0, null: false
+    t.text "description", null: false
+    t.bigint "investment_project_id", null: false
+    t.text "justification"
+    t.date "new_estimated_date", null: false
+    t.date "original_date", null: false
+    t.datetime "resolved_at"
+    t.integer "status", default: 0, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["delay_type"], name: "index_project_delays_on_delay_type"
+    t.index ["investment_project_id"], name: "index_project_delays_on_investment_project_id"
+    t.index ["status"], name: "index_project_delays_on_status"
+    t.index ["user_id"], name: "index_project_delays_on_user_id"
+  end
+
   create_table "project_documents", force: :cascade do |t|
     t.text "comment"
     t.datetime "created_at", null: false
@@ -538,6 +558,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_200000) do
   add_foreign_key "mvp_reports", "investment_projects"
   add_foreign_key "mvp_reports", "users", column: "author_id"
   add_foreign_key "mvp_reports", "users", column: "reviewed_by_id"
+  add_foreign_key "project_delays", "investment_projects"
+  add_foreign_key "project_delays", "users"
   add_foreign_key "project_drafts", "users"
   add_foreign_key "properties", "users", column: "owner_id"
   add_foreign_key "transactions", "investments"
