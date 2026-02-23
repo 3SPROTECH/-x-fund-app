@@ -1,7 +1,7 @@
 module Api
   module V1
     class InvestmentProjectsController < ApplicationController
-      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image]
+      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image, :analyst_report]
 
       def index
         projects = policy_scope(InvestmentProject).includes(:properties)
@@ -160,6 +160,21 @@ module Api
         }, status: :ok
       rescue ActiveRecord::RecordNotFound
         render json: { error: "Image introuvable" }, status: :not_found
+      end
+
+      def analyst_report
+        unless @investment_project.owner_id == current_user.id
+          return render json: { error: "Acces non autorise." }, status: :forbidden
+        end
+
+        report = @investment_project.analyst_reports.order(created_at: :desc).first
+        unless report
+          return render json: { error: "Aucun rapport trouve." }, status: :not_found
+        end
+
+        render json: {
+          report: AnalystReportSerializer.new(report).serializable_hash[:data]
+        }
       end
 
       private

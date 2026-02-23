@@ -224,7 +224,7 @@ export default function PorteurDashboardPage() {
     const firstImage = (a.images?.length > 0) ? a.images[0] : (a.property_photos?.length > 0) ? a.property_photos[0] : null;
     const isOwner = user?.id === a.owner_id;
     const canDelete = user?.role === 'porteur_de_projet' && isOwner && a.status === 'draft';
-    const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis' || a.status === 'info_requested' || a.status === 'info_resubmitted');
+    const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis' || a.status === 'info_requested' || a.status === 'info_resubmitted' || a.status === 'approved');
     const cardHref = showForm ? `/projects/new?project=${p.id}` : `/projects/${p.id}`;
     const isActionRequired = a.status === 'info_requested';
     const isInfoResubmitted = a.status === 'info_resubmitted';

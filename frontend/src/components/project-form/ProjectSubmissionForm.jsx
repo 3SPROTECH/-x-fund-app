@@ -1,12 +1,13 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle, ChevronLeft, MessageSquare, Info, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle, ChevronLeft, MessageSquare, Info, Send, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import useProjectFormStore, { MACRO_STEPS, STEP_CONFIG, createEmptyLot } from '../../stores/useProjectFormStore';
 import { projectDraftsApi } from '../../api/projectDrafts';
 import { companiesApi } from '../../api/companies';
 import { investmentProjectsApi } from '../../api/investments';
+import { generatePdfReport } from '../../utils/reportGenerator';
 
 import StepPresentation from './steps/StepPresentation';
 import StepLocation from './steps/StepLocation';
@@ -73,6 +74,8 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
     reset,
     projectStatus, setProjectStatus, setLoadedProjectId,
   } = store;
+
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   const stepConfig = STEP_CONFIG[globalStepIndex] || STEP_CONFIG[0];
   const currentMacro = stepConfig.macro;
@@ -500,6 +503,22 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
     toast.success('Données test injectées !');
   };
 
+  // ── Report download (for approved projects) ──
+  const handleDownloadReport = async () => {
+    if (!initialProjectId) return;
+    setDownloadingReport(true);
+    try {
+      const res = await investmentProjectsApi.getAnalystReport(initialProjectId);
+      const report = res.data.report;
+      const rd = report?.attributes || report;
+      generatePdfReport(rd, store.presentation);
+    } catch {
+      toast.error('Erreur lors du téléchargement du rapport');
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
+
   // ── Button labels ──
   const isSubmitStep = globalStepIndex === SUBMIT_STEP;
   const isAdditionalInfoStep = globalStepIndex === ADDITIONAL_INFO_STEP;
@@ -592,7 +611,24 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
 
         {/* Success / Info Banner - context-aware (hidden on Additional Info step which has its own) */}
         {submitted && globalStepIndex !== ADDITIONAL_INFO_STEP && (
-          projectStatus === 'info_requested' ? (
+          projectStatus === 'approved' ? (
+            <div className="pf-success-banner" style={{ borderColor: 'var(--gold-color, #DAA520)' }}>
+              <CheckCircle size={20} />
+              <div style={{ flex: 1 }}>
+                <strong>Projet approuve</strong>
+                <span>Votre projet a ete analyse et approuve. Vous pouvez telecharger le rapport d'analyse ci-dessous.</span>
+              </div>
+              <button
+                type="button"
+                className="pf-nav-btn pf-btn-next"
+                onClick={handleDownloadReport}
+                disabled={downloadingReport}
+                style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}
+              >
+                <Download size={16} /> {downloadingReport ? 'Telechargement...' : 'Telecharger le rapport'}
+              </button>
+            </div>
+          ) : projectStatus === 'info_requested' ? (
             <div className="pf-info-banner">
               <Info size={20} />
               <div>

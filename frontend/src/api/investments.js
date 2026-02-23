@@ -30,6 +30,10 @@ export const investmentProjectsApi = {
   delete(id) {
     return client.delete(`/investment_projects/${id}`);
   },
+
+  getAnalystReport(projectId) {
+    return client.get(`/investment_projects/${projectId}/analyst_report`);
+  },
 };
 
 export const investmentsApi = {
