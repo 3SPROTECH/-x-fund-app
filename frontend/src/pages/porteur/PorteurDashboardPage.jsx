@@ -7,7 +7,7 @@ import { porteurDashboardApi } from '../../api/investments';
 import { getImageUrl } from '../../api/client';
 import {
   Plus, MapPin, Image as ImageIcon, FileEdit, Clock, Trash2,
-  ChevronDown, CheckCircle, AlertCircle, ClipboardList, AlertTriangle,
+  ChevronDown, CheckCircle, AlertCircle, ClipboardList, AlertTriangle, PenTool,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
@@ -156,7 +156,7 @@ export default function PorteurDashboardPage() {
   }
 
   // Sort: info_requested and info_resubmitted projects come first
-  const ACTION_STATUSES = ['info_requested', 'info_resubmitted'];
+  const ACTION_STATUSES = ['info_requested', 'info_resubmitted', 'signing'];
 
   projects.forEach((p) => {
     allItems.push({ type: 'project', data: p });
@@ -224,15 +224,16 @@ export default function PorteurDashboardPage() {
     const firstImage = (a.images?.length > 0) ? a.images[0] : (a.property_photos?.length > 0) ? a.property_photos[0] : null;
     const isOwner = user?.id === a.owner_id;
     const canDelete = user?.role === 'porteur_de_projet' && isOwner && a.status === 'draft';
-    const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis' || a.status === 'info_requested' || a.status === 'info_resubmitted' || a.status === 'approved');
+    const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis' || a.status === 'info_requested' || a.status === 'info_resubmitted' || a.status === 'approved' || a.status === 'signing');
     const cardHref = showForm ? `/projects/new?project=${p.id}` : `/projects/${p.id}`;
     const isActionRequired = a.status === 'info_requested';
     const isInfoResubmitted = a.status === 'info_resubmitted';
+    const isSigning = a.status === 'signing';
 
     return (
       <div
         key={p.id}
-        className={`porteur-project-card ${isActionRequired ? 'porteur-card--action-required' : ''} ${isInfoResubmitted ? 'porteur-card--info-resubmitted' : ''}`}
+        className={`porteur-project-card ${isActionRequired ? 'porteur-card--action-required' : ''} ${isInfoResubmitted ? 'porteur-card--info-resubmitted' : ''} ${isSigning ? 'porteur-card--signing' : ''}`}
         onClick={() => navigate(cardHref)}
       >
         <div className="porteur-card-visual">
@@ -284,6 +285,12 @@ export default function PorteurDashboardPage() {
             <div className="porteur-card-cta porteur-card-cta--success">
               <CheckCircle size={14} />
               <span>Compléments envoyés — en attente</span>
+            </div>
+          )}
+          {isSigning && (
+            <div className="porteur-card-cta porteur-card-cta--signing">
+              <PenTool size={14} />
+              <span>Signer le contrat</span>
             </div>
           )}
         </div>

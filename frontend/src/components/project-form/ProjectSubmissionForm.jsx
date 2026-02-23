@@ -49,6 +49,7 @@ const SUB_FLOW_END = 8;
 const PROJECTION_START = 9;
 const SUBMIT_STEP = 10; // FinancingSimulation — last editable step
 const ADDITIONAL_INFO_STEP = 11; // Compléments step
+const SIGNATURE_STEP = 12; // SignatureStep
 
 const SUB_FLOW_LABELS = [
   'Détails de l\'actif',
@@ -72,7 +73,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
     consentGiven,
     draftId, isDirty, setDraftId, setLastSavedAt, getSerializableState, loadFromDraft,
     reset,
-    projectStatus, setProjectStatus, setLoadedProjectId,
+    projectStatus, setProjectStatus, setLoadedProjectId, setProjectAttributes,
   } = store;
 
   const [downloadingReport, setDownloadingReport] = useState(false);
@@ -135,9 +136,10 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
       // Load from a submitted project's form snapshot (read-only mode)
       investmentProjectsApi.get(initialProjectId).then((res) => {
         const project = res.data.data?.attributes || res.data.data || res.data;
-        // Store project ID and status for info_requested flow
+        // Store project ID, status, and raw attributes
         setLoadedProjectId(initialProjectId);
         setProjectStatus(project?.status || null);
+        setProjectAttributes(project);
 
         if (project?.form_snapshot && Object.keys(project.form_snapshot).length > 0) {
           loadFromDraft(project.form_snapshot, null);
@@ -195,6 +197,8 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         // If info flow, go to the Compléments step; otherwise show projection summary
         if (project?.status === 'info_requested' || project?.status === 'info_resubmitted') {
           setGlobalStep(ADDITIONAL_INFO_STEP);
+        } else if (project?.status === 'signing') {
+          setGlobalStep(SIGNATURE_STEP);
         } else {
           setGlobalStep(SUBMIT_STEP);
         }
@@ -627,6 +631,14 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
               >
                 <Download size={16} /> {downloadingReport ? 'Telechargement...' : 'Telecharger le rapport'}
               </button>
+            </div>
+          ) : projectStatus === 'signing' ? (
+            <div className="pf-success-banner" style={{ borderColor: 'var(--info-color, #3498db)' }}>
+              <FileText size={20} />
+              <div style={{ flex: 1 }}>
+                <strong>Contrat en attente de signature</strong>
+                <span>Veuillez consulter le contrat ci-dessous et proceder a la signature.</span>
+              </div>
             </div>
           ) : projectStatus === 'info_requested' ? (
             <div className="pf-info-banner">

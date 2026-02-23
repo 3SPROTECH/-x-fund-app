@@ -5786,6 +5786,26 @@ textarea.error:focus {
   box-shadow: 0 3px 10px rgba(39, 174, 96, 0.3);
 }
 
+/* ── Signing card (contract ready) ── */
+.porteur-card--signing {
+  border: 1.5px solid #3498db;
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.04), rgba(52, 152, 219, 0.01));
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+.porteur-card--signing:hover {
+  border-color: #2980b9;
+  box-shadow: 0 4px 16px rgba(52, 152, 219, 0.18);
+}
+
+.porteur-card-cta--signing {
+  background: linear-gradient(135deg, #2980b9, #1a5276);
+}
+
+.porteur-card-cta--signing:hover {
+  box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+}
+
 /* ── Read-only card ── */
 .porteur-readonly-card {
   cursor: default;

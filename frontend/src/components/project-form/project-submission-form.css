@@ -1874,3 +1874,141 @@
   color: var(--text-muted, #6b7280);
   font-style: italic;
 }
+
+/* ==================== CONTRACT VIEW (signing step) ==================== */
+.contract-view {
+  padding: 4px 0;
+}
+
+.cv-section {
+  margin-bottom: 1.5rem;
+}
+
+.cv-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary, #1a1a2e);
+  margin: 0 0 0.75rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--gold-color, #DAA520);
+}
+
+.cv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.6rem;
+}
+
+.cv-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.cv-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+}
+
+.cv-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cv-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary, #1a1a2e);
+}
+
+.cv-description {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted, #64748b);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.cv-guarantees {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.cv-guarantee {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.cv-guarantee--yes {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.cv-guarantee--yes svg {
+  color: #16a34a;
+}
+
+.cv-guarantee--no {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.cv-guarantee--no svg {
+  color: #dc2626;
+}
+
+.cv-signature-box {
+  border: 2px dashed rgba(128, 128, 128, 0.25);
+  border-radius: 8px;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.cv-signature-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--primary, #1a1a2e);
+  margin: 0 0 0.5rem 0;
+}
+
+.cv-signature-name {
+  font-size: 0.82rem;
+  color: var(--text-muted, #64748b);
+  margin: 0 0 1.25rem 0;
+}
+
+.cv-signature-field {
+  font-size: 0.78rem;
+  color: var(--text-muted, #64748b);
+  margin: 0.35rem 0;
+}
+
+.cv-disclaimer {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #92400e;
+  line-height: 1.5;
+}

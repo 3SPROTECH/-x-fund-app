@@ -258,6 +258,7 @@ const useProjectFormStore = create((set, get) => ({
   // Project info (for info_requested flow)
   loadedProjectId: null,
   projectStatus: null,
+  projectAttributes: null,
 
   // ── Navigation ──────────────────────────────────────────────────
   setGlobalStep: (index) => set({ globalStepIndex: index, flaggedFields: {} }),
@@ -528,6 +529,7 @@ const useProjectFormStore = create((set, get) => ({
   setLastSavedAt: (date) => set({ lastSavedAt: date, isDirty: false }),
   setProjectStatus: (status) => set({ projectStatus: status }),
   setLoadedProjectId: (id) => set({ loadedProjectId: id }),
+  setProjectAttributes: (attrs) => set({ projectAttributes: attrs }),
 
   getSerializableState: () => {
     const s = get();
@@ -622,9 +624,9 @@ const useProjectFormStore = create((set, get) => ({
       return s.projectStatus !== 'info_requested' && s.projectStatus !== 'info_resubmitted';
     }
 
-    // Macro 5 (Signature): always locked until analyst approves
+    // Macro 5 (Signature): locked unless signing status
     if (config.macro === 4) {
-      return true;
+      return s.projectStatus !== 'signing';
     }
 
     return false;
@@ -653,6 +655,7 @@ const useProjectFormStore = create((set, get) => ({
       completedSteps: new Set(),
       loadedProjectId: null,
       projectStatus: null,
+      projectAttributes: null,
     });
   },
 }));

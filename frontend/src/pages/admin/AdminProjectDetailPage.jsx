@@ -5,10 +5,11 @@ import { dividendsApi } from '../../api/dividends';
 import { financialStatementsApi } from '../../api/financialStatements';
 import useWalletStore from '../../stores/useWalletStore';
 import { adminApi } from '../../api/admin';
-import { ArrowLeft, Edit, Trash2, Scale, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Scale, CheckCircle, XCircle, AlertCircle, FileText, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { PROJECT_DETAIL_STATUS_LABELS as STATUS_LABELS, PROJECT_DETAIL_STATUS_BADGES as STATUS_BADGE, PROJECT_STATUS_LABELS, PROJECT_STATUS_BADGES, ANALYST_OPINION_LABELS, ANALYST_OPINION_BADGES } from '../../utils';
 import ReportViewerModal from '../../components/ReportViewerModal';
+import ContractViewerModal from '../../components/ContractViewerModal';
 import { LoadingSpinner } from '../../components/ui';
 import ProjectDetailsTab from '../../components/project-tabs/ProjectDetailsTab';
 import ProjectPhotosTab from '../../components/project-tabs/ProjectPhotosTab';
@@ -29,6 +30,7 @@ export default function AdminProjectDetailPage() {
   const [tab, setTab] = useState('details');
   const [reportData, setReportData] = useState(null);
   const [showReport, setShowReport] = useState(false);
+  const [showContract, setShowContract] = useState(false);
 
   useEffect(() => { loadAll(); }, [id]);
 
@@ -99,6 +101,17 @@ export default function AdminProjectDetailPage() {
       loadAll();
     } catch (err) {
       toast.error(err.response?.data?.errors?.[0] || 'Erreur lors du rejet');
+    }
+  };
+
+  const handleSendContract = async () => {
+    try {
+      await adminApi.advanceStatus(id, 'signing', 'Contrat envoye au porteur pour signature.');
+      toast.success('Contrat envoye au porteur');
+      setShowContract(false);
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || "Erreur lors de l'envoi du contrat");
     }
   };
 
@@ -222,6 +235,36 @@ export default function AdminProjectDetailPage() {
         </div>
       )}
 
+      {/* Contract Banner for approved projects */}
+      {a.status === 'approved' && (
+        <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '2px solid var(--gold-color, #DAA520)' }}>
+          <div>
+            <h3 style={{ margin: 0 }}>Contrat d'investissement</h3>
+            <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
+              Le projet est approuve. Generez et envoyez le contrat au porteur pour signature.
+            </p>
+          </div>
+          <button className="btn btn-success" onClick={() => setShowContract(true)}>
+            <FileText size={16} /> Generer le contrat
+          </button>
+        </div>
+      )}
+
+      {/* Signing status banner */}
+      {a.status === 'signing' && (
+        <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '2px solid var(--info-color, #3498db)' }}>
+          <div>
+            <h3 style={{ margin: 0 }}>En attente de signature</h3>
+            <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
+              Le contrat a ete envoye au porteur. En attente de sa signature.
+            </p>
+          </div>
+          <button className="btn" onClick={() => setShowContract(true)}>
+            <FileText size={16} /> Voir le contrat
+          </button>
+        </div>
+      )}
+
       <div className="tabs">
         <button className={`tab${tab === 'details' ? ' active' : ''}`} onClick={() => setTab('details')}>Details</button>
         <button className={`tab${tab === 'photos' ? ' active' : ''}`} onClick={() => setTab('photos')}>Photos</button>
@@ -241,6 +284,15 @@ export default function AdminProjectDetailPage() {
           report={reportData}
           projectAttrs={a}
           onClose={() => setShowReport(false)}
+        />
+      )}
+
+      {showContract && (
+        <ContractViewerModal
+          projectAttrs={a}
+          onClose={() => setShowContract(false)}
+          onSendToOwner={handleSendContract}
+          showSendButton={a.status === 'approved'}
         />
       )}
     </div>
