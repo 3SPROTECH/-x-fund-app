@@ -1,4 +1,6 @@
 class Setting < ApplicationRecord
+  include Auditable
+
   validates :key, presence: true, uniqueness: true
   validates :value_type, presence: true, inclusion: { in: %w[string integer decimal boolean] }
   validates :category, presence: true

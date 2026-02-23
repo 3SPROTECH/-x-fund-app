@@ -49,11 +49,15 @@ module Api
 
         def verify_kyc
           @user.update!(kyc_status: :verified, kyc_verified_at: Time.current, kyc_rejection_reason: nil)
+          log_admin_action("verify_kyc", @user, { user_name: @user.full_name })
+          NotificationService.notify!(user: @user, actor: current_user, notifiable: @user, type: "kyc_verified", title: "KYC verifie", body: "Votre dossier KYC a ete verifie et approuve.")
           render json: { message: "KYC verifie.", data: { kyc_status: @user.kyc_status } }
         end
 
         def reject_kyc
           @user.update!(kyc_status: :rejected, kyc_rejection_reason: params[:reason])
+          log_admin_action("reject_kyc", @user, { user_name: @user.full_name, reason: params[:reason] })
+          NotificationService.notify!(user: @user, actor: current_user, notifiable: @user, type: "kyc_rejected", title: "KYC rejete", body: "Votre dossier KYC a ete rejete.#{params[:reason].present? ? " Motif : #{params[:reason]}" : ''}")
           render json: { message: "KYC rejete.", data: { kyc_status: @user.kyc_status, reason: params[:reason] } }
         end
 
@@ -63,6 +67,19 @@ module Api
           unless current_user.administrateur?
             render json: { error: "Acces reserve aux administrateurs." }, status: :forbidden
           end
+        end
+
+        def log_admin_action(action, resource, data = {})
+          AuditLog.create!(
+            user: current_user,
+            auditable: resource,
+            action: action,
+            changes_data: data,
+            ip_address: request.remote_ip,
+            user_agent: request.user_agent
+          )
+        rescue => e
+          Rails.logger.error("Admin audit log failed: #{e.message}")
         end
 
         def set_user

@@ -45,6 +45,8 @@ module Api
           status: :info_resubmitted,
           reviewed_at: Time.current
         )
+        NotificationService.notify_admins!(actor: current_user, notifiable: @project, type: "info_resubmitted", title: "Complements soumis", body: "#{current_user.full_name} a soumis les complements d'information pour le projet « #{@project.title} ».")
+        NotificationService.notify_project_analyst!(@project, actor: current_user, type: "info_resubmitted", title: "Complements soumis", body: "#{current_user.full_name} a soumis les complements d'information pour le projet « #{@project.title} ».")
 
         render json: {
           message: "Compléments d'information soumis avec succès.",

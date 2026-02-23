@@ -1,4 +1,6 @@
 class Dividend < ApplicationRecord
+  include Auditable
+
   belongs_to :investment_project
   has_many :dividend_payments, dependent: :destroy
 

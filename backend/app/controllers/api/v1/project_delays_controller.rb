@@ -41,6 +41,8 @@ module Api
         end
 
         if @delay.save
+          NotificationService.notify_admins!(actor: current_user, notifiable: @delay, type: "delay_declared", title: "Retard declare", body: "#{current_user.full_name} a declare un retard « #{@delay.title} » sur le projet « #{project.title} ».")
+          NotificationService.notify_project_analyst!(project, actor: current_user, type: "delay_declared", title: "Retard declare", body: "#{current_user.full_name} a declare un retard « #{@delay.title} » sur le projet « #{project.title} ».")
           render json: { data: ProjectDelaySerializer.new(@delay).serializable_hash[:data] }, status: :created
         else
           render json: { errors: @delay.errors.full_messages }, status: :unprocessable_entity

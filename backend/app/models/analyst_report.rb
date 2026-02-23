@@ -1,4 +1,6 @@
 class AnalystReport < ApplicationRecord
+  include Auditable
+
   belongs_to :investment_project
   belongs_to :analyst, class_name: "User"
 

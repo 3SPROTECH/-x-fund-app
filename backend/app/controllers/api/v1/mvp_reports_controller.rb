@@ -1,12 +1,28 @@
 module Api
   module V1
     class MvpReportsController < ApplicationController
-      before_action :set_project
-      before_action :authorize_owner!
+      before_action :set_project, except: [:global_index]
+      before_action :authorize_owner!, except: [:global_index]
       before_action :set_report, only: [:show, :update, :destroy, :submit]
 
+      # GET /mvp_reports — all reports across porteur's projects
+      def global_index
+        project_ids = InvestmentProject.where(owner_id: current_user.id).pluck(:id)
+        reports = MvpReport.where(investment_project_id: project_ids).latest_first
+        reports = reports.where(review_status: params[:review_status]) if params[:review_status].present?
+        reports = reports.where(investment_project_id: params[:project_id]) if params[:project_id].present?
+        reports = paginate(reports)
+
+        render json: {
+          data: reports.map { |r| MvpReportSerializer.new(r).serializable_hash[:data] },
+          meta: pagination_meta(reports)
+        }
+      end
+
+      # GET /investment_projects/:id/mvp_reports — reports for a specific project
       def index
         reports = @project.mvp_reports.where(author: current_user).latest_first
+        reports = reports.where(review_status: params[:review_status]) if params[:review_status].present?
         reports = paginate(reports)
 
         render json: {
@@ -61,6 +77,7 @@ module Api
         end
 
         @report.update!(review_status: :soumis)
+        NotificationService.notify_admins!(actor: current_user, notifiable: @report, type: "report_submitted", title: "Rapport soumis", body: "#{current_user.full_name} a soumis un rapport de suivi pour le projet « #{@project.title} ».")
         render json: {
           message: "Rapport soumis pour validation.",
           data: MvpReportSerializer.new(@report).serializable_hash[:data]

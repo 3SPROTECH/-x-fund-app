@@ -1,4 +1,6 @@
 class ProjectDelay < ApplicationRecord
+  include Auditable
+
   belongs_to :investment_project
   belongs_to :user
   has_many_attached :supporting_documents

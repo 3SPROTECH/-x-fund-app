@@ -3,9 +3,10 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   User, LogOut, ChevronDown, BarChart3, Building, Briefcase,
-  Wallet, AlertTriangle, Menu, X,
+  Wallet, AlertTriangle, FileText, Menu, X,
 } from 'lucide-react';
 import { ROLE_LABELS } from '../utils';
+import NotificationBell from './NotificationBell';
 import FloatingChat from './FloatingChat';
 
 export default function PorteurLayout() {
@@ -71,6 +72,9 @@ export default function PorteurLayout() {
                         </NavLink>
 
                         <div className="nav-section"><span className="nav-section-label">Suivi</span></div>
+                        <NavLink to="/reports" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                            <FileText size={18} /><span>Rapports</span>
+                        </NavLink>
                         <NavLink to="/delays" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
                             <AlertTriangle size={18} /><span>Retards</span>
                         </NavLink>
@@ -93,7 +97,10 @@ export default function PorteurLayout() {
                         {showMobileMenu ? <X size={22} /> : <Menu size={22} />}
                     </button>
                     <span className="admin-mobile-logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
-                    <span className="admin-mobile-role">Porteur</span>
+                    <div className="admin-mobile-topbar-actions">
+                        <NotificationBell />
+                        <span className="admin-mobile-role">Porteur</span>
+                    </div>
                 </div>
 
                 {/* Menu mobile dropdown */}
@@ -101,6 +108,9 @@ export default function PorteurLayout() {
                     <div className="admin-mobile-dropdown">
                         <NavLink to="/wallet" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowMobileMenu(false)}>
                             <Wallet size={20} /><span>Portefeuille</span>
+                        </NavLink>
+                        <NavLink to="/reports" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowMobileMenu(false)}>
+                            <FileText size={20} /><span>Rapports</span>
                         </NavLink>
                         <NavLink to="/delays" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowMobileMenu(false)}>
                             <AlertTriangle size={20} /><span>Retards</span>
@@ -116,6 +126,15 @@ export default function PorteurLayout() {
                 )}
 
                 <main className="main-content">
+                    <div className="content-topbar">
+                        <div className="content-topbar-left" />
+                        <div className="content-topbar-right">
+                            <NotificationBell />
+                            <div className="content-topbar-user" onClick={() => navigate('/profile')}>
+                                <span>{user?.first_name} {user?.last_name}</span>
+                            </div>
+                        </div>
+                    </div>
                     <Outlet />
                 </main>
 

@@ -77,6 +77,10 @@ export const projectInvestorsApi = {
 };
 
 export const mvpReportsApi = {
+  listAll(params = {}) {
+    return client.get('/mvp_reports', { params });
+  },
+
   list(projectId, params = {}) {
     return client.get(`/investment_projects/${projectId}/mvp_reports`, { params });
   },

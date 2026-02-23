@@ -58,6 +58,7 @@ import PorteurWalletPage from './pages/porteur/PorteurWalletPage';
 import PorteurProfilePage from './pages/porteur/PorteurProfilePage';
 import PorteurKycPage from './pages/porteur/PorteurKycPage';
 import PorteurDelaysPage from './pages/porteur/PorteurDelaysPage';
+import PorteurReportsPage from './pages/porteur/PorteurReportsPage';
 
 // Demo pages (temporary)
 import DemoAnalystDashboard from './pages/demo/DemoAnalystDashboard';
@@ -320,6 +321,10 @@ export default function App() {
             <Route
               path="/kyc"
               element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurKycPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/reports"
+              element={<ProtectedRoute roles={['porteur_de_projet']}><PorteurReportsPage /></ProtectedRoute>}
             />
             <Route
               path="/delays"

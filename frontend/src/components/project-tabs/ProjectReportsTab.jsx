@@ -9,47 +9,9 @@ import {
   MVP_STATUS_BADGES as MVP_STATUS_BADGE, REVIEW_STATUS_LABELS, REVIEW_STATUS_BADGES as REVIEW_STATUS_BADGE,
   EMPTY_MVP_FORM,
 } from '../../utils';
+import FormSelect from '../FormSelect';
 import { LoadingSpinner } from '../../components/ui';
-
-function mvpApiToForm(data) {
-  const r = data.attributes || data;
-  const c = (v) => v ? (v / 100).toString() : '';
-  const s = (v) => v != null ? v.toString() : '';
-  return {
-    operation_status: r.operation_status || 'acquisition_en_cours', expected_repayment_date: r.expected_repayment_date || '',
-    summary: r.summary || '',
-    purchase_price_previsionnel: c(r.purchase_price_previsionnel_cents), purchase_price_realise: c(r.purchase_price_realise_cents),
-    works_previsionnel: c(r.works_previsionnel_cents), works_realise: c(r.works_realise_cents),
-    total_cost_previsionnel: c(r.total_cost_previsionnel_cents), total_cost_realise: c(r.total_cost_realise_cents),
-    target_sale_price_previsionnel: c(r.target_sale_price_previsionnel_cents), target_sale_price_realise: c(r.target_sale_price_realise_cents),
-    best_offer_previsionnel: c(r.best_offer_previsionnel_cents), best_offer_realise: c(r.best_offer_realise_cents),
-    works_progress_percent: s(r.works_progress_percent), budget_variance_percent: s(r.budget_variance_percent),
-    sale_start_date: r.sale_start_date || '', visits_count: s(r.visits_count), offers_count: s(r.offers_count),
-    listed_price: c(r.listed_price_cents),
-    risk_identified: r.risk_identified || '', risk_impact: r.risk_impact || '', corrective_action: r.corrective_action || '',
-    estimated_compromise_date: r.estimated_compromise_date || '', estimated_deed_date: r.estimated_deed_date || '',
-    estimated_repayment_date: r.estimated_repayment_date || '', exit_confirmed: r.exit_confirmed || false,
-  };
-}
-function mvpFormToApi(f) {
-  const toC = (v) => v ? Math.round(parseFloat(v) * 100) : null;
-  const toN = (v) => v ? parseFloat(v) : null;
-  const toI = (v) => v ? parseInt(v, 10) : null;
-  return {
-    operation_status: f.operation_status, expected_repayment_date: f.expected_repayment_date || null, summary: f.summary || null,
-    purchase_price_previsionnel_cents: toC(f.purchase_price_previsionnel), purchase_price_realise_cents: toC(f.purchase_price_realise),
-    works_previsionnel_cents: toC(f.works_previsionnel), works_realise_cents: toC(f.works_realise),
-    total_cost_previsionnel_cents: toC(f.total_cost_previsionnel), total_cost_realise_cents: toC(f.total_cost_realise),
-    target_sale_price_previsionnel_cents: toC(f.target_sale_price_previsionnel), target_sale_price_realise_cents: toC(f.target_sale_price_realise),
-    best_offer_previsionnel_cents: toC(f.best_offer_previsionnel), best_offer_realise_cents: toC(f.best_offer_realise),
-    works_progress_percent: toN(f.works_progress_percent), budget_variance_percent: toN(f.budget_variance_percent),
-    sale_start_date: f.sale_start_date || null, visits_count: toI(f.visits_count), offers_count: toI(f.offers_count),
-    listed_price_cents: toC(f.listed_price),
-    risk_identified: f.risk_identified || null, risk_impact: f.risk_impact || null, corrective_action: f.corrective_action || null,
-    estimated_compromise_date: f.estimated_compromise_date || null, estimated_deed_date: f.estimated_deed_date || null,
-    estimated_repayment_date: f.estimated_repayment_date || null, exit_confirmed: f.exit_confirmed,
-  };
-}
+import { mvpApiToForm, mvpFormToApi } from '../../utils/mvpHelpers';
 
 export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner, user, setProject, onRefresh }) {
   const a = project.attributes || project;
@@ -70,7 +32,7 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
   const loadMvpReports = async () => {
     setLoadingMvpReports(true);
     try {
-      const res = user?.role === 'administrateur'
+      const res = isAdmin
         ? await adminApi.getMvpReports(projectId)
         : await mvpReportsApi.list(projectId);
       setMvpReports(res.data.data || []);
@@ -80,7 +42,7 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
 
   const handleSetOperationType = async (type) => {
     try {
-      if (user?.role === 'administrateur') {
+      if (isAdmin) {
         await adminApi.updateProject(projectId, { operation_type: type });
       } else {
         await investmentProjectsApi.update(projectId, { operation_type: type });
@@ -97,18 +59,14 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
     }
   };
 
-  const handleMvpCreate = () => { setMvpForm({ ...EMPTY_MVP_FORM }); setMvpEditingId(null); setMvpMode('create'); };
-  const handleMvpEdit = (report) => { setMvpForm(mvpApiToForm(report)); setMvpEditingId(report.id); setMvpMode('edit'); };
-  const handleMvpView = (report) => { setMvpViewReport(report); setMvpMode('view'); };
+  const handleMvpCreate = () => { setMvpForm({ ...EMPTY_MVP_FORM }); setMvpEditingId(null); setMvpMode('create'); window.scrollTo(0, 0); };
+  const handleMvpEdit = (report) => { setMvpForm(mvpApiToForm(report)); setMvpEditingId(report.id); setMvpMode('edit'); window.scrollTo(0, 0); };
+  const handleMvpView = (report) => { setMvpViewReport(report); setMvpMode('view'); window.scrollTo(0, 0); };
 
   const handleMvpDelete = async (reportId) => {
     if (!window.confirm('Supprimer ce rapport ?')) return;
     try {
-      if (isAdmin) {
-        await adminApi.deleteMvpReport(projectId, reportId);
-      } else {
-        await mvpReportsApi.delete(projectId, reportId);
-      }
+      await mvpReportsApi.delete(projectId, reportId);
       toast.success('Rapport supprime');
       loadMvpReports();
     } catch (err) { toast.error(err.response?.data?.error || 'Erreur lors de la suppression'); }
@@ -120,21 +78,14 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
     try {
       const payload = mvpFormToApi(mvpForm);
       if (mvpMode === 'create') {
-        if (isAdmin) {
-          await adminApi.createMvpReport(projectId, payload);
-        } else {
-          await mvpReportsApi.create(projectId, payload);
-        }
+        await mvpReportsApi.create(projectId, payload);
         toast.success('Rapport cree');
       } else {
-        if (isAdmin) {
-          await adminApi.updateMvpReport(projectId, mvpEditingId, payload);
-        } else {
-          await mvpReportsApi.update(projectId, mvpEditingId, payload);
-        }
+        await mvpReportsApi.update(projectId, mvpEditingId, payload);
         toast.success('Rapport mis a jour');
       }
       setMvpMode('list');
+      window.scrollTo(0, 0);
       loadMvpReports();
     } catch (err) {
       toast.error(err.response?.data?.errors?.join(', ') || err.response?.data?.error || "Erreur lors de l'enregistrement");
@@ -204,16 +155,16 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
         <div style={{ marginTop: '2rem' }}>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            {mvpMode === 'list' && a.operation_type && !isAdmin && (
+            {mvpMode === 'list' && a.operation_type && isOwner && (
               <button className="btn btn-sm btn-primary" onClick={handleMvpCreate}><Plus size={14} /> Nouveau rapport</button>
             )}
             {mvpMode !== 'list' && (
-              <button className="btn btn-sm btn-ghost" onClick={() => setMvpMode('list')}><X size={14} /> Fermer</button>
+              <button className="btn btn-sm btn-ghost" onClick={() => { setMvpMode('list'); window.scrollTo(0, 0); }}><X size={14} /> Fermer</button>
             )}
           </div>
 
-          {/* Operation Type Selection */}
-          {!a.operation_type && (
+          {/* Operation Type Selection — only owner can set */}
+          {!a.operation_type && isOwner && (
             <div className="card" style={{ marginBottom: '1.5rem' }}>
               <p className="text-muted" style={{ marginBottom: '1rem' }}>
                 Selectionnez le type d'operation pour ce projet :
@@ -235,7 +186,7 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
               <span className="badge badge-info">
                 {OPERATION_TYPE_ICONS[a.operation_type]} {OPERATION_TYPES[a.operation_type]}
               </span>
-              {(isAdmin || isOwner) && (
+              {isOwner && (
                 <button className="btn btn-sm btn-ghost" style={{ fontSize: '.75rem' }}
                   onClick={() => setProject((prev) => {
                     const attrs = prev.attributes || prev;
@@ -257,9 +208,9 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
                 <div className="card">
                   <div className="empty-state">
                     <p>Aucun rapport pour ce projet</p>
-                    {!isAdmin && (
+                    {isOwner && (
                       <button className="btn btn-primary btn-sm" onClick={handleMvpCreate} style={{ marginTop: '.75rem' }}>
-                        <Plus size={14} /> Créer le premier rapport
+                        <Plus size={14} /> Creer le premier rapport
                       </button>
                     )}
                   </div>
@@ -271,8 +222,8 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
                     <tbody>
                       {mvpReports.map((r) => {
                         const ra = r.attributes || r;
-                        const canEditReport = isAdmin || (isOwner && (ra.review_status === 'brouillon' || ra.review_status === 'rejete'));
-                        const canDeleteReport = isAdmin || (isOwner && ra.review_status === 'brouillon');
+                        const canEditReport = isOwner && (ra.review_status === 'brouillon' || ra.review_status === 'rejete');
+                        const canDeleteReport = isOwner && ra.review_status === 'brouillon';
                         const canSubmitReport = isOwner && ra.review_status === 'brouillon';
                         const canValidate = isAdmin && ra.review_status === 'soumis';
                         return (
@@ -317,7 +268,7 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
             const ra = mvpViewReport.attributes || mvpViewReport;
             const viewIsWork = ra.operation_status === 'en_renovation';
             const viewIsSale = ['en_commercialisation', 'sous_offre', 'sous_compromis'].includes(ra.operation_status);
-            const canEditThis = isAdmin || (isOwner && (ra.review_status === 'brouillon' || ra.review_status === 'rejete'));
+            const canEditThis = isOwner && (ra.review_status === 'brouillon' || ra.review_status === 'rejete');
             return (
               <div className="card mvp-report-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -458,14 +409,14 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
             );
           })()}
 
-          {/* === CREATE / EDIT rapport MVP === */}
-          {a.operation_type && (mvpMode === 'create' || mvpMode === 'edit') && (
+          {/* === CREATE / EDIT rapport MVP (owner only) === */}
+          {a.operation_type && isOwner && (mvpMode === 'create' || mvpMode === 'edit') && (
             <form onSubmit={handleMvpSubmit}>
               <div className="card mvp-report-card">
                 <h3 style={{ marginBottom: '1.5rem' }}>{mvpMode === 'create' ? 'Nouveau rapport' : 'Modifier le rapport'}</h3>
                 {a.operation_type !== 'marchand_de_biens' && (
                   <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '.875rem' }}>
-                    Rapport de suivi pour <strong>{OPERATION_TYPES[a.operation_type]}</strong>. Utilisez les champs prévisionnel / réalisé pour les montants clés de votre opération (acquisition, travaux, objectifs de sortie, etc.).
+                    Rapport de suivi pour <strong>{OPERATION_TYPES[a.operation_type]}</strong>. Utilisez les champs previsionnel / realise pour les montants cles de votre operation (acquisition, travaux, objectifs de sortie, etc.).
                   </p>
                 )}
 
@@ -479,9 +430,15 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
                   <div className="form-row">
                     <div className="form-group">
                       <label>Statut actuel</label>
-                      <select value={mvpForm.operation_status} onChange={updateMvpField('operation_status')}>
-                        {Object.keys(OPERATION_STATUSES).map((k) => <option key={k} value={k}>{getOperationStatusLabel(a.operation_type, k)}</option>)}
-                      </select>
+                      <FormSelect
+                        value={mvpForm.operation_status || ''}
+                        onChange={updateMvpField('operation_status')}
+                        placeholder="Statut actuel"
+                        options={Object.keys(OPERATION_STATUSES).map((k) => ({
+                          value: k,
+                          label: getOperationStatusLabel(a.operation_type, k),
+                        }))}
+                      />
                     </div>
                     <div className="form-group">
                       <label>Date previsionnelle remboursement</label>
@@ -571,7 +528,7 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
                 </div>
 
                 <div className="modal-actions" style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1rem' }}>
-                  <button type="button" className="btn" onClick={() => setMvpMode('list')}>Annuler</button>
+                  <button type="button" className="btn" onClick={() => { setMvpMode('list'); window.scrollTo(0, 0); }}>Annuler</button>
                   <button type="submit" className="btn btn-primary" disabled={mvpSubmitting}>
                     <Save size={16} /> {mvpSubmitting ? 'Enregistrement...' : 'Enregistrer le rapport'}
                   </button>
@@ -582,7 +539,7 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
         </div>
       )}
 
-      {/* Modal de rejet MVP */}
+      {/* Modal de rejet MVP (admin only) */}
       {rejectModalReport && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '2rem' }}
           onClick={() => setRejectModalReport(null)}>

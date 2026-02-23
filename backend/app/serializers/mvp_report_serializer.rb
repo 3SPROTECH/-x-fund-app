@@ -24,7 +24,15 @@ class MvpReportSerializer
     report.reviewer&.full_name
   end
 
+  attribute :investment_project_id do |report|
+    report.investment_project_id
+  end
+
   attribute :project_title do |report|
     report.investment_project.title
+  end
+
+  attribute :project_operation_type do |report|
+    report.investment_project.operation_type
   end
 end

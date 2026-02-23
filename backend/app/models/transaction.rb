@@ -1,4 +1,6 @@
 class Transaction < ApplicationRecord
+  include Auditable
+
   belongs_to :wallet
   belongs_to :investment, optional: true
 
