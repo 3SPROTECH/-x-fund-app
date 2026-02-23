@@ -86,7 +86,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
     platformConfigApi.get().then((res) => {
       const price = res.data?.data?.default_share_price_cents;
       if (price && price > 0) setDefaultSharePriceCents(price);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const stepConfig = STEP_CONFIG[globalStepIndex] || STEP_CONFIG[0];
@@ -546,21 +546,24 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
   // ── Button labels ──
   const isSubmitStep = globalStepIndex === SUBMIT_STEP;
   const isAdditionalInfoStep = globalStepIndex === ADDITIONAL_INFO_STEP;
+  const isSignatureStep = globalStepIndex === SIGNATURE_STEP;
   const isEndOfSubFlow = globalStepIndex === SUB_FLOW_END;
   const hubAllComplete = isOnHub && allAssetsComplete();
   const isLastNavigable = globalStepIndex === SUBMIT_STEP;
 
-  const nextLabel = isAdditionalInfoStep && submitted
-    ? (projectStatus === 'info_resubmitted' ? 'Compléments envoyés' : 'Envoyer les compléments')
-    : submitted
-      ? ((isLastNavigable && !isInfoFlow) ? 'Dossier envoyé' : 'Suivant')
-      : submitting
-        ? 'Envoi en cours...'
-        : isSubmitStep
-          ? 'Envoyer mon dossier en analyse'
-          : isEndOfSubFlow
-            ? 'Terminer cet actif'
-            : 'Suivant';
+  const nextLabel = isSignatureStep && submitted && projectStatus === 'signing'
+    ? 'Contrat en cours de signature'
+    : isAdditionalInfoStep && submitted
+      ? (projectStatus === 'info_resubmitted' ? 'Compléments envoyés' : 'Envoyer les compléments')
+      : submitted
+        ? ((isLastNavigable && !isInfoFlow) ? 'Dossier envoyé' : 'Suivant')
+        : submitting
+          ? 'Envoi en cours...'
+          : isSubmitStep
+            ? 'Envoyer mon dossier en analyse'
+            : isEndOfSubFlow
+              ? 'Terminer cet actif'
+              : 'Suivant';
 
   const prevLabel = (globalStepIndex === SUB_FLOW_START && selectedAssetIndex !== null)
     ? 'Retour au Hub'
@@ -571,6 +574,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
   const nextDisabled = submitting
     || (submitted && isLastNavigable && !isInfoFlow)
     || (submitted && isAdditionalInfoStep && projectStatus === 'info_resubmitted')
+    || (submitted && isSignatureStep && projectStatus === 'signing')
     || (isOnHub && !hubAllComplete && !submitted);
 
   const StepComponent = STEP_COMPONENTS[globalStepIndex];

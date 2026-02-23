@@ -21,6 +21,7 @@ class InvestmentProjectSerializer
              :has_interest_escrow, :has_works_escrow, :has_personal_guarantee,
              :has_gfa, :has_open_banking, :risk_description,
              :overall_protection_score, :overall_risk_level, :guarantee_type_summary,
+             :yousign_status, :yousign_sent_at,
              :created_at, :updated_at
 
   attribute :status do |project, params|
@@ -129,6 +130,10 @@ class InvestmentProjectSerializer
 
   attribute :investment_fee_percent do |_project|
     Setting.get("platform_investment_commission_percent") || 0.0
+  end
+
+  attribute :yousign_signature_link do |project|
+    project.signing? ? project.yousign_signature_link : nil
   end
 
   attribute :images do |project|

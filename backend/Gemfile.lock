@@ -132,6 +132,10 @@ GEM
       raabro (~> 1.4)
     globalid (1.3.0)
       activesupport (>= 6.1)
+    httparty (0.24.2)
+      csv
+      mini_mime (>= 1.0.0)
+      multi_xml (>= 0.5.2)
     i18n (1.14.8)
       concurrent-ruby (~> 1.0)
     image_processing (1.14.0)
@@ -190,6 +194,8 @@ GEM
     minitest (6.0.1)
       prism (~> 1.5)
     msgpack (1.8.0)
+    multi_xml (0.8.1)
+      bigdecimal (>= 3.1, < 5)
     net-imap (0.6.2)
       date
       net-protocol
@@ -380,6 +386,7 @@ DEPENDENCIES
   devise (~> 4.9)
   devise-jwt (~> 0.12)
   dotenv-rails
+  httparty (~> 0.22)
   image_processing (~> 1.2)
   jsonapi-serializer (~> 2.2)
   kamal

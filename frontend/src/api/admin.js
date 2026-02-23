@@ -88,6 +88,14 @@ export const adminApi = {
     return client.patch(`/admin/investment_projects/${projectId}/assign_analyst`, { analyst_id: analystId });
   },
 
+  sendContract(projectId, pdfBase64) {
+    return client.post(`/admin/investment_projects/${projectId}/send_contract`, { pdf_base64: pdfBase64 });
+  },
+
+  checkSignatureStatus(projectId) {
+    return client.post(`/admin/investment_projects/${projectId}/check_signature_status`);
+  },
+
   // MVP Reports
   getMvpReports(projectId, params = {}) {
     return client.get(`/admin/investment_projects/${projectId}/mvp_reports`, { params });

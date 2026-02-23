@@ -1,25 +1,42 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { X, Download, FileText, Send } from 'lucide-react';
-import { generateContractPdf, getContractNarrative } from '../utils/contractGenerator';
+import { generateContractPdf, getContractBlocks, getContractBase64 } from '../utils/contractGenerator';
 import '../styles/report-viewer.css';
 
 function ContractNarrative({ projectAttrs }) {
-  const narrative = getContractNarrative(projectAttrs);
+  const blocks = getContractBlocks(projectAttrs);
 
   return (
-    <div style={{ fontFamily: "'Times New Roman', Times, serif", color: '#111', lineHeight: 1.65, fontSize: '15px' }}>
-      <p style={{ margin: '0 0 0.75rem 0', fontWeight: 700, letterSpacing: '0.02em' }}>{narrative.title}</p>
-      <p style={{ margin: '0 0 0.75rem 0' }}>{narrative.reference}</p>
-      <p style={{ margin: '0 0 1rem 0' }}>{narrative.intro}</p>
+    <div style={{ fontFamily: 'var(--font)', color: '#111', lineHeight: 1.6, fontSize: '14px', letterSpacing: 0, maxWidth: '174mm', margin: '0 auto' }}>
+      {blocks.map((block, idx) => {
+        if (block.type === 'hr') {
+          return <hr key={idx} style={{ border: 0, borderTop: '1px solid #d6d6d6', margin: '0.75rem 0' }} />;
+        }
 
-      {narrative.sections.map((section) => (
-        <div key={section.heading} style={{ marginBottom: '1rem' }}>
-          <p style={{ margin: '0 0 0.5rem 0', fontWeight: 700 }}>{section.heading}</p>
-          {section.paragraphs.map((paragraph, idx) => (
-            <p key={`${section.heading}-${idx}`} style={{ margin: '0 0 0.55rem 0' }}>{paragraph}</p>
-          ))}
-        </div>
-      ))}
+        if (block.type === 'h1') {
+          return <p key={idx} style={{ margin: '0 0 0.55rem 0', fontWeight: 700, fontSize: '1.1rem' }}>{block.text}</p>;
+        }
+
+        if (block.type === 'h2') {
+          return <p key={idx} style={{ margin: '0 0 0.75rem 0', fontSize: '0.95rem' }}>{block.text}</p>;
+        }
+
+        if (block.type === 'h3' || block.type === 'article') {
+          return <p key={idx} style={{ margin: '0.55rem 0 0.45rem 0', fontWeight: 700 }}>{block.text}</p>;
+        }
+
+        const isBullet = block.type === 'li';
+        const segments = block.segments || [{ text: block.text || '', bold: false }];
+
+        return (
+          <p key={idx} style={{ margin: '0 0 0.4rem 0', paddingLeft: isBullet ? '1.2rem' : 0, textIndent: isBullet ? '-0.8rem' : 0 }}>
+            {isBullet ? '* ' : ''}
+            {segments.map((seg, sidx) => (
+              <span key={sidx} style={{ fontWeight: seg.bold ? 700 : 400 }}>{seg.text}</span>
+            ))}
+          </p>
+        );
+      })}
     </div>
   );
 }
@@ -44,10 +61,12 @@ export default function ContractViewerModal({ projectAttrs, onClose, onSendToOwn
   };
 
   const handleSend = async () => {
-    if (!window.confirm('Envoyer le contrat au porteur ? Le statut du projet sera mis a jour en "En Signature".')) return;
+    if (!window.confirm('Envoyer le contrat au porteur pour signature electronique via YouSign ?')) return;
     setSending(true);
     try {
-      await onSendToOwner();
+      // Generate the PDF as base64 and pass it to the parent handler
+      const pdfBase64 = getContractBase64(a);
+      await onSendToOwner(pdfBase64);
     } finally {
       setSending(false);
     }
@@ -60,7 +79,7 @@ export default function ContractViewerModal({ projectAttrs, onClose, onSendToOwn
           <div className="rv-header-left">
             <FileText size={20} />
             <div>
-              <h2 className="rv-title">Contrat d'investissement</h2>
+              <h2 className="rv-title">Convention de partenariat</h2>
               <p className="rv-subtitle">{a.title || 'Projet'}</p>
             </div>
           </div>
@@ -77,7 +96,7 @@ export default function ContractViewerModal({ projectAttrs, onClose, onSendToOwn
                 style={{ background: 'var(--rv-emerald, #10b981)' }}
               >
                 <Send size={16} />
-                {sending ? 'Envoi...' : 'Envoyer au Porteur'}
+                {sending ? 'Envoi via YouSign...' : 'Envoyer au Porteur (YouSign)'}
               </button>
             )}
             <button className="rv-btn-close" onClick={onClose}>

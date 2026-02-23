@@ -104,14 +104,29 @@ export default function AdminProjectDetailPage() {
     }
   };
 
-  const handleSendContract = async () => {
+  const handleSendContract = async (pdfBase64) => {
     try {
-      await adminApi.advanceStatus(id, 'signing', 'Contrat envoye au porteur pour signature.');
-      toast.success('Contrat envoye au porteur');
+      await adminApi.sendContract(id, pdfBase64);
+      toast.success('Contrat envoye au porteur via YouSign');
       setShowContract(false);
       loadAll();
     } catch (err) {
-      toast.error(err.response?.data?.errors?.[0] || "Erreur lors de l'envoi du contrat");
+      toast.error(err.response?.data?.errors?.[0] || "Erreur lors de l'envoi du contrat via YouSign");
+    }
+  };
+
+  const handleCheckSignatureStatus = async () => {
+    try {
+      const res = await adminApi.checkSignatureStatus(id);
+      const status = res.data.yousign_status;
+      if (status === 'done') {
+        toast.success('Le contrat a ete signe ! Statut mis a jour.');
+      } else {
+        toast('Statut de la signature : ' + (status || 'en attente'), { icon: 'ℹ️' });
+      }
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la verification');
     }
   };
 
@@ -254,14 +269,19 @@ export default function AdminProjectDetailPage() {
       {a.status === 'signing' && (
         <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '2px solid var(--info-color, #3498db)' }}>
           <div>
-            <h3 style={{ margin: 0 }}>En attente de signature</h3>
+            <h3 style={{ margin: 0 }}>En attente de signature (YouSign)</h3>
             <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
-              Le contrat a ete envoye au porteur. En attente de sa signature.
+              Le contrat a ete envoye au porteur via YouSign. {a.yousign_status === 'ongoing' ? 'En attente de signature.' : a.yousign_status === 'done' ? 'Signe !' : `Statut : ${a.yousign_status || 'en attente'}`}
             </p>
           </div>
-          <button className="btn" onClick={() => setShowContract(true)}>
-            <FileText size={16} /> Voir le contrat
-          </button>
+          <div style={{ display: 'flex', gap: '.5rem', flexShrink: 0 }}>
+            <button className="btn" onClick={() => setShowContract(true)}>
+              <FileText size={16} /> Voir le contrat
+            </button>
+            <button className="btn btn-sm" onClick={handleCheckSignatureStatus}>
+              <CheckCircle size={16} /> Verifier le statut
+            </button>
+          </div>
         </div>
       )}
 

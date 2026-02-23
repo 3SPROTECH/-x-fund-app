@@ -150,6 +150,9 @@ Rails.application.routes.draw do
         end
       end
 
+      # === Yousign Webhooks ===
+      post "yousign_webhooks", to: "yousign_webhooks#create"
+
       # === Admin ===
       namespace :admin do
         resources :users, only: [:index, :show, :create, :update, :destroy] do
@@ -169,6 +172,8 @@ Rails.application.routes.draw do
             patch :advance_status
             patch :assign_analyst
             get :report
+            post :send_contract
+            post :check_signature_status
           end
           resources :mvp_reports, only: [:index, :show] do
             member do
