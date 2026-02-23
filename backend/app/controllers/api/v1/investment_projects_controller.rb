@@ -74,7 +74,8 @@ module Api
           return render json: { errors: ["Veuillez sélectionner au moins un bien"] }, status: :unprocessable_entity
         end
 
-        share_price = (project_params[:share_price_cents].presence || 0).to_i
+        default_price = Setting.get("default_share_price_cents") || 10000
+        share_price = (project_params[:share_price_cents].presence || default_price).to_i
         if share_price <= 0
           return render json: { errors: ["Le prix par part doit être supérieur à 0"] }, status: :unprocessable_entity
         end

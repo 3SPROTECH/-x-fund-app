@@ -82,6 +82,9 @@ Rails.application.routes.draw do
         get :transactions
       end
 
+      # === Platform Config (authenticated users) ===
+      resource :platform_config, only: [:show], controller: "platform_config"
+
       # === Dashboards ===
       resource :dashboard, only: [:show], controller: "investor_dashboard"
       resource :porteur_dashboard, only: [:show], controller: "porteur_dashboard"

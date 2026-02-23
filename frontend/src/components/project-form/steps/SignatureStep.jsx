@@ -1,55 +1,7 @@
-import { useState } from 'react';
-import { Paperclip, FileText, Download, CheckCircle, XCircle, Users, DollarSign, Shield, Calendar } from 'lucide-react';
+﻿import { useState } from 'react';
+import { Paperclip, FileText, Download } from 'lucide-react';
 import useProjectFormStore from '../../../stores/useProjectFormStore';
-import { generateContractPdf } from '../../../utils/contractGenerator';
-
-const fmtCents = (v) =>
-  v != null
-    ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(v / 100)
-    : '—';
-
-const fmtDate = (d) => {
-  if (!d) return '—';
-  try { return new Date(d).toLocaleDateString('fr-FR'); } catch { return '—'; }
-};
-
-const OPERATION_LABELS = {
-  promotion_immobiliere: 'Promotion immobiliere',
-  marchand_de_biens: 'Marchand de biens',
-  rehabilitation_lourde: 'Rehabilitation lourde',
-  division_fonciere: 'Division fonciere',
-  immobilier_locatif: 'Immobilier locatif',
-  transformation_usage: "Transformation d'usage",
-  refinancement: 'Refinancement',
-  amenagement_foncier: 'Amenagement foncier',
-};
-
-const GUARANTEE_ITEMS = [
-  { key: 'has_first_rank_mortgage', label: 'Hypotheque de 1er rang' },
-  { key: 'has_share_pledge', label: 'Nantissement de parts' },
-  { key: 'has_fiducie', label: 'Fiducie' },
-  { key: 'has_interest_escrow', label: 'Sequestre interets' },
-  { key: 'has_works_escrow', label: 'Sequestre travaux' },
-  { key: 'has_personal_guarantee', label: 'Caution personnelle' },
-  { key: 'has_gfa', label: 'GFA' },
-  { key: 'has_open_banking', label: 'Open Banking' },
-];
-
-const GUARANTEE_TYPE_LABELS = {
-  hypotheque: 'Hypothèque',
-  fiducie: 'Fiducie',
-  garantie_premiere_demande: 'Garantie à première demande',
-  caution_personnelle: 'Caution personnelle',
-  garantie_corporate: 'Garantie corporate',
-  aucune: 'Aucune',
-};
-
-const RISK_LEVEL_LABELS = {
-  low: 'Faible risque',
-  moderate: 'Risque modéré',
-  high: 'Risque élevé',
-  critical: 'Risque très élevé',
-};
+import { generateContractPdf, getContractNarrative } from '../../../utils/contractGenerator';
 
 export default function SignatureStep() {
   const consentGiven = useProjectFormStore((s) => s.consentGiven);
@@ -91,24 +43,40 @@ export default function SignatureStep() {
   );
 }
 
+function ContractNarrative({ projectAttrs }) {
+  const narrative = getContractNarrative(projectAttrs);
+
+  return (
+    <div style={{ fontFamily: "'Times New Roman', Times, serif", color: '#111', lineHeight: 1.65, fontSize: '15px' }}>
+      <p style={{ margin: '0 0 0.75rem 0', fontWeight: 700, letterSpacing: '0.02em' }}>{narrative.title}</p>
+      <p style={{ margin: '0 0 0.75rem 0' }}>{narrative.reference}</p>
+      <p style={{ margin: '0 0 1rem 0' }}>{narrative.intro}</p>
+
+      {narrative.sections.map((section) => (
+        <div key={section.heading} style={{ marginBottom: '1rem' }}>
+          <p style={{ margin: '0 0 0.5rem 0', fontWeight: 700 }}>{section.heading}</p>
+          {section.paragraphs.map((paragraph, idx) => (
+            <p key={`${section.heading}-${idx}`} style={{ margin: '0 0 0.55rem 0' }}>{paragraph}</p>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ContractView({ projectAttrs }) {
   const [downloading, setDownloading] = useState(false);
-  const a = projectAttrs;
 
   const handleDownload = () => {
     setDownloading(true);
     try {
-      generateContractPdf(a);
+      generateContractPdf(projectAttrs);
     } catch (e) {
       console.error('Contract PDF generation error:', e);
     } finally {
       setDownloading(false);
     }
   };
-
-  const guaranteeSummary = a.guarantee_type_summary || [];
-  const hasNewGuarantees = guaranteeSummary.length > 0;
-  const activeGuarantees = hasNewGuarantees ? guaranteeSummary.filter(g => g.type !== 'aucune').length : GUARANTEE_ITEMS.filter((g) => a[g.key]).length;
 
   return (
     <div className="contract-view">
@@ -127,183 +95,7 @@ function ContractView({ projectAttrs }) {
         </button>
       </div>
 
-      {/* Article 1 - Parties */}
-      <div className="cv-section">
-        <h4 className="cv-section-title"><Users size={16} /> Article 1 — Les Parties</h4>
-        <div className="cv-grid cv-grid-2">
-          <div className="cv-card">
-            <span className="cv-label">Plateforme</span>
-            <span className="cv-value">X-Fund</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Porteur de Projet</span>
-            <span className="cv-value">{a.owner_name || '—'}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Article 2 - Objet */}
-      <div className="cv-section">
-        <h4 className="cv-section-title"><FileText size={16} /> Article 2 — Objet du Projet</h4>
-        <div className="cv-grid cv-grid-2">
-          <div className="cv-card">
-            <span className="cv-label">Titre</span>
-            <span className="cv-value">{a.title || '—'}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Type d'operation</span>
-            <span className="cv-value">{OPERATION_LABELS[a.operation_type] || a.operation_type || '—'}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Bien</span>
-            <span className="cv-value">{a.property_title || '—'}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Localisation</span>
-            <span className="cv-value">{a.property_city || '—'}</span>
-          </div>
-        </div>
-        {a.description && (
-          <div className="cv-description">{a.description}</div>
-        )}
-      </div>
-
-      {/* Article 3 - Conditions Financieres */}
-      <div className="cv-section">
-        <h4 className="cv-section-title"><DollarSign size={16} /> Article 3 — Conditions Financieres</h4>
-        <div className="cv-grid">
-          <div className="cv-card">
-            <span className="cv-label">Montant total</span>
-            <span className="cv-value">{fmtCents(a.total_amount_cents)}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Prix par part</span>
-            <span className="cv-value">{fmtCents(a.share_price_cents)}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Nombre de parts</span>
-            <span className="cv-value">{a.total_shares ?? '—'}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Fonds propres</span>
-            <span className="cv-value">{fmtCents(a.equity_cents)}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Pret bancaire</span>
-            <span className="cv-value">{fmtCents(a.bank_loan_cents)}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Duree</span>
-            <span className="cv-value">{a.duration_months ? `${a.duration_months} mois` : '—'}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Rendement brut</span>
-            <span className="cv-value">{a.gross_yield_percent != null ? `${Number(a.gross_yield_percent).toFixed(2)}%` : '—'}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Rendement net</span>
-            <span className="cv-value">{a.net_yield_percent != null ? `${Number(a.net_yield_percent).toFixed(2)}%` : '—'}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Article 4 - Garanties */}
-      <div className="cv-section">
-        <h4 className="cv-section-title">
-          <Shield size={16} /> Article 4 — Garanties ({activeGuarantees}/{hasNewGuarantees ? guaranteeSummary.length : GUARANTEE_ITEMS.length})
-          {a.overall_protection_score != null && (
-            <span style={{ marginLeft: 'auto', fontSize: '0.82rem', fontWeight: 600 }}>
-              Score global: {Number(a.overall_protection_score).toFixed(0)}%
-            </span>
-          )}
-        </h4>
-        {hasNewGuarantees ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {guaranteeSummary.map((g, idx) => (
-              <div key={idx} className="cv-card" style={{ padding: '0.85rem 1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                  <span className="cv-label" style={{ fontWeight: 600 }}>{g.asset_label || `Actif ${idx + 1}`}</span>
-                  <span className={`pf-risk-badge risk-${g.risk_level || 'critical'}`}>
-                    {RISK_LEVEL_LABELS[g.risk_level] || g.risk_level}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                  <div>
-                    <span className="cv-label">Type</span>
-                    <span className="cv-value">{GUARANTEE_TYPE_LABELS[g.type] || g.type}{g.rank ? ` (${g.rank.replace('_', ' ')})` : ''}</span>
-                  </div>
-                  <div>
-                    <span className="cv-label">LTV</span>
-                    <span className="cv-value">{g.ltv != null ? `${Number(g.ltv).toFixed(1)}%` : '—'}</span>
-                  </div>
-                  <div>
-                    <span className="cv-label">Score</span>
-                    <span className="cv-value" style={{ fontWeight: 700 }}>{g.protection_score != null ? `${Number(g.protection_score).toFixed(0)}%` : '—'}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="cv-guarantees">
-            {GUARANTEE_ITEMS.map((g) => (
-              <div key={g.key} className={`cv-guarantee ${a[g.key] ? 'cv-guarantee--yes' : 'cv-guarantee--no'}`}>
-                {a[g.key] ? <CheckCircle size={15} /> : <XCircle size={15} />}
-                <span>{g.label}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Article 5 - Calendrier */}
-      <div className="cv-section">
-        <h4 className="cv-section-title"><Calendar size={16} /> Article 5 — Calendrier</h4>
-        <div className="cv-grid cv-grid-2">
-          <div className="cv-card">
-            <span className="cv-label">Acquisition prevue</span>
-            <span className="cv-value">{fmtDate(a.planned_acquisition_date)}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Livraison prevue</span>
-            <span className="cv-value">{fmtDate(a.planned_delivery_date)}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Remboursement prevu</span>
-            <span className="cv-value">{fmtDate(a.planned_repayment_date)}</span>
-          </div>
-          <div className="cv-card">
-            <span className="cv-label">Periode de collecte</span>
-            <span className="cv-value">{fmtDate(a.funding_start_date)} — {fmtDate(a.funding_end_date)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Article 6 - Signatures */}
-      <div className="cv-section">
-        <h4 className="cv-section-title"><FileText size={16} /> Article 6 — Signatures</h4>
-        <div className="cv-grid cv-grid-2">
-          <div className="cv-signature-box">
-            <p className="cv-signature-title">Le Porteur de Projet</p>
-            <p className="cv-signature-name">{a.owner_name || '—'}</p>
-            <p className="cv-signature-field">Date : _______________</p>
-            <p className="cv-signature-field">Signature : _______________</p>
-          </div>
-          <div className="cv-signature-box">
-            <p className="cv-signature-title">X-Fund</p>
-            <p className="cv-signature-name">Representant habilite</p>
-            <p className="cv-signature-field">Date : _______________</p>
-            <p className="cv-signature-field">Signature : _______________</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Disclaimer */}
-      <div className="cv-disclaimer">
-        Ce contrat est etabli sous reserve de la realisation effective de la collecte de fonds.
-        En cas de non-atteinte du montant minimum de collecte, les fonds seront restitues aux investisseurs.
-        Le porteur de projet s'engage a respecter l'ensemble des conditions definies dans le present contrat.
-      </div>
+      <ContractNarrative projectAttrs={projectAttrs} />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import useProjectFormStore, { MACRO_STEPS, STEP_CONFIG, createEmptyLot } from '../../stores/useProjectFormStore';
 import { projectDraftsApi } from '../../api/projectDrafts';
 import { companiesApi } from '../../api/companies';
-import { investmentProjectsApi } from '../../api/investments';
+import { investmentProjectsApi, platformConfigApi } from '../../api/investments';
 import { generatePdfReport } from '../../utils/reportGenerator';
 
 import StepPresentation from './steps/StepPresentation';
@@ -80,6 +80,14 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
   } = store;
 
   const [downloadingReport, setDownloadingReport] = useState(false);
+  const [defaultSharePriceCents, setDefaultSharePriceCents] = useState(10000);
+
+  useEffect(() => {
+    platformConfigApi.get().then((res) => {
+      const price = res.data?.data?.default_share_price_cents;
+      if (price && price > 0) setDefaultSharePriceCents(price);
+    }).catch(() => {});
+  }, []);
 
   const stepConfig = STEP_CONFIG[globalStepIndex] || STEP_CONFIG[0];
   const currentMacro = stepConfig.macro;
@@ -389,9 +397,9 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         equity_cents: Math.round(totalCosts * (proj.contributionPct / 100) * 100),
         consent_given: state.consentGiven,
         consent_given_at: state.consentGiven ? new Date().toISOString() : undefined,
-        share_price_cents: 10000,
-        total_shares: Math.max(1, Math.floor((toCents(fin.totalFunding) || totalCosts * 100) / 10000)),
-        min_investment_cents: 10000,
+        share_price_cents: defaultSharePriceCents,
+        total_shares: Math.max(1, Math.floor((toCents(fin.totalFunding) || totalCosts * 100) / defaultSharePriceCents)),
+        min_investment_cents: defaultSharePriceCents,
         funding_start_date: new Date().toISOString().split('T')[0],
         funding_end_date: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
       };
@@ -683,7 +691,9 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         <div className={`pf-dynamic-fields${submitted && globalStepIndex !== ADDITIONAL_INFO_STEP ? ' pf-read-only' : ''}`} ref={scrollRef}>
           {globalStepIndex === ADDITIONAL_INFO_STEP
             ? <StepComponent onSubmitRef={additionalInfoSubmitRef} />
-            : <StepComponent />
+            : globalStepIndex === SUBMIT_STEP
+              ? <StepComponent defaultSharePriceCents={defaultSharePriceCents} />
+              : <StepComponent />
           }
         </div>
 

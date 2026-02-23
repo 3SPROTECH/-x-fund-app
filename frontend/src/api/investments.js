@@ -52,6 +52,12 @@ export const investmentsApi = {
   },
 };
 
+export const platformConfigApi = {
+  get() {
+    return client.get('/platform_config');
+  },
+};
+
 export const dashboardApi = {
   get() {
     return client.get('/dashboard');
