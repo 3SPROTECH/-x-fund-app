@@ -149,6 +149,7 @@ Rails.application.routes.draw do
             patch :request_info
             patch :advance_status
             patch :assign_analyst
+            get :report
           end
           resources :mvp_reports, only: [:index, :show, :create, :update, :destroy] do
             member do

@@ -207,7 +207,7 @@ export default function AdminProjectsPage() {
                               {(a.status === 'pending_analysis' || a.status === 'info_requested') && (
                                 <button className="btn-icon" title="Assigner un analyste" onClick={() => openAssignModal(p.id)} style={{ color: '#DAA520' }}><UserCheck size={16} /></button>
                               )}
-                              {a.status === 'pending_analysis' && (
+                              {(a.status === 'pending_analysis' || a.status === 'analyst_approved') && (
                                 <>
                                   <button className="btn-icon btn-success" title="Approuver" onClick={() => handleApprove(p.id)}><CheckCircle size={16} /></button>
                                   <button className="btn-icon btn-danger" title="Rejeter" onClick={() => { setTargetId(p.id); setShowRejectModal(true); }}><XCircle size={16} /></button>

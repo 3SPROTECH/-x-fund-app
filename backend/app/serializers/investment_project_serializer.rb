@@ -3,7 +3,7 @@ class InvestmentProjectSerializer
 
   attributes :id, :title, :description, :operation_type, :total_amount_cents, :share_price_cents,
              :total_shares, :shares_sold, :min_investment_cents, :max_investment_cents,
-             :funding_start_date, :funding_end_date, :status,
+             :funding_start_date, :funding_end_date,
              :management_fee_percent, :gross_yield_percent, :net_yield_percent,
              :review_comment, :reviewed_at,
              # Advanced form fields
@@ -21,6 +21,14 @@ class InvestmentProjectSerializer
              :has_interest_escrow, :has_works_escrow, :has_personal_guarantee,
              :has_gfa, :has_open_banking, :risk_description,
              :created_at, :updated_at
+
+  attribute :status do |project, params|
+    if params && params[:hide_analyst_approved] && project.analyst_approved?
+      "pending_analysis"
+    else
+      project.status
+    end
+  end
 
   attribute :funding_progress_percent do |project|
     project.funding_progress_percent

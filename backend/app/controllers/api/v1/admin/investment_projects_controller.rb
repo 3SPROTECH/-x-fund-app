@@ -3,7 +3,7 @@ module Api
     module Admin
       class InvestmentProjectsController < ApplicationController
         before_action :require_admin!
-        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :advance_status, :assign_analyst]
+        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :advance_status, :assign_analyst, :report]
 
         def index
           projects = InvestmentProject.includes(properties: :owner).all
@@ -148,6 +148,17 @@ module Api
           render json: {
             message: "Statut du projet mis a jour: #{new_status}.",
             data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
+          }
+        end
+
+        def report
+          report = @project.analyst_reports.order(created_at: :desc).first
+          unless report
+            return render json: { error: "Aucun rapport trouve." }, status: :not_found
+          end
+
+          render json: {
+            report: AnalystReportSerializer.new(report).serializable_hash[:data]
           }
         end
 

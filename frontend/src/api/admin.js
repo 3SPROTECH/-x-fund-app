@@ -60,6 +60,10 @@ export const adminApi = {
     return client.get(`/admin/investment_projects/${id}`);
   },
 
+  getProjectReport(projectId) {
+    return client.get(`/admin/investment_projects/${projectId}/report`);
+  },
+
   updateProject(id, data) {
     return client.patch(`/admin/investment_projects/${id}`, { investment_project: data });
   },

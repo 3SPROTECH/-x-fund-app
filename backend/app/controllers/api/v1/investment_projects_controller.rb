@@ -13,14 +13,14 @@ module Api
         projects = paginate(projects.order(created_at: :desc))
 
         render json: {
-          data: projects.map { |p| InvestmentProjectSerializer.new(p).serializable_hash[:data] },
+          data: projects.map { |p| InvestmentProjectSerializer.new(p, params: { hide_analyst_approved: current_user.porteur_de_projet? }).serializable_hash[:data] },
           meta: pagination_meta(projects)
         }
       end
 
       def show
         authorize @investment_project
-        render json: { data: InvestmentProjectSerializer.new(@investment_project, params: { include_snapshot: true }).serializable_hash[:data] }
+        render json: { data: InvestmentProjectSerializer.new(@investment_project, params: { include_snapshot: true, hide_analyst_approved: current_user.porteur_de_projet? }).serializable_hash[:data] }
       end
 
       def create
