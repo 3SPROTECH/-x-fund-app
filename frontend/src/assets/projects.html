@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-Fund | Projets d'investissement</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            /* Professional Dark Slate Brand */
+            --brand-primary: #1e293b; 
+            --brand-primary-hover: #0f172a;
+            --brand-primary-light: #f1f5f9;
+            --brand-accent: #C5A059; /* Subtle Muted Gold Accent */
+            
+            /* UI Colors */
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --progress-bg: #f1f5f9;
+            --warning: #f59e0b;
+            
+            /* Shadows & Radii */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 2rem;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-left { display: flex; align-items: center; gap: 3rem; }
+        .logo { font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-links { display: flex; gap: 2rem; }
+        .nav-link {
+            text-decoration: none; color: var(--text-muted); font-weight: 500;
+            font-size: 0.95rem; padding: 1.5rem 0; border-bottom: 2px solid transparent; transition: all 0.2s;
+        }
+        .nav-link:hover { color: var(--text-main); }
+        .nav-link.active { color: var(--text-main); border-bottom-color: var(--brand-accent); }
+        .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+        .avatar { width: 40px; height: 40px; background-color: var(--brand-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; cursor: pointer; }
+
+        /* --- Page Header & Filters --- */
+        .container {
+            max-width: 1280px;
+            margin: 2rem auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-title h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        .search-input {
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-card) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2394a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 0.85rem center;
+            font-size: 0.95rem;
+            width: 300px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-input:focus { 
+            border-color: var(--brand-primary); 
+            box-shadow: 0 0 0 3px var(--brand-primary-light);
+        }
+
+        /* --- Sections --- */
+        .project-section {
+            margin-bottom: 4rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .section-badge {
+            background-color: var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+        }
+
+        /* --- Projects Grid --- */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .project-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card-hover);
+            border-color: #cbd5e1;
+        }
+
+        /* Card Image & Frosted Badge */
+        .card-image-wrap {
+            position: relative;
+            height: 200px;
+            width: 100%;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .badge-frosted {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: var(--text-main);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .badge-frosted::before {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        .badge-frosted.active::before { background-color: var(--success); }
+        .badge-frosted.upcoming::before { background-color: var(--warning); }
+        .badge-frosted.funded::before { background-color: var(--brand-primary); }
+
+        /* Card Content */
+        .card-content {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-location {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-location svg {
+            width: 14px;
+            height: 14px;
+            stroke-width: 2px;
+        }
+
+        /* Data Metrics Grid */
+        .card-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            padding: 0.75rem;
+            background-color: var(--bg-body);
+            border-radius: var(--radius-sm);
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.15rem;
+        }
+
+        .metric-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .metric-value.highlight {
+            color: var(--brand-accent);
+        }
+
+        /* Progress Area */
+        .progress-section {
+            margin-top: auto;
+            margin-bottom: 1rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.4rem;
+        }
+
+        .progress-track {
+            height: 6px;
+            background-color: var(--progress-bg);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--success);
+            border-radius: 999px;
+            transition: width 0.5s ease;
+        }
+
+        /* Card Footer */
+        .card-footer {
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .investor-count {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-weight: 500;
+        }
+
+        /* Funded State Adjustments */
+        .project-card.is-funded {
+            background-color: #fafafa;
+        }
+        .project-card.is-funded .card-image {
+            filter: grayscale(30%);
+            opacity: 0.9;
+        }
+        .project-card.is-funded .progress-fill {
+            background-color: var(--brand-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header { flex-direction: column; align-items: stretch; gap: 1.5rem; }
+            .search-input { width: 100%; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <i data-lucide="building-2" style="color: var(--brand-accent)"></i>
+                X-Fund
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">Tableau de bord</a>
+                <a href="#" class="nav-link active">Projets</a>
+                <a href="#" class="nav-link">Portefeuille</a>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="avatar">IN</div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Les opportunités</h1>
+                <p>Découvrez et investissez dans nos projets immobiliers rigoureusement sélectionnés.</p>
+            </div>
+            <input type="text" class="search-input" placeholder="Rechercher une ville, un nom de projet...">
+        </div>
+
+        <section class="project-section">
+            <div class="section-header">
+                <h2 class="section-title">En cours de collecte</h2>
+                <span class="section-badge">3</span>
+            </div>
+            <div class="projects-grid">
+                
+                <div class="project-card">
+                    <div class="card-image-wrap">
+                        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Villa Méditerranée" class="card-image">
+                        <span class="badge-frosted active">Ouvert</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Villa Méditerranée</h3>
+                        <div class="card-location"><i data-lucide="map-pin"></i> Nice, Alpes-Maritimes</div>
+                        <div class="card-metrics">
+                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">450 000 €</span></div>
+                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">11.5%</span></div>
+                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">18 mois</span></div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-header"><span>292 500 € collectés</span><span>65%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 65%;"></div></div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="investor-count"><i data-lucide="users" size="14"></i> 142 investisseurs</div>
+                            <div>Reste 12 jours</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="card-image-wrap">
+                        <img src="https://images.unsplash.com/photo-1554469384-e58fac16e23a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Bureaux Haussmann" class="card-image">
+                        <span class="badge-frosted active">Ouvert</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Bureaux Haussmann</h3>
+                        <div class="card-location"><i data-lucide="map-pin"></i> Paris 8ème</div>
+                        <div class="card-metrics">
+                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">1 200 000 €</span></div>
+                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">9.0%</span></div>
+                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">24 mois</span></div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-header"><span>1 068 000 € collectés</span><span>89%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 89%;"></div></div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="investor-count"><i data-lucide="users" size="14"></i> 418 investisseurs</div>
+                            <div>Reste 3 jours</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="card-image-wrap">
+                        <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Résidence Les Alouettes" class="card-image">
+                        <span class="badge-frosted active">Ouvert</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Résidence Les Alouettes</h3>
+                        <div class="card-location"><i data-lucide="map-pin"></i> Lyon, Rhône</div>
+                        <div class="card-metrics">
+                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">750 000 €</span></div>
+                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">10.2%</span></div>
+                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">12 mois</span></div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-header"><span>187 500 € collectés</span><span>25%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 25%;"></div></div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="investor-count"><i data-lucide="users" size="14"></i> 89 investisseurs</div>
+                            <div>Reste 21 jours</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="project-section">
+            <div class="section-header">
+                <h2 class="section-title">Prochainement</h2>
+                <span class="section-badge">2</span>
+            </div>
+            <div class="projects-grid">
+                
+                <div class="project-card">
+                    <div class="card-image-wrap">
+                        <img src="https://domainedelours.fr/wp-content/uploads/2020/02/21.jpg" alt="Domaine de l'Ours" class="card-image">
+                        <span class="badge-frosted upcoming">Bientôt</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Le Domaine de l'Ours</h3>
+                        <div class="card-location"><i data-lucide="map-pin"></i> Bordeaux, Gironde</div>
+                        <div class="card-metrics">
+                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">850 000 €</span></div>
+                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">10.5%</span></div>
+                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">12 mois</span></div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-header"><span>Ouverture le 28 Fév. à 12h</span><span>0%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 0%;"></div></div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="investor-count"><i data-lucide="bell" size="14"></i> M'alerter</div>
+                            <div>Analyse terminée</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="card-image-wrap">
+                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Espace Co-working" class="card-image">
+                        <span class="badge-frosted upcoming">Bientôt</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Le Hub Co-working</h3>
+                        <div class="card-location"><i data-lucide="map-pin"></i> Lille, Nord</div>
+                        <div class="card-metrics">
+                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">520 000 €</span></div>
+                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">9.5%</span></div>
+                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">18 mois</span></div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-header"><span>Ouverture le 05 Mar. à 10h</span><span>0%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 0%;"></div></div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="investor-count"><i data-lucide="bell" size="14"></i> M'alerter</div>
+                            <div>Analyse terminée</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="project-section">
+            <div class="section-header">
+                <h2 class="section-title">Déjà financés</h2>
+                <span class="section-badge">4</span>
+            </div>
+            <div class="projects-grid">
+                
+                <div class="project-card is-funded">
+                    <div class="card-image-wrap">
+                        <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Résidence Les Pins" class="card-image">
+                        <span class="badge-frosted funded">Financé</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Résidence Les Pins</h3>
+                        <div class="card-location"><i data-lucide="map-pin"></i> Montpellier, Hérault</div>
+                        <div class="card-metrics">
+                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">600 000 €</span></div>
+                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">10.0%</span></div>
+                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">20 mois</span></div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-header"><span>Financé avec succès</span><span style="color: var(--brand-primary)">100%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="investor-count"><i data-lucide="users" size="14"></i> 210 investisseurs</div>
+                            <div>Février 2026</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card is-funded">
+                    <div class="card-image-wrap">
+                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Lotissement Horizon" class="card-image">
+                        <span class="badge-frosted funded">Financé</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Lotissement Horizon</h3>
+                        <div class="card-location"><i data-lucide="map-pin"></i> Toulouse, Haute-Garonne</div>
+                        <div class="card-metrics">
+                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">950 000 €</span></div>
+                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">11.0%</span></div>
+                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">24 mois</span></div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-header"><span>Financé avec succès</span><span style="color: var(--brand-primary)">100%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="investor-count"><i data-lucide="users" size="14"></i> 345 investisseurs</div>
+                            <div>Janvier 2026</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card is-funded">
+                    <div class="card-image-wrap">
+                        <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Villa Cotière" class="card-image">
+                        <span class="badge-frosted funded">Financé</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Rénovation Villa Côtière</h3>
+                        <div class="card-location"><i data-lucide="map-pin"></i> Biarritz, Pyrénées-Atlantiques</div>
+                        <div class="card-metrics">
+                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">380 000 €</span></div>
+                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">9.8%</span></div>
+                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">12 mois</span></div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-header"><span>Financé avec succès</span><span style="color: var(--brand-primary)">100%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="investor-count"><i data-lucide="users" size="14"></i> 112 investisseurs</div>
+                            <div>Décembre 2025</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card is-funded">
+                    <div class="card-image-wrap">
+                        <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Appartements Centre-Ville" class="card-image">
+                        <span class="badge-frosted funded">Financé</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Immeuble Centre-Ville</h3>
+                        <div class="card-location"><i data-lucide="map-pin"></i> Strasbourg, Bas-Rhin</div>
+                        <div class="card-metrics">
+                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">1 100 000 €</span></div>
+                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">10.5%</span></div>
+                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">18 mois</span></div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-header"><span>Financé avec succès</span><span style="color: var(--brand-primary)">100%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="investor-count"><i data-lucide="users" size="14"></i> 405 investisseurs</div>
+                            <div>Novembre 2025</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
