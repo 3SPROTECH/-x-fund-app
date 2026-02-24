@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  LayoutDashboard, TrendingUp, Briefcase, User, LogOut, FileCheck, ChevronDown, Plus, Wallet, Menu, X
+  LayoutDashboard, TrendingUp, Briefcase, User, LogOut, FileCheck, Plus, Wallet, Menu, X
 } from 'lucide-react';
 import WalletRechargeModal from './WalletRechargeModal';
 import NotificationBell from './NotificationBell';
@@ -21,7 +21,6 @@ export default function Navbar() {
   const walletBalance = wallet?.balance_cents || 0;
   const profileRef = useRef(null);
 
-  // Fermer le menu mobile lors du changement de page
   useEffect(() => {
     setShowMobileMenu(false);
   }, [location.pathname]);
@@ -65,59 +64,40 @@ export default function Navbar() {
           </button>
 
           {/* Logo */}
-          <div className="navbar-brand" onClick={() => navigate(`${investorBase}/projects`)}>
+          <div className="nav-brand" onClick={() => navigate(`${investorBase}/projects`)}>
             <div className="brand-text">
               <span className="brand-title">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
               <span className="brand-subtitle">Plateforme d'investissement</span>
             </div>
           </div>
 
-          {/* Navigation desktop */}
-          <div className="navbar-nav">
-            <NavLink to={`${investorBase}/dashboard`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-              <div className="nav-link-content">
-                <LayoutDashboard size={18} />
-                <span>Tableau de bord</span>
-              </div>
+          {/* Navigation links - centered */}
+          <div className="nav-links-center">
+            <NavLink to={`${investorBase}/dashboard`} className={({ isActive }) => `nav-link-text${isActive ? ' active' : ''}`}>
+              Tableau de bord
             </NavLink>
-            <NavLink to={`${investorBase}/projects`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-              <div className="nav-link-content">
-                <TrendingUp size={18} />
-                <span>Projets</span>
-              </div>
+            <NavLink to={`${investorBase}/projects`} className={({ isActive }) => `nav-link-text${isActive ? ' active' : ''}`}>
+              Projets
             </NavLink>
-            <NavLink to={`${investorBase}/investments`} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-              <div className="nav-link-content">
-                <Briefcase size={18} />
-                <span>Investissements</span>
-              </div>
+            <NavLink to={`${investorBase}/investments`} className={({ isActive }) => `nav-link-text${isActive ? ' active' : ''}`}>
+              Investissements
             </NavLink>
           </div>
 
-          {/* Actions */}
-          <div className="navbar-actions">
+          {/* Right actions */}
+          <div className="nav-right">
+            <div className="balance-badge">
+              <Wallet size={18} />
+              <span>{formatBalance(walletBalance)}</span>
+            </div>
             <NotificationBell />
-            <button
-              className="wallet-balance-btn"
-              onClick={() => setShowWalletModal(true)}
-              title="Recharger mon portefeuille"
-            >
-              <div className="wallet-icon">
-                <Plus size={16} strokeWidth={3} />
-              </div>
-              <span className="wallet-amount">{formatBalance(walletBalance)}</span>
+            <button className="btn-add-funds" onClick={() => setShowWalletModal(true)}>
+              <Plus size={18} />
+              <span>Abondement</span>
             </button>
-
             <div className="navbar-profile" ref={profileRef}>
-              <button
-                className="profile-trigger"
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-              >
-                <div className="profile-avatar">
-                  <div className="avatar-gradient" />
-                  <span>{getInitials()}</span>
-                </div>
-                <ChevronDown size={16} className={`chevron ${showProfileMenu ? 'rotate' : ''}`} />
+              <button className="nav-avatar" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+                {getInitials()}
               </button>
 
               {showProfileMenu && (

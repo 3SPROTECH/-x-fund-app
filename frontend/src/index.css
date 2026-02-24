@@ -2640,57 +2640,34 @@ textarea.error:focus {
    CLEAN NAVBAR
    ============================================ */
 
+/* --- Investor Navbar --- */
 .advanced-navbar {
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  background-color: #fff;
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.navbar-blur-bg {
-  display: none;
 }
 
 .navbar-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2.5rem;
+  padding: 0 2rem;
+  height: 72px;
   display: flex;
   align-items: center;
-  gap: 2.5rem;
-  height: 70px;
 }
 
-.navbar-brand {
+.nav-brand {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
   cursor: pointer;
   transition: opacity 0.2s;
 }
 
-.navbar-brand:hover {
+.nav-brand:hover {
   opacity: 0.8;
-}
-
-.brand-logo {
-  width: 42px;
-  height: 42px;
-}
-
-.logo-gradient {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  font-weight: 900;
-  color: #fff;
 }
 
 .brand-text {
@@ -2713,6 +2690,100 @@ textarea.error:focus {
   color: #9ca3af;
   letter-spacing: 0.5px;
   line-height: 1;
+}
+
+.nav-links-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  height: 100%;
+}
+
+.nav-link-text {
+  text-decoration: none;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.nav-link-text:hover {
+  color: var(--text);
+}
+
+.nav-link-text.active {
+  color: var(--text);
+  border-bottom-color: var(--gold-color);
+}
+
+.nav-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.balance-badge {
+  background-color: rgba(218, 165, 32, 0.1);
+  color: #b8860b;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-add-funds {
+  background-color: var(--gold-color);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font);
+}
+
+.btn-add-funds:hover {
+  background-color: #b8860b;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--gold-color);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.125rem 0.35rem;
+  border-radius: 10px;
+  border: 2px solid #fff;
+}
+
+/* --- Porteur navbar shared styles (legacy) --- */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.navbar-brand:hover {
+  opacity: 0.8;
 }
 
 .navbar-nav {
@@ -2745,58 +2816,17 @@ textarea.error:focus {
 }
 
 .nav-link.active .nav-link-content {
-  color: #DAA520;
+  color: var(--gold-color);
 }
 
 .nav-link.active {
-  background: #fef2f2;
-}
-
-.nav-link-indicator {
-  display: none;
+  background: rgba(218, 165, 32, 0.08);
 }
 
 .navbar-actions {
   display: flex;
   align-items: center;
-  gap: 5.5rem;
-}
-
-.action-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: #f3f4f6;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-}
-
-.action-btn:hover {
-  background: #e5e7eb;
-  color: #111827;
-}
-
-.notification-badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  background: #DAA520;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 0.125rem 0.35rem;
-  border-radius: 10px;
-  border: 2px solid #fff;
-}
-
-.navbar-profile {
-  position: relative;
+  gap: 1rem;
 }
 
 .profile-trigger {
@@ -2812,7 +2842,6 @@ textarea.error:focus {
 }
 
 .profile-trigger:hover {
-  border-color: #d1d5db;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -2825,7 +2854,7 @@ textarea.error:focus {
   justify-content: center;
   font-weight: 700;
   font-size: 0.875rem;
-  color: #000000;
+  color: #000;
   position: relative;
   overflow: hidden;
 }
@@ -2841,25 +2870,6 @@ textarea.error:focus {
   z-index: 1;
 }
 
-.profile-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.profile-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #111827;
-  line-height: 1.2;
-}
-
-.profile-role {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  line-height: 1;
-}
-
 .chevron {
   color: #9ca3af;
   transition: transform 0.2s;
@@ -2867,6 +2877,31 @@ textarea.error:focus {
 
 .chevron.rotate {
   transform: rotate(180deg);
+}
+
+.navbar-profile {
+  position: relative;
+}
+
+.nav-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: var(--gold-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font);
+  transition: opacity 0.2s;
+}
+
+.nav-avatar:hover {
+  opacity: 0.85;
 }
 
 .profile-menu {
@@ -3175,11 +3210,19 @@ textarea.error:focus {
 }
 
 @media (max-width: 768px) {
-  .navbar-nav {
+  .nav-links-center {
     display: none;
   }
 
-  .profile-details {
+  .balance-badge {
+    display: none;
+  }
+
+  .btn-add-funds {
+    display: none;
+  }
+
+  .navbar-profile {
     display: none;
   }
 
@@ -3191,16 +3234,12 @@ textarea.error:focus {
     white-space: nowrap;
   }
 
-  .action-btn.search-btn {
-    display: none;
+  .nav-brand {
+    flex: 1;
   }
 
-  .wallet-balance-btn {
-    display: none;
-  }
-
-  .navbar-profile {
-    display: none;
+  .nav-right {
+    flex: 0 0 auto;
   }
 
   /* Porteur mobile: pas de hamburger, logo centré, notif à droite */
@@ -3231,8 +3270,8 @@ textarea.error:focus {
   .navbar-container.porteur-navbar-container .mobile-menu-btn {
     display: none !important;
   }
-  .navbar-container.porteur-navbar-container .navbar-brand,
-  .navbar-container.porteur-navbar-container .navbar-actions {
+  .navbar-container.porteur-navbar-container .nav-brand,
+  .navbar-container.porteur-navbar-container .nav-right {
     display: none;
   }
 
@@ -3251,10 +3290,6 @@ textarea.error:focus {
   .investor-content {
     padding: 1rem;
     padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
-  }
-
-  .navbar-actions {
-    gap: 0.5rem;
   }
 
   .profile-menu {
@@ -3300,7 +3335,7 @@ textarea.error:focus {
   }
 }
 
-/* Wallet Balance Button */
+/* Wallet Balance Button - legacy, kept for porteur */
 .wallet-balance-btn {
   display: flex;
   align-items: center;
@@ -3312,10 +3347,6 @@ textarea.error:focus {
   cursor: pointer;
   transition: all 0.2s;
   font-weight: 600;
-}
-
-.wallet-balance-btn:hover {
-  background: rgba(0, 0, 0, 0.04);
 }
 
 .wallet-icon {
@@ -3334,16 +3365,6 @@ textarea.error:focus {
   font-size: 0.95rem;
   color: #111827;
   font-weight: 700;
-}
-
-@media (max-width: 768px) {
-  .wallet-amount {
-    display: none;
-  }
-
-  .wallet-balance-btn {
-    padding: 0.5rem;
-  }
 }
 
 /* ======= Investor Dashboard ======= */
