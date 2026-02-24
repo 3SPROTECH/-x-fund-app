@@ -9,6 +9,7 @@ import { LoadingSpinner } from '../../components/ui';
 export default function ProfilePage() {
   const { user, refreshProfile } = useAuth();
   const [form, setForm] = useState({
+    email: '',
     first_name: '', last_name: '', phone: '', date_of_birth: '',
     address_line1: '', address_line2: '', city: '', postal_code: '', country: '',
   });
@@ -22,6 +23,7 @@ export default function ProfilePage() {
       const res = await profileApi.getProfile();
       const attrs = res.data.data?.attributes || res.data;
       setForm({
+        email: attrs.email || '',
         first_name: attrs.first_name || '', last_name: attrs.last_name || '',
         phone: attrs.phone || '', date_of_birth: attrs.date_of_birth || '',
         address_line1: attrs.address_line1 || '', address_line2: attrs.address_line2 || '',
@@ -44,7 +46,7 @@ export default function ProfilePage() {
       await refreshProfile();
       toast.success('Profil mis à jour avec succès');
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Erreur lors de la mise à jour');
+      toast.error(err.response?.data?.errors?.[0] || err.response?.data?.error || 'Erreur lors de la mise a jour');
     } finally {
       setSaving(false);
     }
@@ -78,6 +80,12 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="form-row">
+                  {user?.role === 'porteur_de_projet' && (
+                    <div className="form-group">
+                      <label>Email</label>
+                      <input type="email" value={form.email} onChange={set('email')} required />
+                    </div>
+                  )}
                   <div className="form-group">
                     <label>Téléphone</label>
                     <input type="tel" value={form.phone} onChange={set('phone')} placeholder="+33 6 12 34 56 78" />

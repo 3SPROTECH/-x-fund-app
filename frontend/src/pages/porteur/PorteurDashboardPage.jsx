@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { investmentProjectsApi } from '../../api/investments';
 import { projectDraftsApi } from '../../api/projectDrafts';
-import { porteurDashboardApi } from '../../api/investments';
 import { getImageUrl } from '../../api/client';
 import {
   Plus, MapPin, Image as ImageIcon, FileEdit, Clock, Trash2,
@@ -78,7 +77,7 @@ export default function PorteurDashboardPage() {
   const loadOwnProjects = async () => {
     setLoading(true);
     try {
-      const params = {};
+      const params = { owned: true };
       if (statusFilter) params.status = statusFilter;
       const res = await investmentProjectsApi.list(params);
       setProjects(res.data.data || []);
