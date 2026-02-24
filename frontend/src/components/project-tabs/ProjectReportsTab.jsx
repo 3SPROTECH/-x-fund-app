@@ -12,8 +12,17 @@ import {
   DELAY_TYPE_LABELS, DELAY_STATUS_LABELS, DELAY_STATUS_BADGES,
 } from '../../utils';
 import FormSelect from '../FormSelect';
+import TableFilters from '../TableFilters';
 import { LoadingSpinner } from '../../components/ui';
 import { mvpApiToForm, mvpFormToApi } from '../../utils/mvpHelpers';
+
+const REVIEW_FILTER_OPTIONS = [
+  { value: '', label: 'Toutes les validations' },
+  { value: 'brouillon', label: 'Brouillon' },
+  { value: 'soumis', label: 'Soumis' },
+  { value: 'valide', label: 'Valide' },
+  { value: 'rejete', label: 'Rejete' },
+];
 
 export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner, user, setProject, onRefresh }) {
   const a = project.attributes || project;
@@ -30,6 +39,22 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
   const [mvpSubmitting, setMvpSubmitting] = useState(false);
   const [rejectModalReport, setRejectModalReport] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
+  const [reviewFilter, setReviewFilter] = useState('');
+  const [operationFilter, setOperationFilter] = useState('');
+
+  const operationFilterOptions = [
+    { value: '', label: 'Tous les statuts' },
+    ...Object.keys(OPERATION_STATUSES).map(k => ({
+      value: k, label: getOperationStatusLabel(a.operation_type, k),
+    })),
+  ];
+
+  const filteredReports = mvpReports.filter(r => {
+    const ra = r.attributes || r;
+    if (reviewFilter && ra.review_status !== reviewFilter) return false;
+    if (operationFilter && ra.operation_status !== operationFilter) return false;
+    return true;
+  });
 
   // Load MVP reports and delays on mount
   useEffect(() => { loadMvpReports(); loadDelays(); }, []);
@@ -230,11 +255,25 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
                   </div>
                 </div>
               ) : (
+                <>
+                <TableFilters
+                  filters={[
+                    { key: 'review', label: 'Validation', value: reviewFilter, options: REVIEW_FILTER_OPTIONS },
+                    { key: 'operation', label: 'Statut operation', value: operationFilter, options: operationFilterOptions },
+                  ]}
+                  onFilterChange={(key, val) => {
+                    if (key === 'review') setReviewFilter(val);
+                    if (key === 'operation') setOperationFilter(val);
+                  }}
+                />
+                {filteredReports.length === 0 ? (
+                  <div className="card"><div className="empty-state"><p>Aucun rapport pour ce filtre</p></div></div>
+                ) : (
                 <div className="table-container">
                   <table className="table">
                     <thead><tr><th>Date</th><th>Statut operation</th><th>Validation</th><th>Resume</th><th>Auteur</th><th>Actions</th></tr></thead>
                     <tbody>
-                      {mvpReports.map((r) => {
+                      {filteredReports.map((r) => {
                         const ra = r.attributes || r;
                         const canEditReport = isOwner && (ra.review_status === 'brouillon' || ra.review_status === 'rejete');
                         const canDeleteReport = isOwner && ra.review_status === 'brouillon';
@@ -273,6 +312,8 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
                     </tbody>
                   </table>
                 </div>
+                )}
+                </>
               )}
             </>
           )}

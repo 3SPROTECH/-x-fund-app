@@ -1,7 +1,30 @@
+import { useState } from 'react';
 import { Users } from 'lucide-react';
 import { formatCents as fmt, formatDate as fmtDate } from '../../utils';
+import TableFilters from '../TableFilters';
+
+const STATUS_OPTIONS = [
+  { value: '', label: 'Tous les statuts' },
+  { value: 'active', label: 'Actif' },
+  { value: 'pending', label: 'En attente' },
+  { value: 'cancelled', label: 'Annule' },
+];
 
 export default function ProjectInvestorsTab({ investors, investorsMeta, canViewInvestors }) {
+  const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState('');
+
+  const filteredInvestors = investors.filter(inv => {
+    const a = inv.attributes || inv;
+    if (statusFilter && a.status !== statusFilter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!(a.investor_name || '').toLowerCase().includes(q) &&
+          !(a.investor_email || '').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
   return (
     <div>
       {canViewInvestors ? (
@@ -20,11 +43,21 @@ export default function ProjectInvestorsTab({ investors, investorsMeta, canViewI
             </div>
           </div>
 
-          {investors.length === 0 ? (
+          {investors.length > 0 && (
+            <TableFilters
+              filters={[{ key: 'status', label: 'Statut', value: statusFilter, options: STATUS_OPTIONS }]}
+              onFilterChange={(key, val) => setStatusFilter(val)}
+              search={search}
+              onSearchChange={setSearch}
+              searchPlaceholder="Rechercher par nom ou email..."
+            />
+          )}
+
+          {filteredInvestors.length === 0 ? (
             <div className="card">
               <div className="empty-state">
                 <Users size={48} />
-                <p>Aucun investisseur pour le moment</p>
+                <p>{investors.length === 0 ? 'Aucun investisseur pour le moment' : 'Aucun investisseur pour ce filtre'}</p>
               </div>
             </div>
           ) : (
@@ -40,7 +73,7 @@ export default function ProjectInvestorsTab({ investors, investorsMeta, canViewI
                   </tr>
                 </thead>
                 <tbody>
-                  {investors.map(inv => {
+                  {filteredInvestors.map(inv => {
                     const a = inv.attributes || inv;
                     return (
                       <tr key={inv.id}>
