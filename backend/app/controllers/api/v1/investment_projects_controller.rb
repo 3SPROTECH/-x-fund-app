@@ -8,6 +8,9 @@ module Api
           .includes(:owner, :reviewer, :analyst, :analyst_reports, :info_requests,
                     properties: [:owner, { photos_attachments: :blob }])
           .with_attached_additional_documents
+        if current_user.porteur_de_projet? && ActiveModel::Type::Boolean.new.cast(params[:owned])
+          projects = projects.where(owner_id: current_user.id)
+        end
         projects = projects.where(status: params[:status]) if params[:status].present?
         if params[:search].present?
           q = "%#{params[:search]}%"

@@ -16,11 +16,15 @@ module Api
       private
 
       def profile_params
-        params.require(:user).permit(
+        permitted = [
           :first_name, :last_name, :phone,
           :address_line1, :address_line2, :city, :postal_code, :country,
           :date_of_birth
-        )
+        ]
+
+        permitted << :email if current_user.porteur_de_projet?
+
+        params.require(:user).permit(*permitted)
       end
     end
   end
