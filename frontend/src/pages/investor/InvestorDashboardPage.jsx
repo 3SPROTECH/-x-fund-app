@@ -1,10 +1,185 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { dashboardApi, investmentProjectsApi } from '../../api/investments';
 import toast from 'react-hot-toast';
 import { formatCents as fmt } from '../../utils';
 import { LoadingSpinner } from '../../components/ui';
+import { PiggyBank, TrendingUp, Percent, MapPin, MoreHorizontal, Info } from 'lucide-react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Filler,
+  Tooltip,
+} from 'chart.js';
+import { Line, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, Tooltip);
+
+const STATIC_BADGE = (
+  <span className="static-data-badge">
+    <Info size={12} />
+    Données statiques
+  </span>
+);
+
+function PortfolioChart() {
+  const chartRef = useRef(null);
+  const [gradient, setGradient] = useState(null);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    const ctx = chart.ctx;
+    const g = ctx.createLinearGradient(0, 0, 0, 400);
+    g.addColorStop(0, 'rgba(218, 165, 32, 0.2)');
+    g.addColorStop(1, 'rgba(218, 165, 32, 0)');
+    setGradient(g);
+  }, []);
+
+  const data = {
+    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+    datasets: [{
+      label: 'Valeur du portefeuille',
+      data: [80000, 85000, 89000, 94000, 101000, 105000],
+      borderColor: '#DAA520',
+      backgroundColor: gradient || 'rgba(218, 165, 32, 0.1)',
+      borderWidth: 2,
+      pointBackgroundColor: '#ffffff',
+      pointBorderColor: '#DAA520',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      fill: true,
+      tension: 0.4,
+    }],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        backgroundColor: '#1a1a2e',
+        padding: 12,
+        cornerRadius: 8,
+        callbacks: {
+          label: (ctx) => ctx.parsed.y.toLocaleString('fr-FR') + ' €',
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: false,
+        grid: { color: '#e4e6f1', drawBorder: false },
+        ticks: { callback: (v) => v / 1000 + 'k €' },
+      },
+      x: {
+        grid: { display: false, drawBorder: false },
+      },
+    },
+    interaction: { mode: 'nearest', axis: 'x', intersect: false },
+  };
+
+  return <Line ref={chartRef} data={data} options={options} />;
+}
+
+function StatusDoughnut() {
+  const data = {
+    labels: ['En cours', 'Terminés', 'En retard'],
+    datasets: [{
+      data: [4, 2, 0],
+      backgroundColor: ['#B8860B', '#DAA520', '#F0D878'],
+      borderWidth: 0,
+      hoverOffset: 4,
+    }],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '75%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { boxWidth: 10, usePointStyle: true, padding: 16, font: { size: 12 } },
+      },
+    },
+  };
+
+  return <Doughnut data={data} options={options} />;
+}
+
+function TypologyDoughnut() {
+  const data = {
+    labels: ['Résidentiel', 'Commerces', 'Bureaux'],
+    datasets: [{
+      data: [5, 1, 2],
+      backgroundColor: ['#8B6914', '#DAA520', '#F5DEB3'],
+      borderWidth: 0,
+      hoverOffset: 4,
+    }],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '75%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { boxWidth: 10, usePointStyle: true, padding: 16, font: { size: 12 } },
+      },
+    },
+  };
+
+  return <Doughnut data={data} options={options} />;
+}
+
+function ProjectCard({ project, onClick }) {
+  const p = project.attributes || project;
+  const funded = p.funding_progress_percentage ?? 65;
+  const yieldRate = p.expected_annual_yield ?? '11.5';
+
+  return (
+    <div className="dash-project-card" onClick={onClick}>
+      <div
+        className="dash-project-image"
+        style={p.cover_image_url ? { backgroundImage: `url(${p.cover_image_url})` } : undefined}
+      >
+        <span className="dash-badge-status">
+          {p.status === 'funding_active' ? 'Collecte en cours' : 'À venir'}
+        </span>
+      </div>
+      <div className="dash-project-details">
+        <div className="dash-project-header">
+          <div>
+            <div className="dash-project-title">{p.title}</div>
+            <div className="dash-project-location">
+              <MapPin size={14} />
+              {p.property_city || 'France'}
+            </div>
+          </div>
+          <div className="dash-project-yield">{yieldRate}%</div>
+        </div>
+        <div className="dash-progress-container">
+          <div className="dash-progress-bar-bg">
+            <div className="dash-progress-bar-fill" style={{ width: `${funded}%` }} />
+          </div>
+          <div className="dash-progress-stats">
+            <span>{funded}% financé</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function InvestorDashboardPage() {
   const { user } = useAuth();
@@ -41,120 +216,99 @@ export default function InvestorDashboardPage() {
   const totalDividends = investorDashboard?.total_dividends_received_cents ?? 0;
   const avgYield = totalInvested > 0 ? ((totalDividends / totalInvested) * 100).toFixed(2) : '0.00';
 
-  const profileCompletionScore = () => {
-    let score = 0;
-    if (user?.kyc_status === 'verified') score += 1;
-    if (totalInvested > 0) score += 1;
-    return score;
-  };
-
-  const completionSteps = profileCompletionScore();
-  const needsCompletion = completionSteps < 2;
-
   return (
-    <div className="simple-investor-dashboard">
-      <h1 className="simple-greeting">Bonjour {user?.first_name} !</h1>
+    <div className="inv-dashboard">
+      <div className="inv-dashboard-header">
+        <h1>Bonjour {user?.first_name} !</h1>
+        <p>Voici un aperçu de vos performances et des nouvelles opportunités.</p>
+      </div>
 
-      <div className="dashboard-grid">
-        <div className="dashboard-main">
-          {needsCompletion && (
-            <div className="profile-alert">
-              <div className="alert-content">
-                <h3>Votre profil n'est pas complet</h3>
-                <p>Complétez toutes les étapes pour commencer à investir.</p>
-                <div className="alert-progress">
-                  <div className="progress-bar-simple">
-                    <div className="progress-fill-simple" style={{ width: `${(completionSteps / 2) * 100}%` }} />
-                  </div>
-                  <span>{completionSteps} étape sur 2</span>
-                </div>
+      <div className="inv-dashboard-grid">
+        {/* Left column */}
+        <div className="inv-portfolio-section">
+          <div className="inv-metrics-grid">
+            <div className="inv-metric-card">
+              <div className="inv-metric-label">
+                <PiggyBank size={16} /> Capital investi
               </div>
-              <button className="btn-alert" onClick={() => navigate(user?.kyc_status !== 'verified' ? '/investor/kyc' : '/investor/projects')}>
-                Compléter mon profil →
-              </button>
+              <div className="inv-metric-value">{fmt(totalInvested)}</div>
             </div>
-          )}
-
-          <div className="stats-row">
-            <div className="stat-simple">
-              <h4>Investissements en cours</h4>
-              <div className="stat-value-large">{fmt(totalInvested)}</div>
+            <div className="inv-metric-card">
+              <div className="inv-metric-label">
+                <TrendingUp size={16} /> Gains générés
+              </div>
+              <div className="inv-metric-value">{fmt(totalDividends)}</div>
             </div>
-            <div className="stat-simple">
-              <h4>Gain total brut</h4>
-              <div className="stat-value-large">{fmt(totalDividends)}</div>
-            </div>
-            <div className="stat-simple">
-              <h4>Rendement moyen</h4>
-              <div className="stat-value-large">{avgYield} %</div>
+            <div className="inv-metric-card">
+              <div className="inv-metric-label">
+                <Percent size={16} /> Rendement annualisé
+              </div>
+              <div className="inv-metric-value gold">{avgYield} %</div>
             </div>
           </div>
 
-          <div className="chart-section">
-            <div className="chart-placeholder">
-              <div className="chart-curve">
-                <svg viewBox="0 0 400 150" preserveAspectRatio="none">
-                  <path d="M 0,100 Q 100,80 200,90 T 400,70" fill="none" stroke="#e5e7eb" strokeWidth="2" />
-                </svg>
+          <div className="inv-card inv-chart-card">
+            <div className="inv-card-header">
+              <div className="inv-card-title">Évolution du portefeuille</div>
+              <div className="inv-card-header-right">
+                {STATIC_BADGE}
+                <button className="inv-icon-btn"><MoreHorizontal size={20} /></button>
               </div>
-              <p className="chart-message">Vos données seront disponibles après votre premier investissement.</p>
             </div>
-            <button className="btn-secondary" onClick={() => navigate('/investor/projects')}>
-              Voir nos projets
-            </button>
+            <div className="inv-main-chart-container">
+              <PortfolioChart />
+            </div>
+          </div>
+
+          <div className="inv-allocation-grid">
+            <div className="inv-card">
+              <div className="inv-card-header">
+                <div className="inv-card-title">Statut des projets</div>
+                {STATIC_BADGE}
+              </div>
+              <div className="inv-donut-container">
+                <StatusDoughnut />
+              </div>
+            </div>
+            <div className="inv-card">
+              <div className="inv-card-header">
+                <div className="inv-card-title">Typologie d'actifs</div>
+                {STATIC_BADGE}
+              </div>
+              <div className="inv-donut-container">
+                <TypologyDoughnut />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="dashboard-sidebar">
-          <div className="sidebar-card">
-            <h4>Les projets à la une</h4>
+        {/* Right column */}
+        <div className="inv-opportunities-section">
+          <div className="inv-card">
+            <div className="inv-card-header">
+              <div className="inv-card-title">Opportunités du moment</div>
+            </div>
+
             {featuredProjects.length === 0 ? (
-              <p className="no-projects">Aucun projet disponible</p>
+              <p className="inv-no-projects">Aucun projet disponible pour le moment.</p>
             ) : (
-              <div className="projects-list">
-                {featuredProjects.slice(0, 4).map((project) => {
-                  const p = project.attributes || project;
-                  return (
-                    <div key={project.id} className="project-item-simple" onClick={() => navigate(`/investor/projects/${project.id}`)}>
-                      <div className="project-info-simple">
-                        <h4>{p.title}</h4>
-                        <span className="project-location-simple">📍 {p.property_city || 'France'}</span>
-                      </div>
-                      <span className={`project-status-badge ${p.status === 'funding_active' ? 'status-open' : 'status-coming'}`}>
-                        {p.status === 'funding_active' ? 'Collecte en cours' : 'À venir'}
-                      </span>
-                    </div>
-                  );
-                })}
+              <div className="inv-opportunities-list">
+                {featuredProjects.slice(0, 2).map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    onClick={() => navigate(`/investor/projects/${project.id}`)}
+                  />
+                ))}
               </div>
             )}
-            <button className="btn-link-simple" onClick={() => navigate('/investor/projects')}>
-              Voir tous les projets
+
+            <button
+              className="inv-view-all"
+              onClick={() => navigate('/investor/projects')}
+            >
+              Découvrir tous les projets →
             </button>
-          </div>
-
-          <div className="sidebar-card">
-            <h4>Statuts</h4>
-            <div className="circular-chart">
-              <svg viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r="50" fill="#f3f4f6" />
-                <circle cx="60" cy="60" r="35" fill="white" />
-                <text x="60" y="65" textAnchor="middle" fill="#6b7280" fontSize="24" fontWeight="600">0</text>
-                <text x="60" y="80" textAnchor="middle" fill="#9ca3af" fontSize="12">projets</text>
-              </svg>
-            </div>
-          </div>
-
-          <div className="sidebar-card">
-            <h4>Typologie</h4>
-            <div className="circular-chart">
-              <svg viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r="50" fill="#f3f4f6" />
-                <circle cx="60" cy="60" r="35" fill="white" />
-                <text x="60" y="65" textAnchor="middle" fill="#6b7280" fontSize="24" fontWeight="600">0</text>
-                <text x="60" y="80" textAnchor="middle" fill="#9ca3af" fontSize="12">projets</text>
-              </svg>
-            </div>
           </div>
         </div>
       </div>
