@@ -44,6 +44,10 @@ class InvestmentProjectSerializer
     project.amount_raised_cents
   end
 
+  attribute :investors_count do |project|
+    project.investments.select(:user_id).distinct.count
+  end
+
   attribute :property_title do |project|
     project.primary_property&.title
   end
