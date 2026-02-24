@@ -86,9 +86,9 @@ class InvestmentProject < ApplicationRecord
   scope :open_for_investment, -> { where(status: :funding_active) }
   scope :visible_to_investors, -> { where(status: [:funding_active, :funded, :under_construction, :operating, :repaid]) }
 
-  # Premier bien (pour affichage titre/ville/photos)
+  # Premier bien (pour affichage titre/ville/photos) — memoized to avoid repeated lookups
   def primary_property
-    properties.first
+    @primary_property ||= properties.first
   end
 
   def funding_progress_percent

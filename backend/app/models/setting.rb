@@ -19,12 +19,15 @@ class Setting < ApplicationRecord
   end
 
   def self.get(key)
-    find_by(key: key)&.typed_value
+    Rails.cache.fetch("settings/#{key}", expires_in: 5.minutes) do
+      find_by(key: key)&.typed_value
+    end
   end
 
   def self.set(key, new_value)
     setting = find_by!(key: key)
     setting.update!(value: new_value.to_s)
+    Rails.cache.delete("settings/#{key}")
     setting
   end
 end

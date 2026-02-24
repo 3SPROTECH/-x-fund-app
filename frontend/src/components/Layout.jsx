@@ -107,7 +107,6 @@ export default function Layout() {
           </button>
           <span className="admin-mobile-logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
           <div className="admin-mobile-topbar-actions">
-            <NotificationBell />
             <span className="admin-mobile-role">Admin</span>
           </div>
         </div>
@@ -223,7 +222,6 @@ export default function Layout() {
           </button>
           <span className="admin-mobile-logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
           <div className="admin-mobile-topbar-actions">
-            <NotificationBell />
             <span className="admin-mobile-role">Analyste</span>
           </div>
         </div>

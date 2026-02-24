@@ -21,7 +21,7 @@ export default function AdminProjectsPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ status: '' });
+  const [filters, setFilters] = useState({ status: '', owner_id: '', analyst_id: '', analyst_opinion: '' });
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
@@ -34,6 +34,29 @@ export default function AdminProjectsPage() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [analysts, setAnalysts] = useState([]);
   const [selectedAnalystId, setSelectedAnalystId] = useState('');
+  const [ownerOptions, setOwnerOptions] = useState([]);
+  const [analystOptions, setAnalystOptions] = useState([]);
+
+  // Fetch filter options on mount
+  useEffect(() => {
+    const loadFilterOptions = async () => {
+      try {
+        const [ownerRes, analystRes] = await Promise.all([
+          adminApi.getUsers({ role: 'porteur_de_projet', per_page: 200 }),
+          adminApi.getUsers({ role: 'analyste', per_page: 200 }),
+        ]);
+        setOwnerOptions((ownerRes.data.data || []).map((u) => {
+          const a = u.attributes || u;
+          return { value: String(u.id), label: `${a.first_name} ${a.last_name}` };
+        }));
+        setAnalystOptions((analystRes.data.data || []).map((u) => {
+          const a = u.attributes || u;
+          return { value: String(u.id), label: `${a.first_name} ${a.last_name}` };
+        }));
+      } catch { /* silent */ }
+    };
+    loadFilterOptions();
+  }, []);
 
   useEffect(() => { load(); }, [page, filters, search]);
 
@@ -42,6 +65,9 @@ export default function AdminProjectsPage() {
     try {
       const params = { page };
       if (filters.status) params.status = filters.status;
+      if (filters.owner_id) params.owner_id = filters.owner_id;
+      if (filters.analyst_id) params.analyst_id = filters.analyst_id;
+      if (filters.analyst_opinion) params.analyst_opinion = filters.analyst_opinion;
       if (search) params.search = search;
       const res = await adminApi.getProjects(params);
       setProjects(res.data.data || []);
@@ -149,6 +175,18 @@ export default function AdminProjectsPage() {
           { key: 'status', label: 'Statut', value: filters.status, options: [
             { value: '', label: 'Tous les statuts' },
             ...Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+          { key: 'owner_id', label: 'Porteur', value: filters.owner_id, searchable: true, options: [
+            { value: '', label: 'Tous les porteurs' },
+            ...ownerOptions,
+          ]},
+          { key: 'analyst_id', label: 'Analyste', value: filters.analyst_id, searchable: true, options: [
+            { value: '', label: 'Tous les analystes' },
+            ...analystOptions,
+          ]},
+          { key: 'analyst_opinion', label: 'Avis', value: filters.analyst_opinion, options: [
+            { value: '', label: 'Tous les avis' },
+            ...Object.entries(ANALYST_OPINION_LABELS).map(([k, v]) => ({ value: k, label: v })),
           ]},
         ]}
         onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}
