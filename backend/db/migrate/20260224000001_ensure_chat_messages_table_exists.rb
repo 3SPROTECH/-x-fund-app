@@ -1,4 +1,4 @@
-class CreateChatMessages < ActiveRecord::Migration[8.1]
+class EnsureChatMessagesTableExists < ActiveRecord::Migration[8.1]
   def change
     unless table_exists?(:chat_messages)
       create_table :chat_messages do |t|
