@@ -26,6 +26,19 @@
   z-index: 999;
 }
 
+/* When inside a sidebar layout (admin, analyste), offset for sidebar */
+.main-content .pf-app-container {
+  top: 0;
+  left: var(--sidebar-w, 260px);
+}
+
+@media (max-width: 768px) {
+  .main-content .pf-app-container {
+    left: 0;
+    top: 56px; /* mobile topbar height */
+  }
+}
+
 /* ==================== BACK BUTTON (inside macro nav) ==================== */
 .pf-back-btn {
   display: inline-flex;

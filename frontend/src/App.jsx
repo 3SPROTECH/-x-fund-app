@@ -27,6 +27,7 @@ import AdminProfilePage from './pages/admin/AdminProfilePage';
 import AdminCreateProjectPage from './pages/admin/AdminCreateProjectPage';
 import AdminEditProjectPage from './pages/admin/AdminEditProjectPage';
 import AdminDividendDetailPage from './pages/admin/AdminDividendDetailPage';
+import AdminAgentRequestsPage from './pages/admin/AdminAgentRequestsPage';
 
 // Investor pages
 import InvestorDashboardPage from './pages/investor/InvestorDashboardPage';
@@ -148,6 +149,10 @@ export default function App() {
             <Route
               path="/admin/kyc"
               element={<ProtectedRoute roles={['administrateur']}><AdminUsersPage kycMode /></ProtectedRoute>}
+            />
+            <Route
+              path="/admin/agent-requests"
+              element={<ProtectedRoute roles={['administrateur']}><AdminAgentRequestsPage /></ProtectedRoute>}
             />
             <Route
               path="/admin/properties"

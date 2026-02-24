@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   User, LogOut, ChevronDown, BarChart3, Building, Briefcase,
-  Wallet, AlertTriangle, FileText, Menu, X,
+  Wallet, AlertTriangle, FileText, Menu, X, FileCheck,
 } from 'lucide-react';
 import { ROLE_LABELS } from '../utils';
 import NotificationBell from './NotificationBell';
@@ -15,7 +15,9 @@ export default function PorteurLayout() {
     const location = useLocation();
     const [showDropdown, setShowDropdown] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
     const dropdownRef = useRef(null);
+    const profileRef = useRef(null);
 
     const kycVerified = user?.kyc_status === 'verified';
 
@@ -23,6 +25,9 @@ export default function PorteurLayout() {
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setShowDropdown(false);
+            }
+            if (profileRef.current && !profileRef.current.contains(e.target)) {
+                setShowProfileMenu(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -44,119 +49,190 @@ export default function PorteurLayout() {
         return (first + last).toUpperCase() || 'U';
     };
 
-    // KYC verified: sidebar layout (same pattern as admin in Layout.jsx)
+    // KYC verified: white horizontal navbar layout (like investor)
     if (kycVerified) {
         return (
-            <div className="layout admin-mobile-layout">
-                {/* Sidebar desktop */}
-                <aside className="sidebar">
-                    <div className="sidebar-header">
-                        <span className="logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
-                    </div>
-
-                    <nav className="sidebar-nav">
-                        <div className="nav-section"><span className="nav-section-label">Vue d'ensemble</span></div>
-                        <NavLink to="/dashboard" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                            <BarChart3 size={18} /><span>Tableau de bord</span>
-                        </NavLink>
-
-                        <div className="nav-section"><span className="nav-section-label">Gestion</span></div>
-                        <NavLink to="/properties" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                            <Building size={18} /><span>Proprietes</span>
-                        </NavLink>
-                        <NavLink to="/projects" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                            <Briefcase size={18} /><span>Projets</span>
-                        </NavLink>
-                        <NavLink to="/wallet" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                            <Wallet size={18} /><span>Portefeuille</span>
-                        </NavLink>
-
-                        <div className="nav-section"><span className="nav-section-label">Suivi</span></div>
-                        <NavLink to="/reports" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                            <FileText size={18} /><span>Rapports</span>
-                        </NavLink>
-                        <NavLink to="/delays" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-                            <AlertTriangle size={18} /><span>Retards</span>
-                        </NavLink>
-                    </nav>
-
-                    <div className="sidebar-footer">
-                        <div className="user-info user-info-clickable" onClick={() => navigate('/profile')} title="Voir le profil">
-                            <span className="user-name">{user?.first_name} {user?.last_name}</span>
-                            <span className="user-role">{ROLE_LABELS[user?.role] || user?.role}</span>
+            <>
+                <nav className="advanced-navbar">
+                    <div className="navbar-container porteur-navbar-container">
+                        {/* Mobile header (no hamburger) */}
+                        <div className="porteur-mobile-header">
+                            <div className="pmh-left" aria-hidden="true" />
+                            <div className="pmh-logo" onClick={() => navigate('/dashboard')}>
+                                <span className="brand-title">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+                            </div>
+                            <div className="pmh-right">
+                                <NotificationBell />
+                            </div>
                         </div>
-                        <button onClick={handleSignOut} className="btn-icon" title="Se deconnecter" style={{ color: '#DAA520' }}>
-                            <LogOut size={18} />
-                        </button>
-                    </div>
-                </aside>
 
-                {/* Topbar mobile */}
-                <div className="admin-mobile-topbar">
-                    <button className="admin-mobile-menu-btn" onClick={() => setShowMobileMenu(!showMobileMenu)}>
-                        {showMobileMenu ? <X size={22} /> : <Menu size={22} />}
-                    </button>
-                    <span className="admin-mobile-logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
-                    <div className="admin-mobile-topbar-actions">
-                        <NotificationBell />
-                        <span className="admin-mobile-role">Porteur</span>
-                    </div>
-                </div>
-
-                {/* Menu mobile dropdown */}
-                {showMobileMenu && (
-                    <div className="admin-mobile-dropdown">
-                        <NavLink to="/wallet" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowMobileMenu(false)}>
-                            <Wallet size={20} /><span>Portefeuille</span>
-                        </NavLink>
-                        <NavLink to="/reports" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowMobileMenu(false)}>
-                            <FileText size={20} /><span>Rapports</span>
-                        </NavLink>
-                        <NavLink to="/delays" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowMobileMenu(false)}>
-                            <AlertTriangle size={20} /><span>Retards</span>
-                        </NavLink>
-                        <div className="admin-mobile-item admin-mobile-user" onClick={() => { navigate('/profile'); setShowMobileMenu(false); }}>
-                            <User size={20} />
-                            <div><span>{user?.first_name} {user?.last_name}</span><small>{ROLE_LABELS[user?.role]}</small></div>
+                        {/* Logo */}
+                        <div className="navbar-brand" onClick={() => navigate('/dashboard')}>
+                            <div className="brand-text">
+                                <span className="brand-title">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+                                <span className="brand-subtitle">Espace porteur de projet</span>
+                            </div>
                         </div>
-                        <button className="admin-mobile-item admin-mobile-logout" onClick={handleSignOut}>
-                            <LogOut size={20} /><span>Deconnexion</span>
-                        </button>
-                    </div>
-                )}
 
-                <main className="main-content">
-                    <div className="content-topbar">
-                        <div className="content-topbar-left" />
-                        <div className="content-topbar-right">
+                        {/* Navigation desktop */}
+                        <div className="navbar-nav">
+                            <NavLink to="/dashboard" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                                <div className="nav-link-content">
+                                    <BarChart3 size={18} />
+                                    <span>Tableau de bord</span>
+                                </div>
+                            </NavLink>
+                            <NavLink to="/properties" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                                <div className="nav-link-content">
+                                    <Building size={18} />
+                                    <span>Proprietes</span>
+                                </div>
+                            </NavLink>
+                            <NavLink to="/projects" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                                <div className="nav-link-content">
+                                    <Briefcase size={18} />
+                                    <span>Projets</span>
+                                </div>
+                            </NavLink>
+                            <NavLink to="/wallet" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                                <div className="nav-link-content">
+                                    <Wallet size={18} />
+                                    <span>Portefeuille</span>
+                                </div>
+                            </NavLink>
+                            <NavLink to="/reports" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                                <div className="nav-link-content">
+                                    <FileText size={18} />
+                                    <span>Rapports</span>
+                                </div>
+                            </NavLink>
+                            <NavLink to="/delays" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                                <div className="nav-link-content">
+                                    <AlertTriangle size={18} />
+                                    <span>Retards</span>
+                                </div>
+                            </NavLink>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="navbar-actions">
                             <NotificationBell />
-                            <div className="content-topbar-user" onClick={() => navigate('/profile')}>
-                                <span>{user?.first_name} {user?.last_name}</span>
+
+                            <div className="navbar-profile" ref={profileRef}>
+                                <button
+                                    className="profile-trigger"
+                                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                >
+                                    <div className="profile-avatar">
+                                        <div className="avatar-gradient" />
+                                        <span>{getInitials()}</span>
+                                    </div>
+                                    <ChevronDown size={16} className={`chevron ${showProfileMenu ? 'rotate' : ''}`} />
+                                </button>
+
+                                {showProfileMenu && (
+                                    <div className="profile-menu">
+                                        <div className="profile-menu-header">
+                                            <div className="profile-header-info">
+                                                <h4>{user?.first_name} {user?.last_name}</h4>
+                                                <span className="role-badge">{ROLE_LABELS[user?.role]}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="profile-menu-section">
+                                            <span className="section-label">Mon Compte</span>
+                                            <NavLink to="/profile" className="menu-item" onClick={() => setShowProfileMenu(false)}>
+                                                <div className="menu-item-icon"><User size={18} /></div>
+                                                <div className="menu-item-content">
+                                                    <span>Mon Profil</span>
+                                                    <small>Gerer mes informations</small>
+                                                </div>
+                                            </NavLink>
+                                            <NavLink to="/kyc" className="menu-item" onClick={() => setShowProfileMenu(false)}>
+                                                <div className="menu-item-icon"><FileCheck size={18} /></div>
+                                                <div className="menu-item-content">
+                                                    <span>Verification KYC</span>
+                                                    <small>Statut de verification</small>
+                                                </div>
+                                            </NavLink>
+                                        </div>
+
+                                        <div className="profile-menu-footer">
+                                            <button className="logout-btn" onClick={handleSignOut}>
+                                                <LogOut size={18} />
+                                                <span>Deconnexion</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
+
+                    {/* Menu mobile deroulant */}
+                    {showMobileMenu && (
+                        <div className="mobile-menu-dropdown">
+                            <NavLink to="/wallet" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
+                                <Wallet size={20} />
+                                <div><span>Portefeuille</span></div>
+                            </NavLink>
+                            <NavLink to="/reports" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
+                                <FileText size={20} />
+                                <div><span>Rapports</span></div>
+                            </NavLink>
+                            <NavLink to="/delays" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
+                                <AlertTriangle size={20} />
+                                <div><span>Retards</span></div>
+                            </NavLink>
+                            <NavLink to="/profile" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
+                                <User size={20} />
+                                <div>
+                                    <span>Mon Profil</span>
+                                    <small>{user?.first_name} {user?.last_name}</small>
+                                </div>
+                            </NavLink>
+                            <NavLink to="/kyc" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
+                                <FileCheck size={20} />
+                                <div><span>Verification KYC</span></div>
+                            </NavLink>
+                            <button className="mobile-menu-item mobile-logout" onClick={handleSignOut}>
+                                <LogOut size={20} />
+                                <div><span>Deconnexion</span></div>
+                            </button>
+                        </div>
+                    )}
+                </nav>
+
+                {/* Bottom Tab Bar mobile */}
+                <div className="mobile-bottom-nav">
+                    <NavLink to="/dashboard" className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
+                        <BarChart3 size={22} />
+                        <span>Dashboard</span>
+                    </NavLink>
+                    <NavLink to="/projects" className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
+                        <Briefcase size={22} />
+                        <span>Projets</span>
+                    </NavLink>
+                    <NavLink to="/properties" className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
+                        <Building size={22} />
+                        <span>Biens</span>
+                    </NavLink>
+                    <NavLink to="/wallet" className={({ isActive }) => `bottom-tab${isActive ? ' active' : ''}`}>
+                        <Wallet size={22} />
+                        <span>Wallet</span>
+                    </NavLink>
+                    <button className="bottom-tab" onClick={() => setShowMobileMenu(!showMobileMenu)}>
+                        <Menu size={22} />
+                        <span>Plus</span>
+                    </button>
+                </div>
+
+                <main className="investor-content">
                     <Outlet />
                 </main>
 
-                {/* Bottom tab bar mobile */}
-                <div className="admin-bottom-nav">
-                    <NavLink to="/dashboard" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
-                        <BarChart3 size={22} /><span>Dashboard</span>
-                    </NavLink>
-                    <NavLink to="/projects" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
-                        <Briefcase size={22} /><span>Projets</span>
-                    </NavLink>
-                    <NavLink to="/properties" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
-                        <Building size={22} /><span>Biens</span>
-                    </NavLink>
-                    <NavLink to="/wallet" className={({ isActive }) => `admin-bottom-tab${isActive ? ' active' : ''}`}>
-                        <Wallet size={22} /><span>Wallet</span>
-                    </NavLink>
-                    <button className="admin-bottom-tab" onClick={() => setShowMobileMenu(!showMobileMenu)}>
-                        <Menu size={22} /><span>Plus</span>
-                    </button>
-                </div>
-            </div>
+                <FloatingChat />
+            </>
         );
     }
 

@@ -11,11 +11,36 @@ import { LoadingSpinner, Pagination, EmptyState } from '../../components/ui';
 export default function AdminInvestmentsPage() {
   const [investments, setInvestments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ status: '' });
+  const [filters, setFilters] = useState({ status: '', project_id: '', user_id: '' });
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [selected, setSelected] = useState(null);
+  const [projectOptions, setProjectOptions] = useState([]);
+  const [investorOptions, setInvestorOptions] = useState([]);
+
+  // Fetch filter options on mount
+  useEffect(() => {
+    const loadFilterOptions = async () => {
+      try {
+        const [projRes, userRes] = await Promise.all([
+          adminApi.getProjects({ per_page: 200 }),
+          adminApi.getUsers({ role: 'investisseur', per_page: 200 }),
+        ]);
+        const projects = (projRes.data.data || []).map((p) => {
+          const a = p.attributes || p;
+          return { value: String(p.id), label: a.title };
+        });
+        const investors = (userRes.data.data || []).map((u) => {
+          const a = u.attributes || u;
+          return { value: String(u.id), label: `${a.first_name} ${a.last_name}` };
+        });
+        setProjectOptions(projects);
+        setInvestorOptions(investors);
+      } catch { /* silent */ }
+    };
+    loadFilterOptions();
+  }, []);
 
   useEffect(() => { load(); }, [page, filters, search]);
 
@@ -24,6 +49,8 @@ export default function AdminInvestmentsPage() {
     try {
       const params = { page };
       if (filters.status) params.status = filters.status;
+      if (filters.project_id) params.project_id = filters.project_id;
+      if (filters.user_id) params.user_id = filters.user_id;
       if (search) params.search = search;
       const res = await adminApi.getInvestments(params);
       setInvestments(res.data.data || []);
@@ -59,6 +86,14 @@ export default function AdminInvestmentsPage() {
           { key: 'status', label: 'Statut', value: filters.status, options: [
             { value: '', label: 'Tous les statuts' },
             ...Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v })),
+          ]},
+          { key: 'user_id', label: 'Investisseur', value: filters.user_id, searchable: true, options: [
+            { value: '', label: 'Tous les investisseurs' },
+            ...investorOptions,
+          ]},
+          { key: 'project_id', label: 'Projet', value: filters.project_id, searchable: true, options: [
+            { value: '', label: 'Tous les projets' },
+            ...projectOptions,
           ]},
         ]}
         onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}

@@ -8,6 +8,9 @@ module Api
         def index
           projects = InvestmentProject.includes(properties: :owner).all
           projects = projects.where(status: params[:status]) if params[:status].present?
+          if params[:needs_analyst] == "true"
+            projects = projects.where(analyst_id: nil).where.not(status: [:draft, :rejected, :repaid])
+          end
           if params[:search].present?
             q = "%#{params[:search]}%"
             projects = projects.where("investment_projects.title ILIKE :q OR investment_projects.description ILIKE :q", q: q)

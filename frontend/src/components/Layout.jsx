@@ -4,10 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import {
   LogOut, User, LayoutDashboard, Wallet, Building, FileCheck, ClipboardCheck,
   TrendingUp, Briefcase, Shield, BarChart3, ScrollText, CreditCard, Settings,
-  Menu, X,
+  Menu, X, Headphones,
 } from 'lucide-react';
 import Navbar from './Navbar';
 import NotificationBell from './NotificationBell';
+import FloatingChat from './FloatingChat';
 import { ROLE_LABELS } from '../utils';
 
 export default function Layout() {
@@ -61,14 +62,11 @@ export default function Layout() {
             </NavLink>
 
             <div className="nav-section"><span className="nav-section-label">Gestion</span></div>
-            <NavLink to="/admin/users" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-              <Shield size={18} /><span>Utilisateurs</span>
-            </NavLink>
             <NavLink to="/admin/kyc" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-              <ClipboardCheck size={18} /><span>Verification KYC</span>
+              <ClipboardCheck size={18} /><span>Utilisateurs & Verification KYC</span>
             </NavLink>
-            <NavLink to="/admin/properties" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-              <Building size={18} /><span>Biens immobiliers</span>
+            <NavLink to="/admin/agent-requests" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+              <Headphones size={18} /><span>Gestion des agents</span>
             </NavLink>
             <NavLink to="/admin/projects" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
               <Briefcase size={18} /><span>Projets</span>
@@ -119,6 +117,9 @@ export default function Layout() {
           <div className="admin-mobile-dropdown">
             <NavLink to="/admin/kyc" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
               <ClipboardCheck size={20} /><span>Verification KYC</span>
+            </NavLink>
+            <NavLink to="/admin/agent-requests" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
+              <Headphones size={20} /><span>Gestion des agents</span>
             </NavLink>
             <NavLink to="/admin/wallet" className={({ isActive }) => `admin-mobile-item${isActive ? ' active' : ''}`} onClick={() => setShowAdminMobileMenu(false)}>
               <Wallet size={20} /><span>Portefeuille</span>
@@ -273,6 +274,8 @@ export default function Layout() {
             <Menu size={22} /><span>Plus</span>
           </button>
         </div>
+
+        <FloatingChat />
       </div>
     );
   }
