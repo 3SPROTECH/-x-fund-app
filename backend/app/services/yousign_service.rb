@@ -7,15 +7,15 @@ class YousignService
   class YousignError < StandardError; end
 
   # Orchestrates the full signing flow:
-  # 1. Create signature request
+  # 1. Create signature request (ordered: admin signs first)
   # 2. Upload PDF document
-  # 3. Add project owner as first signer
-  # 4. Add admin as second signer (co-signature)
-  # 5. Activate the request (sends emails to both)
+  # 3. Add admin as first signer (signing_order: 1)
+  # 4. Add project owner as second signer (signing_order: 2)
+  # 5. Activate the request
   def self.send_contract_for_signing!(project, pdf_binary, admin_user:)
     owner = project.owner
 
-    # 1) Create signature request
+    # 1) Create signature request with ordered signers
     sr = create_signature_request(project)
     signature_request_id = sr["id"]
 
@@ -24,23 +24,25 @@ class YousignService
     document_id = doc["id"]
     total_pages = doc["total_pages"] || 1
 
-    # 3) Add the project owner as first signer
-    owner_signer = add_signer(
-      signature_request_id,
-      document_id,
-      owner,
-      total_pages
-    )
-    owner_signer_id = owner_signer["id"]
-
-    # 4) Add the admin as second signer (co-signature by platform)
+    # 3) Add the admin as FIRST signer (platform signs first)
     admin_signer = add_signer(
       signature_request_id,
       document_id,
       admin_user,
-      total_pages
+      total_pages,
+      signing_order: 1
     )
     admin_signer_id = admin_signer["id"]
+
+    # 4) Add the project owner as SECOND signer (signs after admin)
+    owner_signer = add_signer(
+      signature_request_id,
+      document_id,
+      owner,
+      total_pages,
+      signing_order: 2
+    )
+    owner_signer_id = owner_signer["id"]
 
     # 5) Activate the signature request
     activated = activate(signature_request_id)
@@ -58,7 +60,7 @@ class YousignService
       yousign_signature_link: owner_signature_link,
       yousign_admin_signer_id: admin_signer_id,
       yousign_admin_signature_link: admin_signature_link,
-      yousign_status: "ongoing",
+      yousign_status: "awaiting_admin",
       yousign_sent_at: Time.current,
       status: :signing
     )
@@ -66,11 +68,12 @@ class YousignService
     { signature_request_id:, signer_id: owner_signer_id, admin_signer_id:, signature_link: owner_signature_link, admin_signature_link: }
   end
 
-  # Step 1: Create a draft signature request
+  # Step 1: Create a draft signature request with ordered signers
   def self.create_signature_request(project)
     body = {
       name: "Convention de partenariat - #{project.title}",
-      delivery_mode: "email",
+      delivery_mode: "none",
+      ordered_signers: true,
       timezone: "Europe/Paris",
       audit_trail_locale: "fr"
     }
@@ -105,17 +108,18 @@ class YousignService
   end
 
   # Step 3: Add a signer (signature field is placed via smart anchor in the PDF)
-  def self.add_signer(signature_request_id, document_id, owner, last_page)
+  def self.add_signer(signature_request_id, document_id, user, last_page, signing_order: nil)
     body = {
       info: {
-        first_name: owner.first_name,
-        last_name: owner.last_name,
-        email: owner.email,
+        first_name: sanitize_name(user.first_name),
+        last_name: sanitize_name(user.last_name),
+        email: user.email,
         locale: "fr"
       },
       signature_level: "electronic_signature",
       signature_authentication_mode: "no_otp"
     }
+    body[:signing_order] = signing_order if signing_order.present?
 
     response = post(
       "/signature_requests/#{signature_request_id}/signers",
@@ -155,6 +159,12 @@ class YousignService
 
   def self.json_headers
     auth_headers.merge("Content-Type" => "application/json")
+  end
+
+  # YouSign rejects accented/special characters in name fields
+  def self.sanitize_name(name)
+    sanitized = ActiveSupport::Inflector.transliterate(name.to_s).gsub(/[^a-zA-Z\s\-']/, '').strip
+    sanitized.presence || "Utilisateur"
   end
 
   def self.handle_response!(response, context)

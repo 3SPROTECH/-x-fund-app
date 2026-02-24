@@ -245,7 +245,9 @@ export function getContractBlocks(projectAttrs) {
     { type: 'hr' },
     { type: 'p', segments: [e('La Plateforme', true)] },
     { type: 'p', segments: [e('Nom : '), e(d.platformName, true)] },
-    { type: 'p', segments: [e('Signature : __________________________')] },
+    { type: 'p', segments: [e('Signature : ')] },
+    { type: 'anchor', text: '{{s2|signature|180|60}}' },
+    { type: 'spacer' },
 
     { type: 'hr' },
     { type: 'p', segments: [e('Le Porteur de Projet', true)] },
@@ -361,6 +363,12 @@ function buildContractDoc(projectAttrs) {
       doc.text(block.text, state.left, state.y);
       doc.setTextColor(0, 0, 0);
       state.y += 10;
+      return;
+    }
+
+    if (block.type === 'spacer') {
+      ensureSpace(doc, state, 15);
+      state.y += 15;
       return;
     }
 
