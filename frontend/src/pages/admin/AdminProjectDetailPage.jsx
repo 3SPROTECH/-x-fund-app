@@ -5,7 +5,7 @@ import { dividendsApi } from '../../api/dividends';
 import { financialStatementsApi } from '../../api/financialStatements';
 import useWalletStore from '../../stores/useWalletStore';
 import { adminApi } from '../../api/admin';
-import { ArrowLeft, Edit, Trash2, Scale, CheckCircle, XCircle, AlertCircle, FileText, Send } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Scale, CheckCircle, XCircle, AlertCircle, FileText, Send, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { PROJECT_DETAIL_STATUS_LABELS as STATUS_LABELS, PROJECT_DETAIL_STATUS_BADGES as STATUS_BADGE, PROJECT_STATUS_LABELS, PROJECT_STATUS_BADGES, ANALYST_OPINION_LABELS, ANALYST_OPINION_BADGES } from '../../utils';
 import ReportViewerModal from '../../components/ReportViewerModal';
@@ -31,6 +31,7 @@ export default function AdminProjectDetailPage() {
   const [reportData, setReportData] = useState(null);
   const [showReport, setShowReport] = useState(false);
   const [showContract, setShowContract] = useState(false);
+  const [checkingSignature, setCheckingSignature] = useState(false);
 
   useEffect(() => { loadAll(); }, [id]);
 
@@ -122,6 +123,7 @@ export default function AdminProjectDetailPage() {
   };
 
   const handleCheckSignatureStatus = async () => {
+    setCheckingSignature(true);
     try {
       const res = await adminApi.checkSignatureStatus(id);
       const status = res.data.yousign_status;
@@ -139,9 +141,11 @@ export default function AdminProjectDetailPage() {
       } else {
         toast('Statut mis a jour. En attente des signatures.', { icon: 'ℹ️' });
       }
-      loadAll();
+      await loadAll();
     } catch (err) {
       toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la verification');
+    } finally {
+      setCheckingSignature(false);
     }
   };
 
@@ -311,8 +315,8 @@ export default function AdminProjectDetailPage() {
                 <button className="btn btn-sm" onClick={() => setShowContract(true)}>
                   <FileText size={16} /> Voir le contrat
                 </button>
-                <button className="btn btn-sm" onClick={handleCheckSignatureStatus}>
-                  <CheckCircle size={16} /> Verifier le statut
+                <button className="btn btn-sm" onClick={handleCheckSignatureStatus} disabled={checkingSignature}>
+                  <RefreshCw size={16} style={checkingSignature ? { animation: 'spin 1s linear infinite' } : undefined} /> {checkingSignature ? 'Verification...' : 'Verifier le statut'}
                 </button>
               </div>
             </div>
