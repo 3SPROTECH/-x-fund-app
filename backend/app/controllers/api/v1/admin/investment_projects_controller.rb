@@ -3,7 +3,7 @@ module Api
     module Admin
       class InvestmentProjectsController < ApplicationController
         before_action :require_admin!
-        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :advance_status, :assign_analyst]
+        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :advance_status, :assign_analyst, :report, :send_contract, :check_signature_status]
 
         def index
           projects = InvestmentProject.includes(properties: :owner).all
@@ -166,6 +166,83 @@ module Api
             message: "Statut du projet mis a jour: #{new_status}.",
             data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
           }
+        end
+
+        def report
+          report = @project.analyst_reports.order(created_at: :desc).first
+          unless report
+            return render json: { error: "Aucun rapport trouve." }, status: :not_found
+          end
+
+          render json: {
+            report: AnalystReportSerializer.new(report).serializable_hash[:data]
+          }
+        end
+
+        def send_contract
+          unless @project.approved? || @project.legal_structuring?
+            return render json: { errors: ["Le projet doit etre approuve pour envoyer le contrat."] }, status: :unprocessable_entity
+          end
+
+          pdf_base64 = params[:pdf_base64]
+          if pdf_base64.blank?
+            return render json: { errors: ["Le PDF du contrat est requis."] }, status: :unprocessable_entity
+          end
+
+          begin
+            pdf_binary = Base64.decode64(pdf_base64)
+            result = YousignService.send_contract_for_signing!(@project, pdf_binary)
+
+            log_admin_action("send_contract", @project, {
+              yousign_signature_request_id: result[:signature_request_id],
+              yousign_signer_id: result[:signer_id]
+            })
+
+            NotificationService.notify_project_owner!(
+              @project,
+              actor: current_user,
+              type: "contract_sent",
+              title: "Contrat a signer",
+              body: "Le contrat de votre projet \"#{@project.title}\" est pret a etre signe. Consultez votre email ou connectez-vous pour signer."
+            )
+
+            render json: {
+              message: "Contrat envoye pour signature via YouSign.",
+              data: InvestmentProjectSerializer.new(@project.reload).serializable_hash[:data],
+              signature_link: result[:signature_link]
+            }
+          rescue YousignService::YousignError => e
+            render json: { errors: ["Erreur YouSign: #{e.message}"] }, status: :unprocessable_entity
+          rescue => e
+            Rails.logger.error("[SendContract] Unexpected error: #{e.message}")
+            render json: { errors: ["Erreur inattendue lors de l'envoi du contrat."] }, status: :internal_server_error
+          end
+        end
+
+        def check_signature_status
+          unless @project.yousign_signature_request_id.present?
+            return render json: { errors: ["Aucune demande de signature trouvee."] }, status: :not_found
+          end
+
+          begin
+            status_data = YousignService.get_status(@project.yousign_signature_request_id)
+            yousign_status = status_data["status"]
+
+            @project.update!(yousign_status: yousign_status)
+
+            # Auto-advance if signing is done
+            if yousign_status == "done" && @project.signing?
+              @project.update!(status: :legal_structuring)
+              log_admin_action("signature_completed", @project, { yousign_status: yousign_status })
+            end
+
+            render json: {
+              yousign_status: yousign_status,
+              data: InvestmentProjectSerializer.new(@project.reload).serializable_hash[:data]
+            }
+          rescue YousignService::YousignError => e
+            render json: { errors: ["Erreur YouSign: #{e.message}"] }, status: :unprocessable_entity
+          end
         end
 
         private

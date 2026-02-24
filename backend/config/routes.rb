@@ -71,6 +71,7 @@ Rails.application.routes.draw do
         member do
           post :upload_images
           delete 'delete_image/:image_id', action: :delete_image, as: :delete_image
+          get :analyst_report
         end
       end
 
@@ -108,6 +109,9 @@ Rails.application.routes.draw do
         post :withdraw
         get :transactions
       end
+
+      # === Platform Config (authenticated users) ===
+      resource :platform_config, only: [:show], controller: "platform_config"
 
       # === Dashboards ===
       resource :dashboard, only: [:show], controller: "investor_dashboard"
@@ -159,6 +163,9 @@ Rails.application.routes.draw do
         end
       end
 
+      # === Yousign Webhooks ===
+      post "yousign_webhooks", to: "yousign_webhooks#create"
+
       # === Admin ===
       namespace :admin do
         resources :users, only: [:index, :show, :create, :update, :destroy] do
@@ -177,6 +184,9 @@ Rails.application.routes.draw do
             patch :request_info
             patch :advance_status
             patch :assign_analyst
+            get :report
+            post :send_contract
+            post :check_signature_status
           end
           resources :mvp_reports, only: [:index, :show] do
             member do

@@ -24,6 +24,7 @@ default_settings = [
   { key: "min_funding_period_days", value: "30", value_type: "integer", category: "project", description: "Duree min financement (jours)" },
   { key: "require_contrat_obligataire", value: "true", value_type: "boolean", category: "project", description: "Contrat obligataire requis" },
   { key: "require_fici_document", value: "true", value_type: "boolean", category: "project", description: "Document FICI requis" },
+  { key: "default_share_price_cents", value: "10000", value_type: "integer", category: "project", description: "Prix par part par defaut (centimes)" },
   { key: "platform_investment_commission_percent", value: "0.0", value_type: "decimal", category: "commissions", description: "Commission plateforme sur investissements (%)" },
   { key: "platform_dividend_commission_percent", value: "0.0", value_type: "decimal", category: "commissions", description: "Commission plateforme sur dividendes (%)" },
   { key: "management_fee_cap_percent", value: "5.0", value_type: "decimal", category: "commissions", description: "Plafond frais de gestion (%)" },

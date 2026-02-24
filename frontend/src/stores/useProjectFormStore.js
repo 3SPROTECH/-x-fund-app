@@ -1,5 +1,85 @@
 import { create } from 'zustand';
 
+// ─── Guarantee scoring constants ────────────────────────────────────
+export const GUARANTEE_TYPES = [
+  { value: 'hypotheque', label: 'Hypothèque', baseScore: 85 },
+  { value: 'fiducie', label: 'Fiducie', baseScore: 92 },
+  { value: 'garantie_premiere_demande', label: 'Garantie à première demande', baseScore: 97 },
+  { value: 'caution_personnelle', label: 'Caution personnelle', baseScore: 40 },
+  { value: 'garantie_corporate', label: 'Garantie corporate', baseScore: 60 },
+  { value: 'aucune', label: 'Aucune', baseScore: 5 },
+];
+
+export const HYPOTHEQUE_RANKS = [
+  { value: '1er_rang', label: '1er rang', baseScore: 85 },
+  { value: '2eme_rang', label: '2ème rang', baseScore: 65 },
+];
+
+export const GUARANTEE_PROOF_DOCS = {
+  hypotheque: [
+    { type: 'acte_hypothecaire', label: 'Acte notarié d\'hypothèque', required: true },
+    { type: 'certificat_inscription', label: 'Certificat d\'inscription hypothécaire', required: true },
+    { type: 'estimation_expert', label: 'Estimation du bien par expert', required: true },
+  ],
+  fiducie: [
+    { type: 'convention_fiducie', label: 'Convention de fiducie', required: true },
+    { type: 'acte_transfert', label: 'Acte de transfert au fiduciaire', required: true },
+  ],
+  garantie_premiere_demande: [
+    { type: 'lettre_garantie_bancaire', label: 'Lettre de garantie bancaire', required: true },
+    { type: 'attestation_emetteur', label: 'Attestation de l\'organisme émetteur', required: true },
+  ],
+  caution_personnelle: [
+    { type: 'acte_cautionnement', label: 'Acte de cautionnement', required: true },
+    { type: 'justificatifs_patrimoine', label: 'Justificatifs de patrimoine du garant', required: true },
+    { type: 'avis_imposition', label: 'Avis d\'imposition du garant', required: false },
+  ],
+  garantie_corporate: [
+    { type: 'lettre_garantie_corporate', label: 'Lettre de garantie corporate', required: true },
+    { type: 'bilan_societe', label: 'Bilan de la société garante', required: true },
+    { type: 'extrait_kbis', label: 'Extrait Kbis de la société garante', required: true },
+  ],
+  aucune: [],
+};
+
+export function computeLtvAdjustment(ltv) {
+  if (ltv <= 50) return 10;
+  if (ltv <= 70) return 0;
+  if (ltv <= 85) return -10;
+  return -20;
+}
+
+export function computeProtectionScore(guaranteeType, rank, ltv) {
+  let base;
+  if (guaranteeType === 'hypotheque' && rank) {
+    base = HYPOTHEQUE_RANKS.find(r => r.value === rank)?.baseScore ?? 85;
+  } else {
+    base = GUARANTEE_TYPES.find(t => t.value === guaranteeType)?.baseScore ?? 5;
+  }
+  const adjustment = computeLtvAdjustment(ltv);
+  return Math.max(0, Math.min(100, base + adjustment));
+}
+
+export function getRiskLevel(score) {
+  if (score >= 80) return { label: 'Faible risque', color: '#16a34a', level: 'low' };
+  if (score >= 60) return { label: 'Risque modéré', color: '#d97706', level: 'moderate' };
+  if (score >= 40) return { label: 'Risque élevé', color: '#ea580c', level: 'high' };
+  return { label: 'Risque très élevé', color: '#dc2626', level: 'critical' };
+}
+
+function buildGuaranteeDocs(guaranteeType) {
+  const templates = GUARANTEE_PROOF_DOCS[guaranteeType] || [];
+  return templates.map(t => ({
+    type: t.type,
+    label: t.label,
+    required: t.required,
+    status: 'empty',
+    fileName: '',
+    comment: '',
+    showComment: false,
+  }));
+}
+
 // ─── Step configuration ─────────────────────────────────────────────
 export const MACRO_STEPS = [
   { label: 'Présentation', icon: 'FileText' },
@@ -10,23 +90,24 @@ export const MACRO_STEPS = [
 ];
 
 export const STEP_CONFIG = [
-  // Macro 1 - Présentation
+  // Macro 0 - Présentation
   { macro: 0, micro: 0, title: 'Fiche présentation du projet', desc: 'Informations générales, valorisation et stratégie.' },
   { macro: 0, micro: 1, title: 'Localisation du projet', desc: 'Adresse, environnement et atouts de l\'emplacement.' },
   { macro: 0, micro: 2, title: 'Le porteur de projet', desc: 'Identité, expérience et track record.' },
   { macro: 0, micro: 3, title: 'La structuration financière', desc: 'Montant, rentabilité et stratégie de commercialisation.' },
-  // Macro 2 - Finances
+  // Macro 1 - Finances
   { macro: 1, micro: 0, title: 'Hub des adresses', desc: 'Gérez les actifs liés à ce projet.' },
   { macro: 1, micro: 1, title: 'Détails de l\'actif et calendrier', desc: 'Acquisition, lots et calendrier des travaux.' },
   { macro: 1, micro: 2, title: 'Plan de dépenses', desc: 'Coûts d\'acquisition, travaux, honoraires.' },
   { macro: 1, micro: 3, title: 'Plan de revente et revenus par lot', desc: 'Gestion des lots et projections de revenus.' },
-  { macro: 1, micro: 4, title: 'Vérification et documents justificatifs', desc: 'Chargez les documents requis.' },
-  // Macro 3 - Projections
+  { macro: 1, micro: 4, title: 'Garanties de l\'actif', desc: 'Type de garantie, preuves et score de protection.' },
+  { macro: 1, micro: 5, title: 'Vérification et documents justificatifs', desc: 'Chargez les documents requis.' },
+  // Macro 2 - Projections
   { macro: 2, micro: 0, title: 'Engagement du porteur', desc: 'Définissez votre apport et prouvez vos fonds.' },
   { macro: 2, micro: 1, title: 'Simulation de financement', desc: 'Paramètres et projection de la collecte.' },
-  // Macro 4 - Compléments (demo)
+  // Macro 3 - Compléments (demo)
   { macro: 3, micro: 0, title: 'Informations complémentaires', desc: 'Répondez aux questions de l\'analyste.' },
-  // Macro 5 - Signature
+  // Macro 4 - Signature
   { macro: 4, micro: 0, title: 'Signature des contrats', desc: 'Téléchargement des documents et consentement final.' },
 ];
 
@@ -140,6 +221,18 @@ export function createEmptyAsset(label = '') {
       { type: 'building_permit', label: 'Permis d\'aménager / construire', required: false, status: 'empty', fileName: '', comment: '', showComment: false },
     ],
     recettesTotal: 0,
+    guarantee: {
+      type: '',
+      rank: '',
+      assetValue: 0,
+      debtAmount: 0,
+      ltv: 0,
+      protectionScore: 0,
+      riskLevel: '',
+      description: '',
+      guarantor: '',
+    },
+    guaranteeDocs: [],
   };
 }
 
@@ -193,6 +286,26 @@ function validateExpensePlan(costs) {
   return errors;
 }
 
+function validateGuarantee(guarantee, guaranteeDocs) {
+  const errors = {};
+  if (!guarantee || !guarantee.type) {
+    errors['guarantee.type'] = 'Sélectionnez un type de garantie.';
+    return errors;
+  }
+  if (guarantee.type === 'hypotheque' && !guarantee.rank) {
+    errors['guarantee.rank'] = 'Sélectionnez le rang de l\'hypothèque.';
+  }
+  // Validate required proof documents
+  if (guaranteeDocs && guaranteeDocs.length > 0) {
+    const requiredDocs = guaranteeDocs.filter(d => d.required);
+    const missingDocs = requiredDocs.filter(d => d.status === 'empty');
+    if (missingDocs.length > 0) {
+      errors['guarantee.docs'] = `${missingDocs.length} document(s) justificatif(s) requis manquant(s).`;
+    }
+  }
+  return errors;
+}
+
 function validateSignature(consentGiven) {
   const errors = {};
   if (!consentGiven) errors['signature.consent'] = 'Vous devez certifier l\'exactitude des informations.';
@@ -200,25 +313,29 @@ function validateSignature(consentGiven) {
 }
 
 export const STEP_VALIDATORS = [
-  (state) => validatePresentation(state.presentation),
-  (state) => validateLocation(state.location),
-  (state) => validateProjectOwner(state.projectOwner),
-  (state) => validateFinancialStructure(state.financialStructure),
-  () => ({}), // Hub - no validation, just need at least 1 asset
-  (state) => {
+  (state) => validatePresentation(state.presentation),         // 0
+  (state) => validateLocation(state.location),                  // 1
+  (state) => validateProjectOwner(state.projectOwner),          // 2
+  (state) => validateFinancialStructure(state.financialStructure), // 3
+  () => ({}), // 4 - Hub
+  (state) => {                                                  // 5 - Asset details
     const asset = state.assets[state.selectedAssetIndex];
     return asset ? validateAssetDetails(asset.details) : {};
   },
-  (state) => {
+  (state) => {                                                  // 6 - Expense plan
     const asset = state.assets[state.selectedAssetIndex];
     return asset ? validateExpensePlan(asset.costs) : {};
   },
-  () => ({}), // Lots - validated via asset completion
-  () => ({}), // Docs - validated via asset completion
-  () => ({}), // Contribution - no blocking validation
-  () => ({}), // Simulation - no blocking validation
-  () => ({}), // Additional Info - no blocking validation (handled internally)
-  (state) => validateSignature(state.consentGiven),
+  () => ({}), // 7 - Lots
+  (state) => {                                                  // 8 - Guarantees (NEW)
+    const asset = state.assets[state.selectedAssetIndex];
+    return asset ? validateGuarantee(asset.guarantee, asset.guaranteeDocs) : {};
+  },
+  () => ({}), // 9 - Docs (was 8)
+  () => ({}), // 10 - Contribution (was 9)
+  () => ({}), // 11 - Simulation (was 10)
+  () => ({}), // 12 - Additional Info (was 11)
+  (state) => validateSignature(state.consentGiven),             // 13 (was 12)
 ];
 
 // ─── Store ──────────────────────────────────────────────────────────
@@ -258,6 +375,7 @@ const useProjectFormStore = create((set, get) => ({
   // Project info (for info_requested flow)
   loadedProjectId: null,
   projectStatus: null,
+  projectAttributes: null,
 
   // ── Navigation ──────────────────────────────────────────────────
   setGlobalStep: (index) => set({ globalStepIndex: index, flaggedFields: {} }),
@@ -516,6 +634,79 @@ const useProjectFormStore = create((set, get) => ({
       return { assets };
     }),
 
+  // ── Guarantee management ──────────────────────────────────────
+  updateAssetGuarantee: (field, value) =>
+    set((s) => {
+      if (s.selectedAssetIndex === null) return s;
+      const assets = [...s.assets];
+      const asset = { ...assets[s.selectedAssetIndex] };
+      const guarantee = { ...asset.guarantee, [field]: value };
+
+      // When type changes, rebuild proof docs and reset rank if not hypotheque
+      let guaranteeDocs = [...(asset.guaranteeDocs || [])];
+      if (field === 'type') {
+        guaranteeDocs = buildGuaranteeDocs(value);
+        if (value !== 'hypotheque') {
+          guarantee.rank = '';
+        }
+      }
+
+      // Sync read-only fields from asset data
+      guarantee.assetValue = asset.recettesTotal || 0;
+      guarantee.debtAmount = asset.costs.total || 0;
+
+      // Auto-recalculate LTV and score
+      const assetVal = parseFloat(guarantee.assetValue) || 0;
+      const debt = parseFloat(guarantee.debtAmount) || 0;
+      guarantee.ltv = assetVal > 0 ? Math.round((debt / assetVal) * 10000) / 100 : 0;
+      guarantee.protectionScore = guarantee.type
+        ? computeProtectionScore(guarantee.type, guarantee.rank, guarantee.ltv)
+        : 0;
+      guarantee.riskLevel = guarantee.type ? getRiskLevel(guarantee.protectionScore).level : '';
+
+      asset.guarantee = guarantee;
+      asset.guaranteeDocs = guaranteeDocs;
+      assets[s.selectedAssetIndex] = asset;
+      return {
+        assets,
+        flaggedFields: { ...s.flaggedFields, [`guarantee.${field}`]: undefined },
+        isDirty: true,
+      };
+    }),
+
+  updateGuaranteeDoc: (docType, field, value) =>
+    set((s) => {
+      if (s.selectedAssetIndex === null) return s;
+      const assets = [...s.assets];
+      const asset = { ...assets[s.selectedAssetIndex] };
+      asset.guaranteeDocs = (asset.guaranteeDocs || []).map(doc => {
+        if (doc.type !== docType) return doc;
+        const updated = { ...doc, [field]: value };
+        if (updated.fileName) {
+          updated.status = 'uploaded';
+        } else if (updated.comment && updated.comment.trim().length > 0) {
+          updated.status = 'commented';
+        } else {
+          updated.status = 'empty';
+        }
+        return updated;
+      });
+      assets[s.selectedAssetIndex] = asset;
+      return { assets, isDirty: true };
+    }),
+
+  toggleGuaranteeDocComment: (docType) =>
+    set((s) => {
+      if (s.selectedAssetIndex === null) return s;
+      const assets = [...s.assets];
+      const asset = { ...assets[s.selectedAssetIndex] };
+      asset.guaranteeDocs = (asset.guaranteeDocs || []).map(doc =>
+        doc.type === docType ? { ...doc, showComment: !doc.showComment } : doc
+      );
+      assets[s.selectedAssetIndex] = asset;
+      return { assets };
+    }),
+
   // ── Consent ─────────────────────────────────────────────────────
   setConsentGiven: (value) => set({ consentGiven: value, isDirty: true }),
 
@@ -528,6 +719,7 @@ const useProjectFormStore = create((set, get) => ({
   setLastSavedAt: (date) => set({ lastSavedAt: date, isDirty: false }),
   setProjectStatus: (status) => set({ projectStatus: status }),
   setLoadedProjectId: (id) => set({ loadedProjectId: id }),
+  setProjectAttributes: (attrs) => set({ projectAttributes: attrs }),
 
   getSerializableState: () => {
     const s = get();
@@ -594,6 +786,13 @@ const useProjectFormStore = create((set, get) => ({
     return { totalCosts, contributionPct: pct, apport, duration, totalCollecte, platformFee, interestReserve, montantReverse, resaleAmount, warningRatio };
   },
 
+  getOverallProtectionScore: () => {
+    const assets = get().assets;
+    if (assets.length === 0) return 0;
+    const scores = assets.map(a => a.guarantee?.protectionScore || 0);
+    return Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length);
+  },
+
   allAssetsComplete: () => get().assets.every(a => a.completed),
 
   isStepLocked: (stepIndex) => {
@@ -601,30 +800,30 @@ const useProjectFormStore = create((set, get) => ({
     const config = STEP_CONFIG[stepIndex];
     if (!config) return true;
 
-    // Macro 1 steps are always unlocked
+    // Macro 0 steps are always unlocked
     if (config.macro === 0) return false;
 
-    // Macro 2: requires presentation title + type filled
+    // Macro 1: requires presentation title + type filled
     if (config.macro === 1) {
       if (!s.presentation.title || !s.presentation.propertyType) return true;
-      // Sub-flow steps (5-8) require an asset to be selected
-      if (stepIndex >= 5 && stepIndex <= 8 && s.selectedAssetIndex === null) return true;
+      // Sub-flow steps (5-9) require an asset to be selected
+      if (stepIndex >= 5 && stepIndex <= 9 && s.selectedAssetIndex === null) return true;
       return false;
     }
 
-    // Macro 3: all assets must be complete
+    // Macro 2: all assets must be complete
     if (config.macro === 2) {
       return !s.assets.every(a => a.completed);
     }
 
-    // Macro 4 (Compléments): unlocked only when project status is info_requested
+    // Macro 3 (Compléments): unlocked only when project status is info_requested
     if (config.macro === 3) {
       return s.projectStatus !== 'info_requested' && s.projectStatus !== 'info_resubmitted';
     }
 
-    // Macro 5 (Signature): always locked until analyst approves
+    // Macro 4 (Signature): locked unless signing status
     if (config.macro === 4) {
-      return true;
+      return s.projectStatus !== 'signing';
     }
 
     return false;
@@ -653,6 +852,7 @@ const useProjectFormStore = create((set, get) => ({
       completedSteps: new Set(),
       loadedProjectId: null,
       projectStatus: null,
+      projectAttributes: null,
     });
   },
 }));

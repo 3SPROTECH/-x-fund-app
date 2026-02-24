@@ -4,9 +4,12 @@ import { investmentProjectsApi, projectInvestorsApi } from '../../api/investment
 import { dividendsApi } from '../../api/dividends';
 import { financialStatementsApi } from '../../api/financialStatements';
 import useWalletStore from '../../stores/useWalletStore';
-import { ArrowLeft, Edit, Trash2, Scale, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { adminApi } from '../../api/admin';
+import { ArrowLeft, Edit, Trash2, Scale, CheckCircle, XCircle, AlertCircle, FileText, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { PROJECT_DETAIL_STATUS_LABELS as STATUS_LABELS, PROJECT_DETAIL_STATUS_BADGES as STATUS_BADGE, ANALYST_OPINION_LABELS, ANALYST_OPINION_BADGES } from '../../utils';
+import { PROJECT_DETAIL_STATUS_LABELS as STATUS_LABELS, PROJECT_DETAIL_STATUS_BADGES as STATUS_BADGE, PROJECT_STATUS_LABELS, PROJECT_STATUS_BADGES, ANALYST_OPINION_LABELS, ANALYST_OPINION_BADGES } from '../../utils';
+import ReportViewerModal from '../../components/ReportViewerModal';
+import ContractViewerModal from '../../components/ContractViewerModal';
 import { LoadingSpinner } from '../../components/ui';
 import ProjectDetailsTab from '../../components/project-tabs/ProjectDetailsTab';
 import ProjectPhotosTab from '../../components/project-tabs/ProjectPhotosTab';
@@ -25,6 +28,9 @@ export default function AdminProjectDetailPage() {
   const [investorsMeta, setInvestorsMeta] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('details');
+  const [reportData, setReportData] = useState(null);
+  const [showReport, setShowReport] = useState(false);
+  const [showContract, setShowContract] = useState(false);
 
   useEffect(() => { loadAll(); }, [id]);
 
@@ -64,6 +70,66 @@ export default function AdminProjectDetailPage() {
     }
   };
 
+  const handleViewReport = async () => {
+    try {
+      const res = await adminApi.getProjectReport(id);
+      setReportData(res.data.report);
+      setShowReport(true);
+    } catch {
+      toast.error('Erreur lors du chargement du rapport');
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!window.confirm('Voulez-vous approuver ce projet ?')) return;
+    try {
+      await adminApi.approveProject(id);
+      toast.success('Projet approuve avec succes');
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de l\'approbation');
+    }
+  };
+
+  const handleReject = async () => {
+    const comment = window.prompt('Raison du rejet :');
+    if (comment === null) return;
+    if (!comment.trim()) { toast.error('Veuillez fournir une raison'); return; }
+    try {
+      await adminApi.rejectProject(id, comment);
+      toast.success('Projet rejete');
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors du rejet');
+    }
+  };
+
+  const handleSendContract = async (pdfBase64) => {
+    try {
+      await adminApi.sendContract(id, pdfBase64);
+      toast.success('Contrat envoye au porteur via YouSign');
+      setShowContract(false);
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || "Erreur lors de l'envoi du contrat via YouSign");
+    }
+  };
+
+  const handleCheckSignatureStatus = async () => {
+    try {
+      const res = await adminApi.checkSignatureStatus(id);
+      const status = res.data.yousign_status;
+      if (status === 'done') {
+        toast.success('Le contrat a ete signe ! Statut mis a jour.');
+      } else {
+        toast('Statut de la signature : ' + (status || 'en attente'), { icon: 'ℹ️' });
+      }
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la verification');
+    }
+  };
+
   if (loading) return <LoadingSpinner />;
   if (!project) return <div className="page"><div className="card"><p>Projet introuvable</p></div></div>;
 
@@ -85,7 +151,7 @@ export default function AdminProjectDetailPage() {
           {a.property_city && <p className="text-muted">{a.property_title} — {a.property_city}</p>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
-          <span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span>
+          <span className={`badge ${PROJECT_STATUS_BADGES[a.status] || STATUS_BADGE[a.status] || ''}`}>{PROJECT_STATUS_LABELS[a.status] || STATUS_LABELS[a.status] || a.status}</span>
           {canEdit && (
             <button
               className="btn btn-sm"
@@ -151,6 +217,71 @@ export default function AdminProjectDetailPage() {
               </div>
             )}
           </div>
+          {a.has_analyst_report && (
+            <button className="btn btn-sm" onClick={handleViewReport} style={{ marginTop: '1rem' }}>
+              <FileText size={16} /> Voir le rapport d'analyse
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Admin Decision Banner for pre-approved projects */}
+      {a.status === 'analyst_approved' && (
+        <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '2px solid var(--gold-color, #DAA520)' }}>
+          <div>
+            <h3 style={{ margin: 0 }}>Decision requise</h3>
+            <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
+              Ce projet a ete pre-approuve par l'analyste. Veuillez examiner le rapport et prendre une decision.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '.5rem', flexShrink: 0 }}>
+            {a.has_analyst_report && (
+              <button className="btn" onClick={handleViewReport}>
+                <FileText size={16} /> Rapport
+              </button>
+            )}
+            <button className="btn btn-success" onClick={handleApprove}>
+              <CheckCircle size={16} /> Approuver
+            </button>
+            <button className="btn btn-danger" onClick={handleReject}>
+              <XCircle size={16} /> Rejeter
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Contract Banner for approved projects */}
+      {a.status === 'approved' && (
+        <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '2px solid var(--gold-color, #DAA520)' }}>
+          <div>
+            <h3 style={{ margin: 0 }}>Contrat d'investissement</h3>
+            <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
+              Le projet est approuve. Generez et envoyez le contrat au porteur pour signature.
+            </p>
+          </div>
+          <button className="btn btn-success" onClick={() => setShowContract(true)}>
+            <FileText size={16} /> Generer le contrat
+          </button>
+        </div>
+      )}
+
+      {/* Signing status banner */}
+      {a.status === 'signing' && (
+        <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '2px solid var(--info-color, #3498db)' }}>
+          <div>
+            <h3 style={{ margin: 0 }}>En attente de signature (YouSign)</h3>
+            <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
+              Le contrat a ete envoye au porteur via YouSign. {a.yousign_status === 'ongoing' ? 'En attente de signature.' : a.yousign_status === 'done' ? 'Signe !' : `Statut : ${a.yousign_status || 'en attente'}`}
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '.5rem', flexShrink: 0 }}>
+            <button className="btn" onClick={() => setShowContract(true)}>
+              <FileText size={16} /> Voir le contrat
+            </button>
+            <button className="btn btn-sm" onClick={handleCheckSignatureStatus}>
+              <CheckCircle size={16} /> Verifier le statut
+            </button>
+          </div>
         </div>
       )}
 
@@ -167,6 +298,23 @@ export default function AdminProjectDetailPage() {
       {tab === 'dividends' && <ProjectDividendsTab project={project} projectId={id} dividends={dividends} isAdmin={true} basePath="/admin" onRefresh={loadAll} />}
       {tab === 'statements' && <ProjectReportsTab project={project} projectId={id} isAdmin={true} isOwner={false} setProject={setProject} onRefresh={loadAll} />}
       {tab === 'investors' && <ProjectInvestorsTab investors={investors} investorsMeta={investorsMeta} canViewInvestors={true} />}
+
+      {showReport && reportData && (
+        <ReportViewerModal
+          report={reportData}
+          projectAttrs={a}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+
+      {showContract && (
+        <ContractViewerModal
+          projectAttrs={a}
+          onClose={() => setShowContract(false)}
+          onSendToOwner={handleSendContract}
+          showSendButton={a.status === 'approved'}
+        />
+      )}
     </div>
   );
 }

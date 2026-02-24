@@ -3,7 +3,7 @@ class InvestmentProjectSerializer
 
   attributes :id, :title, :description, :operation_type, :total_amount_cents, :share_price_cents,
              :total_shares, :shares_sold, :min_investment_cents, :max_investment_cents,
-             :funding_start_date, :funding_end_date, :status,
+             :funding_start_date, :funding_end_date,
              :management_fee_percent, :gross_yield_percent, :net_yield_percent,
              :review_comment, :reviewed_at,
              # Advanced form fields
@@ -20,7 +20,17 @@ class InvestmentProjectSerializer
              :has_first_rank_mortgage, :has_share_pledge, :has_fiducie,
              :has_interest_escrow, :has_works_escrow, :has_personal_guarantee,
              :has_gfa, :has_open_banking, :risk_description,
+             :overall_protection_score, :overall_risk_level, :guarantee_type_summary,
+             :yousign_status, :yousign_sent_at,
              :created_at, :updated_at
+
+  attribute :status do |project, params|
+    if params && params[:hide_analyst_approved] && project.analyst_approved?
+      "pending_analysis"
+    else
+      project.status
+    end
+  end
 
   attribute :funding_progress_percent do |project|
     project.funding_progress_percent
@@ -120,6 +130,10 @@ class InvestmentProjectSerializer
 
   attribute :investment_fee_percent do |_project|
     Setting.get("platform_investment_commission_percent") || 0.0
+  end
+
+  attribute :yousign_signature_link do |project|
+    project.signing? ? project.yousign_signature_link : nil
   end
 
   attribute :images do |project|

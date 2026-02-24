@@ -15,6 +15,7 @@ class InvestmentProject < ApplicationRecord
   has_many :analyst_reports, dependent: :destroy
   has_many :project_delays, dependent: :destroy
   has_many :chat_messages, dependent: :destroy
+  has_many :asset_guarantees, dependent: :destroy
 
   has_one_attached :contrat_obligataire
   has_one_attached :fici_document
@@ -101,6 +102,69 @@ class InvestmentProject < ApplicationRecord
 
   def amount_raised_cents
     shares_sold * share_price_cents
+  end
+
+  # Compute guarantee aggregates from form_snapshot asset data and persist records
+  def compute_guarantee_aggregates
+    return unless form_snapshot.present?
+
+    assets = form_snapshot["assets"] || []
+    return if assets.empty?
+
+    # Clear existing guarantee records for this project
+    asset_guarantees.destroy_all
+
+    scores = []
+    summary = []
+
+    assets.each_with_index do |asset, idx|
+      g = asset["guarantee"]
+      next unless g.present? && g["type"].present? && g["type"] != ""
+
+      score = (g["protectionScore"] || 0).to_f
+      scores << score
+
+      # Create persistent record
+      asset_guarantees.create!(
+        asset_index: idx,
+        asset_label: asset["label"],
+        guarantee_type: g["type"],
+        rank: g["rank"].presence,
+        asset_value_cents: ((g["assetValue"] || 0).to_f * 100).round,
+        debt_amount_cents: ((g["debtAmount"] || 0).to_f * 100).round,
+        ltv: g["ltv"] || 0,
+        protection_score: score,
+        risk_level: g["riskLevel"].presence || "critical",
+        description: g["description"],
+        guarantor_name: g["guarantor"]
+      )
+
+      summary << {
+        "asset_label" => asset["label"],
+        "type" => g["type"],
+        "rank" => g["rank"],
+        "ltv" => g["ltv"],
+        "protection_score" => score,
+        "risk_level" => g["riskLevel"]
+      }
+    end
+
+    return if scores.empty?
+
+    avg = (scores.sum / scores.size).round(2)
+    risk = case avg
+           when 80..100 then "low"
+           when 60..79  then "moderate"
+           when 40..59  then "high"
+           else              "critical"
+           end
+
+    aggregate_attrs = {}
+    aggregate_attrs[:overall_protection_score] = avg if has_attribute?(:overall_protection_score)
+    aggregate_attrs[:overall_risk_level] = risk if has_attribute?(:overall_risk_level)
+    aggregate_attrs[:guarantee_type_summary] = summary if has_attribute?(:guarantee_type_summary)
+
+    update_columns(aggregate_attrs) if aggregate_attrs.any?
   end
 
   private

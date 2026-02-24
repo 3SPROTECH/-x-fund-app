@@ -2,7 +2,7 @@ import useProjectFormStore from '../../../stores/useProjectFormStore';
 import FormGrid from '../shared/FormGrid';
 import FormField from '../shared/FormField';
 
-export default function FinancingSimulation() {
+export default function FinancingSimulation({ defaultSharePriceCents = 10000 }) {
   const projections = useProjectFormStore((s) => s.projections);
   const updateProjections = useProjectFormStore((s) => s.updateProjections);
   const getProjectionTotals = useProjectFormStore((s) => s.getProjectionTotals);
@@ -56,6 +56,17 @@ export default function FinancingSimulation() {
         <div className="pf-receipt-row pf-receipt-total">
           <span>Total Collecte</span>
           <span>{fmt(totals.totalCollecte)} €</span>
+        </div>
+      </div>
+
+      <div className="pf-receipt-card" style={{ marginTop: 12 }}>
+        <div className="pf-receipt-row">
+          <span>Prix par part</span>
+          <span>{fmt(defaultSharePriceCents / 100)} €</span>
+        </div>
+        <div className="pf-receipt-row">
+          <span>Nombre de parts</span>
+          <span>{fmt(Math.max(1, Math.floor((totals.totalCollecte * 100) / defaultSharePriceCents)))}</span>
         </div>
       </div>
 

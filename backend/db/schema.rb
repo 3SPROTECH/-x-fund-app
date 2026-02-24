@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_23_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_23_144557) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -57,6 +57,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_000001) do
     t.index ["analyst_id"], name: "index_analyst_reports_on_analyst_id"
     t.index ["investment_project_id", "created_at"], name: "idx_analyst_reports_on_project_and_date"
     t.index ["investment_project_id"], name: "index_analyst_reports_on_investment_project_id"
+  end
+
+  create_table "asset_guarantees", force: :cascade do |t|
+    t.integer "asset_index", null: false
+    t.string "asset_label"
+    t.bigint "asset_value_cents", default: 0
+    t.datetime "created_at", null: false
+    t.bigint "debt_amount_cents", default: 0
+    t.text "description"
+    t.string "guarantee_type", null: false
+    t.string "guarantor_name"
+    t.bigint "investment_project_id", null: false
+    t.decimal "ltv", precision: 5, scale: 2, default: "0.0"
+    t.decimal "protection_score", precision: 5, scale: 2, default: "0.0"
+    t.string "rank"
+    t.string "risk_level"
+    t.datetime "updated_at", null: false
+    t.index ["investment_project_id"], name: "index_asset_guarantees_on_investment_project_id"
   end
 
   create_table "audit_logs", force: :cascade do |t|
@@ -225,6 +243,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_000001) do
     t.date "funding_end_date", null: false
     t.date "funding_start_date", null: false
     t.decimal "gross_yield_percent", precision: 5, scale: 2
+    t.jsonb "guarantee_type_summary", default: []
     t.boolean "has_fiducie", default: false, null: false
     t.boolean "has_first_rank_mortgage", default: false, null: false
     t.boolean "has_gfa", default: false, null: false
@@ -240,6 +259,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_000001) do
     t.decimal "net_yield_percent", precision: 5, scale: 2
     t.bigint "notary_fees_cents"
     t.integer "operation_type"
+    t.decimal "overall_protection_score", precision: 5, scale: 2
+    t.string "overall_risk_level"
     t.bigint "owner_id", null: false
     t.integer "payment_frequency"
     t.date "planned_acquisition_date"
@@ -262,6 +283,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_000001) do
     t.datetime "updated_at", null: false
     t.bigint "works_budget_cents"
     t.text "yield_justification"
+    t.string "yousign_document_id"
+    t.datetime "yousign_sent_at"
+    t.text "yousign_signature_link"
+    t.string "yousign_signature_request_id"
+    t.string "yousign_signer_id"
+    t.string "yousign_status"
     t.index ["analyst_id"], name: "index_investment_projects_on_analyst_id"
     t.index ["analyst_opinion"], name: "index_investment_projects_on_analyst_opinion"
     t.index ["bank_loan_status"], name: "index_investment_projects_on_bank_loan_status"
@@ -547,6 +574,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_000001) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "analyst_reports", "investment_projects"
   add_foreign_key "analyst_reports", "users", column: "analyst_id"
+  add_foreign_key "asset_guarantees", "investment_projects"
   add_foreign_key "audit_logs", "users"
   add_foreign_key "chat_messages", "investment_projects"
   add_foreign_key "chat_messages", "users", column: "sender_id"

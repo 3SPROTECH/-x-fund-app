@@ -30,6 +30,10 @@ export const investmentProjectsApi = {
   delete(id) {
     return client.delete(`/investment_projects/${id}`);
   },
+
+  getAnalystReport(projectId) {
+    return client.get(`/investment_projects/${projectId}/analyst_report`);
+  },
 };
 
 export const investmentsApi = {
@@ -45,6 +49,12 @@ export const investmentsApi = {
     return client.post(`/investment_projects/${projectId}/investments`, {
       investment: { amount_cents: amountCents },
     });
+  },
+};
+
+export const platformConfigApi = {
+  get() {
+    return client.get('/platform_config');
   },
 };
 

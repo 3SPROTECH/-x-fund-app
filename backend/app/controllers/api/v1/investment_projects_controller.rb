@@ -1,7 +1,7 @@
 module Api
   module V1
     class InvestmentProjectsController < ApplicationController
-      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image]
+      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image, :analyst_report]
 
       def index
         projects = policy_scope(InvestmentProject).includes(:properties)
@@ -13,14 +13,14 @@ module Api
         projects = paginate(projects.order(created_at: :desc))
 
         render json: {
-          data: projects.map { |p| InvestmentProjectSerializer.new(p).serializable_hash[:data] },
+          data: projects.map { |p| InvestmentProjectSerializer.new(p, params: { hide_analyst_approved: current_user.porteur_de_projet? }).serializable_hash[:data] },
           meta: pagination_meta(projects)
         }
       end
 
       def show
         authorize @investment_project
-        render json: { data: InvestmentProjectSerializer.new(@investment_project, params: { include_snapshot: true }).serializable_hash[:data] }
+        render json: { data: InvestmentProjectSerializer.new(@investment_project, params: { include_snapshot: true, hide_analyst_approved: current_user.porteur_de_projet? }).serializable_hash[:data] }
       end
 
       def create
@@ -74,7 +74,8 @@ module Api
           return render json: { errors: ["Veuillez sélectionner au moins un bien"] }, status: :unprocessable_entity
         end
 
-        share_price = (project_params[:share_price_cents].presence || 0).to_i
+        default_price = Setting.get("default_share_price_cents") || 10000
+        share_price = (project_params[:share_price_cents].presence || default_price).to_i
         if share_price <= 0
           return render json: { errors: ["Le prix par part doit être supérieur à 0"] }, status: :unprocessable_entity
         end
@@ -108,6 +109,7 @@ module Api
           if params[:form_snapshot].present?
             snapshot = params[:form_snapshot].respond_to?(:to_unsafe_h) ? params[:form_snapshot].to_unsafe_h : params[:form_snapshot]
             @investment_project.update!(form_snapshot: snapshot, status: :pending_analysis)
+            @investment_project.compute_guarantee_aggregates
             Assignments::AnalystAssignmentService.assign!(@investment_project)
             NotificationService.notify_admins!(actor: current_user, notifiable: @investment_project, type: "project_submitted", title: "Nouveau projet soumis", body: "Le projet « #{@investment_project.title} » a ete soumis par #{current_user.full_name}.")
           end
@@ -161,6 +163,21 @@ module Api
         }, status: :ok
       rescue ActiveRecord::RecordNotFound
         render json: { error: "Image introuvable" }, status: :not_found
+      end
+
+      def analyst_report
+        unless @investment_project.owner_id == current_user.id
+          return render json: { error: "Acces non autorise." }, status: :forbidden
+        end
+
+        report = @investment_project.analyst_reports.order(created_at: :desc).first
+        unless report
+          return render json: { error: "Aucun rapport trouve." }, status: :not_found
+        end
+
+        render json: {
+          report: AnalystReportSerializer.new(report).serializable_hash[:data]
+        }
       end
 
       private

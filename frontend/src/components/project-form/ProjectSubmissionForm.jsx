@@ -1,12 +1,13 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle, ChevronLeft, MessageSquare, Info, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle, ChevronLeft, MessageSquare, Info, Send, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import useProjectFormStore, { MACRO_STEPS, STEP_CONFIG, createEmptyLot } from '../../stores/useProjectFormStore';
 import { projectDraftsApi } from '../../api/projectDrafts';
 import { companiesApi } from '../../api/companies';
-import { investmentProjectsApi } from '../../api/investments';
+import { investmentProjectsApi, platformConfigApi } from '../../api/investments';
+import { generatePdfReport } from '../../utils/reportGenerator';
 
 import StepPresentation from './steps/StepPresentation';
 import StepLocation from './steps/StepLocation';
@@ -16,6 +17,7 @@ import AssetHub from './steps/AssetHub';
 import AssetDetails from './steps/AssetDetails';
 import ExpensePlan from './steps/ExpensePlan';
 import SalesPlanLots from './steps/SalesPlanLots';
+import GuaranteeStep from './steps/GuaranteeStep';
 import VerificationDocs from './steps/VerificationDocs';
 import ContributionStep from './steps/ContributionStep';
 import FinancingSimulation from './steps/FinancingSimulation';
@@ -31,28 +33,31 @@ const STEP_COMPONENTS = [
   StepLocation,            // 1
   StepProjectOwner,        // 2
   StepFinancialStructure,  // 3
-  AssetHub,                // 4  - Macro 1 (hub - not a real micro step)
+  AssetHub,                // 4  - Macro 1 (hub)
   AssetDetails,            // 5  - Asset sub-flow step 1
   ExpensePlan,             // 6  - Asset sub-flow step 2
   SalesPlanLots,           // 7  - Asset sub-flow step 3
-  VerificationDocs,        // 8  - Asset sub-flow step 4
-  ContributionStep,        // 9  - Macro 2
-  FinancingSimulation,     // 10
-  AdditionalInfoStep,      // 11 - Macro 3 (Compléments - demo)
-  SignatureStep,           // 12 - Macro 4 (locked until analyst approves)
+  GuaranteeStep,           // 8  - Asset sub-flow step 4 (NEW)
+  VerificationDocs,        // 9  - Asset sub-flow step 5
+  ContributionStep,        // 10 - Macro 2
+  FinancingSimulation,     // 11
+  AdditionalInfoStep,      // 12 - Macro 3 (Compléments)
+  SignatureStep,           // 13 - Macro 4 (locked until signing)
 ];
 
 const HUB_INDEX = 4;
 const SUB_FLOW_START = 5;
-const SUB_FLOW_END = 8;
-const PROJECTION_START = 9;
-const SUBMIT_STEP = 10; // FinancingSimulation — last editable step
-const ADDITIONAL_INFO_STEP = 11; // Compléments step
+const SUB_FLOW_END = 9;
+const PROJECTION_START = 10;
+const SUBMIT_STEP = 11; // FinancingSimulation — last editable step
+const ADDITIONAL_INFO_STEP = 12; // Compléments step
+const SIGNATURE_STEP = 13; // SignatureStep
 
 const SUB_FLOW_LABELS = [
   'Détails de l\'actif',
   'Plan de dépenses',
   'Revenus par lot',
+  'Garanties',
   'Vérification docs',
 ];
 
@@ -71,8 +76,18 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
     consentGiven,
     draftId, isDirty, setDraftId, setLastSavedAt, getSerializableState, loadFromDraft,
     reset,
-    projectStatus, setProjectStatus, setLoadedProjectId,
+    projectStatus, setProjectStatus, setLoadedProjectId, setProjectAttributes,
   } = store;
+
+  const [downloadingReport, setDownloadingReport] = useState(false);
+  const [defaultSharePriceCents, setDefaultSharePriceCents] = useState(10000);
+
+  useEffect(() => {
+    platformConfigApi.get().then((res) => {
+      const price = res.data?.data?.default_share_price_cents;
+      if (price && price > 0) setDefaultSharePriceCents(price);
+    }).catch(() => { });
+  }, []);
 
   const stepConfig = STEP_CONFIG[globalStepIndex] || STEP_CONFIG[0];
   const currentMacro = stepConfig.macro;
@@ -132,9 +147,10 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
       // Load from a submitted project's form snapshot (read-only mode)
       investmentProjectsApi.get(initialProjectId).then((res) => {
         const project = res.data.data?.attributes || res.data.data || res.data;
-        // Store project ID and status for info_requested flow
+        // Store project ID, status, and raw attributes
         setLoadedProjectId(initialProjectId);
         setProjectStatus(project?.status || null);
+        setProjectAttributes(project);
 
         if (project?.form_snapshot && Object.keys(project.form_snapshot).length > 0) {
           loadFromDraft(project.form_snapshot, null);
@@ -182,7 +198,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
               financialDossierStatus: project.financial_dossier_status || [],
               additionalInfo: '',
             },
-            assets: [{ id: 1, label: project.property_title || 'Actif 1', completed: true, details: { isRefinancing: false, signatureDate: '', lotCount: '1', worksNeeded: false, worksDuration: '' }, costs: { items: [], total: 0 }, lots: [{ id: 1, preCommercialized: 'non', rented: 'non', surface: '', prix: 0, prixM2: 0, promesseRef: '', bailRef: '' }], documents: [], recettesTotal: 0 }],
+            assets: [{ id: 1, label: project.property_title || 'Actif 1', completed: true, details: { isRefinancing: false, signatureDate: '', lotCount: '1', worksNeeded: false, worksDuration: '' }, costs: { items: [], total: 0 }, lots: [{ id: 1, preCommercialized: 'non', rented: 'non', surface: '', prix: 0, prixM2: 0, promesseRef: '', bailRef: '' }], documents: [], recettesTotal: 0, guarantee: { type: '', rank: '', assetValue: 0, debtAmount: 0, ltv: 0, protectionScore: 0, riskLevel: '', description: '', guarantor: '' }, guaranteeDocs: [] }],
             projections: { contributionPct: 20, durationMonths: project.duration_months || 12, proofFileName: '' },
             consentGiven: project.consent_given || false,
           };
@@ -192,6 +208,8 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         // If info flow, go to the Compléments step; otherwise show projection summary
         if (project?.status === 'info_requested' || project?.status === 'info_resubmitted') {
           setGlobalStep(ADDITIONAL_INFO_STEP);
+        } else if (project?.status === 'signing') {
+          setGlobalStep(SIGNATURE_STEP);
         } else {
           setGlobalStep(SUBMIT_STEP);
         }
@@ -379,9 +397,9 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         equity_cents: Math.round(totalCosts * (proj.contributionPct / 100) * 100),
         consent_given: state.consentGiven,
         consent_given_at: state.consentGiven ? new Date().toISOString() : undefined,
-        share_price_cents: 10000,
-        total_shares: Math.max(1, Math.floor((toCents(fin.totalFunding) || totalCosts * 100) / 10000)),
-        min_investment_cents: 10000,
+        share_price_cents: defaultSharePriceCents,
+        total_shares: Math.max(1, Math.floor((toCents(fin.totalFunding) || totalCosts * 100) / defaultSharePriceCents)),
+        min_investment_cents: defaultSharePriceCents,
         funding_start_date: new Date().toISOString().split('T')[0],
         funding_end_date: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
       };
@@ -490,7 +508,16 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         }
         break;
       }
-      case 9: // Contribution
+      case 8: { // Guarantee
+        if (s.selectedAssetIndex !== null) {
+          s.updateAssetGuarantee('type', 'hypotheque');
+          s.updateAssetGuarantee('rank', '1er_rang');
+          s.updateAssetGuarantee('description', 'Hypothèque de premier rang sur le bien immobilier objet de l\'opération.');
+          s.updateAssetGuarantee('guarantor', '');
+        }
+        break;
+      }
+      case 10: // Contribution
         s.updateProjections('contributionPct', 25);
         s.updateProjections('durationMonths', 18);
         break;
@@ -500,24 +527,43 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
     toast.success('Données test injectées !');
   };
 
+  // ── Report download (for approved projects) ──
+  const handleDownloadReport = async () => {
+    if (!initialProjectId) return;
+    setDownloadingReport(true);
+    try {
+      const res = await investmentProjectsApi.getAnalystReport(initialProjectId);
+      const report = res.data.report;
+      const rd = report?.attributes || report;
+      generatePdfReport(rd, store.presentation);
+    } catch {
+      toast.error('Erreur lors du téléchargement du rapport');
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
+
   // ── Button labels ──
   const isSubmitStep = globalStepIndex === SUBMIT_STEP;
   const isAdditionalInfoStep = globalStepIndex === ADDITIONAL_INFO_STEP;
+  const isSignatureStep = globalStepIndex === SIGNATURE_STEP;
   const isEndOfSubFlow = globalStepIndex === SUB_FLOW_END;
   const hubAllComplete = isOnHub && allAssetsComplete();
   const isLastNavigable = globalStepIndex === SUBMIT_STEP;
 
-  const nextLabel = isAdditionalInfoStep && submitted
-    ? (projectStatus === 'info_resubmitted' ? 'Compléments envoyés' : 'Envoyer les compléments')
-    : submitted
-      ? ((isLastNavigable && !isInfoFlow) ? 'Dossier envoyé' : 'Suivant')
-      : submitting
-        ? 'Envoi en cours...'
-        : isSubmitStep
-          ? 'Envoyer mon dossier en analyse'
-          : isEndOfSubFlow
-            ? 'Terminer cet actif'
-            : 'Suivant';
+  const nextLabel = isSignatureStep && submitted && projectStatus === 'signing'
+    ? 'Contrat en cours de signature'
+    : isAdditionalInfoStep && submitted
+      ? (projectStatus === 'info_resubmitted' ? 'Compléments envoyés' : 'Envoyer les compléments')
+      : submitted
+        ? ((isLastNavigable && !isInfoFlow) ? 'Dossier envoyé' : 'Suivant')
+        : submitting
+          ? 'Envoi en cours...'
+          : isSubmitStep
+            ? 'Envoyer mon dossier en analyse'
+            : isEndOfSubFlow
+              ? 'Terminer cet actif'
+              : 'Suivant';
 
   const prevLabel = (globalStepIndex === SUB_FLOW_START && selectedAssetIndex !== null)
     ? 'Retour au Hub'
@@ -528,6 +574,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
   const nextDisabled = submitting
     || (submitted && isLastNavigable && !isInfoFlow)
     || (submitted && isAdditionalInfoStep && projectStatus === 'info_resubmitted')
+    || (submitted && isSignatureStep && projectStatus === 'signing')
     || (isOnHub && !hubAllComplete && !submitted);
 
   const StepComponent = STEP_COMPONENTS[globalStepIndex];
@@ -592,7 +639,32 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
 
         {/* Success / Info Banner - context-aware (hidden on Additional Info step which has its own) */}
         {submitted && globalStepIndex !== ADDITIONAL_INFO_STEP && (
-          projectStatus === 'info_requested' ? (
+          projectStatus === 'approved' ? (
+            <div className="pf-success-banner" style={{ borderColor: 'var(--gold-color, #DAA520)' }}>
+              <CheckCircle size={20} />
+              <div style={{ flex: 1 }}>
+                <strong>Projet approuve</strong>
+                <span>Votre projet a ete analyse et approuve. Vous pouvez telecharger le rapport d'analyse ci-dessous.</span>
+              </div>
+              <button
+                type="button"
+                className="pf-nav-btn pf-btn-next"
+                onClick={handleDownloadReport}
+                disabled={downloadingReport}
+                style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}
+              >
+                <Download size={16} /> {downloadingReport ? 'Telechargement...' : 'Telecharger le rapport'}
+              </button>
+            </div>
+          ) : projectStatus === 'signing' ? (
+            <div className="pf-success-banner" style={{ borderColor: 'var(--info-color, #3498db)' }}>
+              <FileText size={20} />
+              <div style={{ flex: 1 }}>
+                <strong>Contrat en attente de signature</strong>
+                <span>Veuillez consulter le contrat ci-dessous et proceder a la signature.</span>
+              </div>
+            </div>
+          ) : projectStatus === 'info_requested' ? (
             <div className="pf-info-banner">
               <Info size={20} />
               <div>
@@ -623,7 +695,9 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         <div className={`pf-dynamic-fields${submitted && globalStepIndex !== ADDITIONAL_INFO_STEP ? ' pf-read-only' : ''}`} ref={scrollRef}>
           {globalStepIndex === ADDITIONAL_INFO_STEP
             ? <StepComponent onSubmitRef={additionalInfoSubmitRef} />
-            : <StepComponent />
+            : globalStepIndex === SUBMIT_STEP
+              ? <StepComponent defaultSharePriceCents={defaultSharePriceCents} />
+              : <StepComponent />
           }
         </div>
 
