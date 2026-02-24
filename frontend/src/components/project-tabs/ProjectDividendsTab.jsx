@@ -7,12 +7,26 @@ import {
   formatCents as fmt, formatDate as fmtDate,
   FREQ_MONTHS, FREQ_LABELS, DIVIDEND_STATUS_LABELS as DIV_STATUS,
 } from '../../utils';
+import TableFilters from '../TableFilters';
+
+const STATUS_OPTIONS = [
+  { value: '', label: 'Tous les statuts' },
+  { value: 'planifie', label: 'Planifie' },
+  { value: 'distribue', label: 'Distribue' },
+  { value: 'annule', label: 'Annule' },
+];
 
 export default function ProjectDividendsTab({ project, projectId, dividends, isAdmin, onRefresh }) {
   const navigate = useNavigate();
   const [divFrequency, setDivFrequency] = useState('trimestriel');
   const [divConfirm, setDivConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('');
+
+  const filteredDividends = dividends.filter(d => {
+    if (!statusFilter) return true;
+    return (d.attributes || d).status === statusFilter;
+  });
 
   const a = project.attributes || project;
 
@@ -177,8 +191,14 @@ export default function ProjectDividendsTab({ project, projectId, dividends, isA
           )}
         </div>
       )}
-      {dividends.length === 0 ? (
-        <div className="card"><div className="empty-state"><DollarSign size={48} /><p>Aucun dividende</p></div></div>
+      {dividends.length > 0 && (
+        <TableFilters
+          filters={[{ key: 'status', label: 'Statut', value: statusFilter, options: STATUS_OPTIONS }]}
+          onFilterChange={(key, val) => setStatusFilter(val)}
+        />
+      )}
+      {filteredDividends.length === 0 ? (
+        <div className="card"><div className="empty-state"><DollarSign size={48} /><p>{dividends.length === 0 ? 'Aucun dividende' : 'Aucun dividende pour ce filtre'}</p></div></div>
       ) : (
         <div className="table-container">
           <table className="table">
@@ -186,7 +206,7 @@ export default function ProjectDividendsTab({ project, projectId, dividends, isA
               <tr><th>Date création</th><th>Période</th><th>Montant total</th><th>Par part</th><th>Statut</th><th>Actions</th></tr>
             </thead>
             <tbody>
-              {dividends.map(d => {
+              {filteredDividends.map(d => {
                 const da = d.attributes || d;
                 return (
                   <tr key={d.id}>
