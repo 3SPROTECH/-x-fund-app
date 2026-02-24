@@ -5,7 +5,8 @@ import { dashboardApi, investmentProjectsApi } from '../../api/investments';
 import toast from 'react-hot-toast';
 import { formatCents as fmt } from '../../utils';
 import { LoadingSpinner } from '../../components/ui';
-import { PiggyBank, TrendingUp, Percent, MapPin, MoreHorizontal, Info } from 'lucide-react';
+import { PiggyBank, TrendingUp, Percent, MapPin, MoreHorizontal, Info, ImageIcon } from 'lucide-react';
+import { getImageUrl } from '../../api/client';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,10 +16,11 @@ import {
   ArcElement,
   Filler,
   Tooltip,
+  Legend,
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, Tooltip);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, Tooltip, Legend);
 
 const STATIC_BADGE = (
   <span className="static-data-badge">
@@ -95,7 +97,7 @@ function StatusDoughnut() {
     labels: ['En cours', 'Terminés', 'En retard'],
     datasets: [{
       data: [4, 2, 0],
-      backgroundColor: ['#B8860B', '#DAA520', '#F0D878'],
+      backgroundColor: ['#1a1a2e', '#4a4a6a', '#c8c8d4'],
       borderWidth: 0,
       hoverOffset: 4,
     }],
@@ -108,7 +110,7 @@ function StatusDoughnut() {
     plugins: {
       legend: {
         position: 'bottom',
-        labels: { boxWidth: 10, usePointStyle: true, padding: 16, font: { size: 12 } },
+        labels: { boxWidth: 12, boxHeight: 12, usePointStyle: false, padding: 16, font: { size: 12 } },
       },
     },
   };
@@ -121,7 +123,7 @@ function TypologyDoughnut() {
     labels: ['Résidentiel', 'Commerces', 'Bureaux'],
     datasets: [{
       data: [5, 1, 2],
-      backgroundColor: ['#8B6914', '#DAA520', '#F5DEB3'],
+      backgroundColor: ['#0f172a', '#64748b', '#cbd5e1'],
       borderWidth: 0,
       hoverOffset: 4,
     }],
@@ -134,7 +136,7 @@ function TypologyDoughnut() {
     plugins: {
       legend: {
         position: 'bottom',
-        labels: { boxWidth: 10, usePointStyle: true, padding: 16, font: { size: 12 } },
+        labels: { boxWidth: 12, boxHeight: 12, usePointStyle: false, padding: 16, font: { size: 12 } },
       },
     },
   };
@@ -144,15 +146,21 @@ function TypologyDoughnut() {
 
 function ProjectCard({ project, onClick }) {
   const p = project.attributes || project;
-  const funded = p.funding_progress_percentage ?? 65;
-  const yieldRate = p.expected_annual_yield ?? '11.5';
+  const funded = Math.min(p.funding_progress_percent ?? 0, 100);
+  const yieldRate = p.net_yield_percent ?? p.gross_yield_percent ?? 0;
+  const raisedFormatted = fmt(p.amount_raised_cents ?? 0);
+  const firstImage =
+    p.images?.length > 0 ? p.images[0] :
+    p.property_photos?.length > 0 ? p.property_photos[0] : null;
 
   return (
     <div className="dash-project-card" onClick={onClick}>
-      <div
-        className="dash-project-image"
-        style={p.cover_image_url ? { backgroundImage: `url(${p.cover_image_url})` } : undefined}
-      >
+      <div className="dash-project-image">
+        {firstImage ? (
+          <img src={getImageUrl(firstImage.url)} alt={p.title} />
+        ) : (
+          <div className="dash-project-image-placeholder"><ImageIcon size={32} /></div>
+        )}
         <span className="dash-badge-status">
           {p.status === 'funding_active' ? 'Collecte en cours' : 'À venir'}
         </span>
@@ -173,7 +181,8 @@ function ProjectCard({ project, onClick }) {
             <div className="dash-progress-bar-fill" style={{ width: `${funded}%` }} />
           </div>
           <div className="dash-progress-stats">
-            <span>{funded}% financé</span>
+            <span>{raisedFormatted} collectés</span>
+            <span>{funded}%</span>
           </div>
         </div>
       </div>
