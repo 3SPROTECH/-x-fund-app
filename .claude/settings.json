@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rails runner:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash push:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(claude --version:*)",
+      "Bash(npm update:*)"
+    ]
+  }
+}

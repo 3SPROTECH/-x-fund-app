@@ -1,0 +1,11 @@
+{
+  "appId": "com.xfund.app",
+  "appName": "X-Fund",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": ["*"],
+    "url": "http://192.168.11.106:5175",
+    "cleartext": true
+  }
+}

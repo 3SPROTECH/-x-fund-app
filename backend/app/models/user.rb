@@ -30,6 +30,12 @@ class User < ApplicationRecord
   before_save :auto_verify_kyc_for_admin
   after_create :create_wallet!
 
+  # Disable automatic tracking on every API token auth.
+  # Sign-in is tracked manually in SessionsController#create only.
+  def update_tracked_fields!(request)
+    # no-op for JWT API requests
+  end
+
   def full_name
     "#{first_name} #{last_name}"
   end

@@ -16,11 +16,15 @@ module Auditable
   end
 
   def log_audit(action)
+    changes = saved_changes.except(*audit_excluded_fields)
+    # Skip logging updates with no meaningful changes
+    return if action == "update" && changes.empty?
+
     AuditLog.create!(
       user: Current.user,
       auditable: self,
       action: action,
-      changes_data: saved_changes.except(*audit_excluded_fields),
+      changes_data: changes,
       ip_address: Current.ip_address,
       user_agent: Current.user_agent
     )

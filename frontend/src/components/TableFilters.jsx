@@ -81,17 +81,6 @@ function CustomSelect({ label, value, options, onChange, searchable = false }) {
   );
 }
 
-/**
- * Reusable filter + search bar for tables.
- *
- * @param {Object} props
- * @param {Array} props.filters - Array of filter definitions:
- *   { key: string, label: string, value: string, options: [{ value: string, label: string }] }
- * @param {Function} props.onFilterChange - (key, value) => void
- * @param {string} [props.search] - Current search value (omit to hide search)
- * @param {Function} [props.onSearchChange] - (value) => void
- * @param {string} [props.searchPlaceholder] - Placeholder for the search input
- */
 function DebouncedSearch({ value, onChange, placeholder }) {
   const [local, setLocal] = useState(value || '');
   const timerRef = useRef(null);

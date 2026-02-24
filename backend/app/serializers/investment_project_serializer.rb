@@ -53,7 +53,7 @@ class InvestmentProjectSerializer
   end
 
   attribute :property_ids do |project|
-    project.properties.pluck(:id)
+    project.properties.map(&:id)
   end
 
   attribute :owner_id do |project|
@@ -113,19 +113,19 @@ class InvestmentProjectSerializer
   end
 
   attribute :has_analyst_report do |project|
-    project.analyst_reports.exists?
+    project.analyst_reports.any?
   end
 
   attribute :latest_analyst_report_id do |project|
-    project.analyst_reports.order(created_at: :desc).first&.id
+    project.analyst_reports.max_by(&:created_at)&.id
   end
 
   attribute :has_pending_info_request do |project|
-    project.info_requests.where(status: :pending).exists?
+    project.info_requests.any? { |ir| ir.status == "pending" }
   end
 
   attribute :latest_info_request_id do |project|
-    project.info_requests.order(created_at: :desc).first&.id
+    project.info_requests.max_by(&:created_at)&.id
   end
 
   attribute :investment_fee_percent do |_project|

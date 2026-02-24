@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import notificationsApi from '../api/notifications';
 import '../styles/notifications.css';
 
-const POLL_INTERVAL = 30000; // 30 seconds
+const POLL_INTERVAL = 120000; // 2 minutes
 
 function timeAgo(dateStr) {
   const now = new Date();

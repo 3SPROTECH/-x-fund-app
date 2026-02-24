@@ -33,7 +33,7 @@ export default function FloatingChat() {
     const panelRef = useRef(null);
     const lastMsgTsRef = useRef(null);
 
-    // Fetch conversations (polling every 30s, even when closed — for badge)
+    // Fetch conversations
     const fetchConversations = useCallback(async () => {
         try {
             const res = await chatApi.getConversations();
@@ -44,11 +44,16 @@ export default function FloatingChat() {
         } catch { return []; }
     }, []);
 
+    // Fetch once on mount for unread badge
+    useEffect(() => { fetchConversations(); }, []);
+
+    // Poll only when chat is open
     useEffect(() => {
+        if (!open) return;
         fetchConversations();
         const interval = setInterval(fetchConversations, CONV_POLL);
         return () => clearInterval(interval);
-    }, [fetchConversations]);
+    }, [open, fetchConversations]);
 
     // When opening, auto-select if only 1 conversation
     useEffect(() => {

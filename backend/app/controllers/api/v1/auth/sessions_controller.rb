@@ -9,6 +9,9 @@ module Api
           user = User.find_for_database_authentication(email: sign_in_params[:email])
           if user&.valid_password?(sign_in_params[:password])
             sign_in(resource_name, user, store: false)
+            # Manually track sign-in (update_tracked_fields! is disabled for API auth)
+            user.update_tracked_fields(request)
+            user.save(validate: false)
             render json: {
               message: "Connexion reussie.",
               data: UserSerializer.new(user).serializable_hash

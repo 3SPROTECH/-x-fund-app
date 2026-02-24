@@ -6,8 +6,14 @@ module Api
         before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :advance_status, :assign_analyst, :report, :send_contract, :check_signature_status]
 
         def index
-          projects = InvestmentProject.includes(properties: :owner).all
+          projects = InvestmentProject
+            .includes(:owner, :reviewer, :analyst, :analyst_reports, :info_requests,
+                      properties: [:owner, { photos_attachments: :blob }])
+            .with_attached_additional_documents
           projects = projects.where(status: params[:status]) if params[:status].present?
+          projects = projects.where(owner_id: params[:owner_id]) if params[:owner_id].present?
+          projects = projects.where(analyst_id: params[:analyst_id]) if params[:analyst_id].present?
+          projects = projects.where(analyst_opinion: params[:analyst_opinion]) if params[:analyst_opinion].present?
           if params[:needs_analyst] == "true"
             projects = projects.where(analyst_id: nil).where.not(status: [:draft, :rejected, :repaid])
           end
@@ -267,7 +273,11 @@ module Api
         end
 
         def set_project
-          @project = InvestmentProject.find(params[:id])
+          @project = InvestmentProject
+            .includes(:owner, :reviewer, :analyst, :analyst_reports, :info_requests,
+                      properties: [:owner, { photos_attachments: :blob }])
+            .with_attached_additional_documents
+            .find(params[:id])
         end
 
         def admin_project_params

@@ -4,7 +4,10 @@ module Api
       before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image, :analyst_report]
 
       def index
-        projects = policy_scope(InvestmentProject).includes(:properties)
+        projects = policy_scope(InvestmentProject)
+          .includes(:owner, :reviewer, :analyst, :analyst_reports, :info_requests,
+                    properties: [:owner, { photos_attachments: :blob }])
+          .with_attached_additional_documents
         projects = projects.where(status: params[:status]) if params[:status].present?
         if params[:search].present?
           q = "%#{params[:search]}%"
@@ -183,7 +186,11 @@ module Api
       private
 
       def set_investment_project
-        @investment_project = InvestmentProject.find(params[:id])
+        @investment_project = InvestmentProject
+          .includes(:owner, :reviewer, :analyst, :analyst_reports, :info_requests,
+                    properties: [:owner, { photos_attachments: :blob }])
+          .with_attached_additional_documents
+          .find(params[:id])
       end
 
       def project_params

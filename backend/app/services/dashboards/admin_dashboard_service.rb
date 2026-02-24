@@ -13,55 +13,65 @@ module Dashboards
 
     private
 
+    # 2 queries instead of 6
     def user_stats
+      role_counts = User.group(:role).count
+      kyc_counts = User.where.not(role: :administrateur).group(:kyc_status).count
       {
-        total: User.count,
-        investisseurs: User.investisseur.count,
-        porteurs_de_projet: User.porteur_de_projet.count,
-        administrateurs: User.administrateur.count,
-        kyc_pending: User.where(kyc_status: :submitted).where.not(role: :administrateur).count,
-        kyc_verified: User.where(kyc_status: :verified).where.not(role: :administrateur).count
+        total: role_counts.values.sum,
+        investisseurs: role_counts["investisseur"] || 0,
+        porteurs_de_projet: role_counts["porteur_de_projet"] || 0,
+        administrateurs: role_counts["administrateur"] || 0,
+        kyc_pending: kyc_counts["submitted"] || 0,
+        kyc_verified: kyc_counts["verified"] || 0
       }
     end
 
+    # 1 query instead of 4
     def property_stats
+      counts = Property.group(:status).count
       {
-        total: Property.count,
-        brouillon: Property.brouillon.count,
-        en_financement: Property.en_financement.count,
-        finance: Property.finance.count
+        total: counts.values.sum,
+        brouillon: counts["brouillon"] || 0,
+        en_financement: counts["en_financement"] || 0,
+        finance: counts["finance"] || 0
       }
     end
 
+    # 1 query instead of 12
     def project_stats
+      counts = InvestmentProject.group(:status).count
       {
-        total: InvestmentProject.count,
-        draft: InvestmentProject.draft.count,
-        pending_analysis: InvestmentProject.pending_analysis.count,
-        info_requested: InvestmentProject.info_requested.count,
-        approved: InvestmentProject.approved.count,
-        rejected: InvestmentProject.rejected.count,
-        legal_structuring: InvestmentProject.legal_structuring.count,
-        funding_active: InvestmentProject.funding_active.count,
-        funded: InvestmentProject.funded.count,
-        under_construction: InvestmentProject.under_construction.count,
-        operating: InvestmentProject.operating.count,
-        repaid: InvestmentProject.repaid.count
+        total: counts.values.sum,
+        draft: counts["draft"] || 0,
+        pending_analysis: counts["pending_analysis"] || 0,
+        info_requested: counts["info_requested"] || 0,
+        approved: counts["approved"] || 0,
+        rejected: counts["rejected"] || 0,
+        legal_structuring: counts["legal_structuring"] || 0,
+        funding_active: counts["funding_active"] || 0,
+        funded: counts["funded"] || 0,
+        under_construction: counts["under_construction"] || 0,
+        operating: counts["operating"] || 0,
+        repaid: counts["repaid"] || 0
       }
     end
 
     def investment_stats
+      active = Investment.active
       {
         total_count: Investment.count,
-        total_amount_cents: Investment.active.sum(:amount_cents),
-        active_count: Investment.active.count
+        total_amount_cents: active.sum(:amount_cents),
+        active_count: active.count
       }
     end
 
+    # 1 query instead of 2 for wallets
     def financial_stats
+      wallet_sums = Wallet.pick(Arel.sql("COALESCE(SUM(balance_cents),0), COALESCE(SUM(total_deposited_cents),0)"))
       {
-        total_wallets_balance_cents: Wallet.sum(:balance_cents),
-        total_deposits_cents: Wallet.sum(:total_deposited_cents),
+        total_wallets_balance_cents: wallet_sums[0],
+        total_deposits_cents: wallet_sums[1],
         total_dividends_distributed_cents: Dividend.distributed.sum(:total_amount_cents),
         total_transactions: Transaction.count
       }

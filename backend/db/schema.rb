@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_23_144557) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_25_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -290,6 +290,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_144557) do
     t.string "yousign_signer_id"
     t.string "yousign_status"
     t.index ["analyst_id"], name: "index_investment_projects_on_analyst_id"
+    t.index ["analyst_opinion"], name: "idx_projects_analyst_opinion"
     t.index ["analyst_opinion"], name: "index_investment_projects_on_analyst_opinion"
     t.index ["bank_loan_status"], name: "index_investment_projects_on_bank_loan_status"
     t.index ["exit_scenario"], name: "index_investment_projects_on_exit_scenario"
@@ -299,6 +300,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_144557) do
     t.index ["operation_type"], name: "index_investment_projects_on_operation_type"
     t.index ["owner_id"], name: "index_investment_projects_on_owner_id"
     t.index ["reviewed_by_id"], name: "index_investment_projects_on_reviewed_by_id"
+    t.index ["status", "created_at"], name: "idx_projects_status_created"
     t.index ["status"], name: "index_investment_projects_on_status"
   end
 
@@ -313,6 +315,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_144557) do
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["created_at"], name: "idx_investments_created_at"
     t.index ["investment_project_id"], name: "index_investments_on_investment_project_id"
     t.index ["status"], name: "index_investments_on_status"
     t.index ["user_id", "investment_project_id"], name: "index_investments_on_user_id_and_investment_project_id"
@@ -554,6 +557,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_144557) do
     t.index ["jti"], name: "index_users_on_jti", unique: true
     t.index ["kyc_status"], name: "index_users_on_kyc_status"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["role", "kyc_status"], name: "idx_users_role_kyc"
     t.index ["role"], name: "index_users_on_role"
   end
 
