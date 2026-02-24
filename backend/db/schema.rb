@@ -161,6 +161,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_24_092900) do
     t.bigint "amount_per_share_cents", null: false
     t.datetime "created_at", null: false
     t.date "distribution_date"
+    t.bigint "financial_statement_id"
     t.bigint "investment_project_id", null: false
     t.date "period_end", null: false
     t.date "period_start", null: false
@@ -168,23 +169,42 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_24_092900) do
     t.bigint "total_amount_cents", null: false
     t.datetime "updated_at", null: false
     t.index ["distribution_date"], name: "index_dividends_on_distribution_date"
+    t.index ["financial_statement_id", "status"], name: "index_dividends_on_financial_statement_id_and_status"
+    t.index ["financial_statement_id"], name: "index_dividends_on_financial_statement_id"
     t.index ["investment_project_id"], name: "index_dividends_on_investment_project_id"
     t.index ["status"], name: "index_dividends_on_status"
   end
 
   create_table "financial_statements", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.bigint "distributable_cash_cents", default: 0, null: false
+    t.bigint "gross_rental_income_cents", default: 0, null: false
     t.decimal "gross_yield_percent", precision: 5, scale: 2
+    t.bigint "hoa_fees_cents", default: 0, null: false
+    t.bigint "insurance_cents", default: 0, null: false
     t.bigint "investment_project_id", null: false
     t.bigint "management_fees_cents", default: 0, null: false
+    t.bigint "mortgage_interest_cents", default: 0, null: false
     t.bigint "net_income_cents", default: 0, null: false
+    t.bigint "net_operating_income_cents", default: 0, null: false
     t.decimal "net_yield_percent", precision: 5, scale: 2
+    t.decimal "occupancy_rate_percent", precision: 5, scale: 2
+    t.bigint "other_income_cents", default: 0, null: false
     t.date "period_end", null: false
     t.date "period_start", null: false
+    t.bigint "property_management_cents", default: 0, null: false
+    t.bigint "property_taxes_cents", default: 0, null: false
+    t.bigint "property_value_cents"
+    t.bigint "rental_income_cents", default: 0, null: false
+    t.bigint "repairs_maintenance_cents", default: 0, null: false
+    t.bigint "reserve_contributions_cents", default: 0, null: false
     t.integer "statement_type", null: false
     t.bigint "total_expenses_cents", default: 0, null: false
     t.bigint "total_revenue_cents", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.bigint "utilities_cents", default: 0, null: false
+    t.bigint "vacancy_loss_cents", default: 0, null: false
+    t.index ["distributable_cash_cents"], name: "index_financial_statements_on_distributable_cash_cents"
     t.index ["investment_project_id", "period_start", "period_end"], name: "idx_financial_statements_on_project_and_period", unique: true
     t.index ["investment_project_id"], name: "index_financial_statements_on_investment_project_id"
   end
@@ -585,6 +605,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_24_092900) do
   add_foreign_key "dividend_payments", "dividends"
   add_foreign_key "dividend_payments", "investments"
   add_foreign_key "dividend_payments", "users"
+  add_foreign_key "dividends", "financial_statements"
   add_foreign_key "dividends", "investment_projects"
   add_foreign_key "financial_statements", "investment_projects"
   add_foreign_key "info_requests", "investment_projects"
