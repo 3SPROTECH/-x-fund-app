@@ -72,6 +72,7 @@ Rails.application.routes.draw do
           post :upload_images
           delete 'delete_image/:image_id', action: :delete_image, as: :delete_image
           get :analyst_report
+          post :signature_status
         end
       end
 

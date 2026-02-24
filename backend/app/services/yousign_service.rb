@@ -29,8 +29,7 @@ class YousignService
       signature_request_id,
       document_id,
       admin_user,
-      total_pages,
-      signing_order: 1
+      total_pages
     )
     admin_signer_id = admin_signer["id"]
 
@@ -39,8 +38,7 @@ class YousignService
       signature_request_id,
       document_id,
       owner,
-      total_pages,
-      signing_order: 2
+      total_pages
     )
     owner_signer_id = owner_signer["id"]
 
@@ -61,8 +59,7 @@ class YousignService
       yousign_admin_signer_id: admin_signer_id,
       yousign_admin_signature_link: admin_signature_link,
       yousign_status: "awaiting_admin",
-      yousign_sent_at: Time.current,
-      status: :signing
+      yousign_sent_at: Time.current
     )
 
     { signature_request_id:, signer_id: owner_signer_id, admin_signer_id:, signature_link: owner_signature_link, admin_signature_link: }
@@ -72,7 +69,7 @@ class YousignService
   def self.create_signature_request(project)
     body = {
       name: "Convention de partenariat - #{project.title}",
-      delivery_mode: "none",
+      delivery_mode: "email",
       ordered_signers: true,
       timezone: "Europe/Paris",
       audit_trail_locale: "fr"
@@ -108,7 +105,9 @@ class YousignService
   end
 
   # Step 3: Add a signer (signature field is placed via smart anchor in the PDF)
-  def self.add_signer(signature_request_id, document_id, user, last_page, signing_order: nil)
+  # Order is determined by the sequence signers are added (admin first, owner second)
+  # combined with ordered_signers: true on the signature request.
+  def self.add_signer(signature_request_id, document_id, user, last_page)
     body = {
       info: {
         first_name: sanitize_name(user.first_name),
@@ -119,7 +118,6 @@ class YousignService
       signature_level: "electronic_signature",
       signature_authentication_mode: "no_otp"
     }
-    body[:signing_order] = signing_order if signing_order.present?
 
     response = post(
       "/signature_requests/#{signature_request_id}/signers",

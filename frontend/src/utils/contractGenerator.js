@@ -246,14 +246,14 @@ export function getContractBlocks(projectAttrs) {
     { type: 'p', segments: [e('La Plateforme', true)] },
     { type: 'p', segments: [e('Nom : '), e(d.platformName, true)] },
     { type: 'p', segments: [e('Signature : ')] },
-    { type: 'anchor', text: '{{s2|signature|180|60}}' },
+    { type: 'anchor', text: '{{s1|signature|180|60}}' },
     { type: 'spacer' },
 
     { type: 'hr' },
     { type: 'p', segments: [e('Le Porteur de Projet', true)] },
     { type: 'p', segments: [e('Nom : '), e(d.ownerName, true)] },
     { type: 'p', segments: [e('Signature : ')] },
-    { type: 'anchor', text: '{{s1|signature|180|60}}' },
+    { type: 'anchor', text: '{{s2|signature|180|60}}' },
   ];
 }
 

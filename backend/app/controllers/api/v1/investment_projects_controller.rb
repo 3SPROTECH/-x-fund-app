@@ -1,7 +1,7 @@
 module Api
   module V1
     class InvestmentProjectsController < ApplicationController
-      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image, :analyst_report]
+      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image, :analyst_report, :signature_status]
 
       def index
         projects = policy_scope(InvestmentProject)
@@ -184,6 +184,42 @@ module Api
         render json: {
           report: AnalystReportSerializer.new(report).serializable_hash[:data]
         }
+      end
+
+      # Owner-accessible endpoint to refresh signature link from YouSign
+      def signature_status
+        unless @investment_project.owner_id == current_user.id
+          return render json: { error: "Non autorise." }, status: :forbidden
+        end
+
+        unless @investment_project.signing? && @investment_project.yousign_signature_request_id.present?
+          return render json: { error: "Pas de signature en cours." }, status: :not_found
+        end
+
+        begin
+          status_data = YousignService.get_status(@investment_project.yousign_signature_request_id)
+          signers = status_data["signers"] || []
+          owner_signer = signers.find { |s| s["id"] == @investment_project.yousign_signer_id }
+
+          fresh_owner_link = owner_signer&.dig("signature_link")
+          if fresh_owner_link.present? && fresh_owner_link != @investment_project.yousign_signature_link
+            @investment_project.update!(yousign_signature_link: fresh_owner_link)
+          end
+
+          owner_status = owner_signer&.dig("status") || "pending"
+          yousign_status = status_data["status"]
+
+          # Auto-advance if signing is done
+          if yousign_status == "done" && !@investment_project.legal_structuring?
+            @investment_project.update!(yousign_status: "done", status: :legal_structuring)
+          elsif owner_status == "signed"
+            @investment_project.update!(yousign_status: "owner_signed") unless @investment_project.yousign_status == "done"
+          end
+
+          render json: { data: InvestmentProjectSerializer.new(@investment_project.reload).serializable_hash[:data] }
+        rescue YousignService::YousignError => e
+          render json: { errors: ["Erreur YouSign: #{e.message}"] }, status: :unprocessable_entity
+        end
       end
 
       private

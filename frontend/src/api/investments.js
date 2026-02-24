@@ -34,6 +34,10 @@ export const investmentProjectsApi = {
   getAnalystReport(projectId) {
     return client.get(`/investment_projects/${projectId}/analyst_report`);
   },
+
+  refreshSignatureStatus(projectId) {
+    return client.post(`/investment_projects/${projectId}/signature_status`);
+  },
 };
 
 export const investmentsApi = {
