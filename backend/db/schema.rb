@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_23_144557) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_24_092900) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -290,6 +290,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_144557) do
     t.datetime "updated_at", null: false
     t.bigint "works_budget_cents"
     t.text "yield_justification"
+    t.text "yousign_admin_signature_link"
+    t.string "yousign_admin_signer_id"
     t.string "yousign_document_id"
     t.datetime "yousign_sent_at"
     t.text "yousign_signature_link"

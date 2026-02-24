@@ -266,24 +266,85 @@ export default function AdminProjectDetailPage() {
       )}
 
       {/* Signing status banner */}
-      {a.status === 'signing' && (
-        <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '2px solid var(--info-color, #3498db)' }}>
-          <div>
-            <h3 style={{ margin: 0 }}>En attente de signature (YouSign)</h3>
-            <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
-              Le contrat a ete envoye au porteur via YouSign. {a.yousign_status === 'ongoing' ? 'En attente de signature.' : a.yousign_status === 'done' ? 'Signe !' : `Statut : ${a.yousign_status || 'en attente'}`}
-            </p>
+      {a.status === 'signing' && (() => {
+        const ownerSigned = ['owner_signed', 'done'].includes(a.yousign_status);
+        const adminSigned = ['admin_signed', 'done'].includes(a.yousign_status);
+        const allDone = a.yousign_status === 'done';
+        const adminSignLink = a.yousign_admin_signature_link;
+
+        return (
+          <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem', border: `2px solid ${allDone ? 'var(--success-color, #10b981)' : 'var(--info-color, #3498db)'}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <div>
+                <h3 style={{ margin: 0 }}>{allDone ? 'Contrat signe par les deux parties' : 'En attente de signatures (YouSign)'}</h3>
+                <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
+                  {allDone
+                    ? 'Le contrat a ete signe par le porteur et la plateforme.'
+                    : 'Le contrat requiert la signature du porteur et de la plateforme.'}
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '.5rem', flexShrink: 0 }}>
+                <button className="btn btn-sm" onClick={() => setShowContract(true)}>
+                  <FileText size={16} /> Voir le contrat
+                </button>
+                <button className="btn btn-sm" onClick={handleCheckSignatureStatus}>
+                  <CheckCircle size={16} /> Verifier le statut
+                </button>
+              </div>
+            </div>
+
+            {/* Two-party signing progress */}
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              {/* Owner signing status */}
+              <div style={{
+                flex: 1, padding: '0.75rem 1rem', borderRadius: '8px',
+                background: ownerSigned ? 'rgba(16, 185, 129, 0.08)' : 'rgba(59, 130, 246, 0.06)',
+                border: `1px solid ${ownerSigned ? 'rgba(16, 185, 129, 0.3)' : 'rgba(59, 130, 246, 0.2)'}`,
+                display: 'flex', alignItems: 'center', gap: '0.75rem'
+              }}>
+                {ownerSigned
+                  ? <CheckCircle size={20} style={{ color: '#10b981', flexShrink: 0 }} />
+                  : <AlertCircle size={20} style={{ color: '#3b82f6', flexShrink: 0 }} />}
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Porteur de projet</div>
+                  <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                    {ownerSigned ? 'Signe ✓' : 'En attente de signature'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Admin signing status */}
+              <div style={{
+                flex: 1, padding: '0.75rem 1rem', borderRadius: '8px',
+                background: adminSigned ? 'rgba(16, 185, 129, 0.08)' : 'rgba(234, 179, 8, 0.06)',
+                border: `1px solid ${adminSigned ? 'rgba(16, 185, 129, 0.3)' : 'rgba(234, 179, 8, 0.3)'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  {adminSigned
+                    ? <CheckCircle size={20} style={{ color: '#10b981', flexShrink: 0 }} />
+                    : <AlertCircle size={20} style={{ color: '#d97706', flexShrink: 0 }} />}
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Plateforme (Admin)</div>
+                    <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                      {adminSigned ? 'Signe ✓' : 'En attente de votre signature'}
+                    </div>
+                  </div>
+                </div>
+                {!adminSigned && adminSignLink && (
+                  <button
+                    className="btn btn-sm btn-success"
+                    onClick={() => window.open(adminSignLink, '_blank', 'noopener,noreferrer')}
+                    style={{ flexShrink: 0 }}
+                  >
+                    <Send size={14} /> Signer le contrat
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '.5rem', flexShrink: 0 }}>
-            <button className="btn" onClick={() => setShowContract(true)}>
-              <FileText size={16} /> Voir le contrat
-            </button>
-            <button className="btn btn-sm" onClick={handleCheckSignatureStatus}>
-              <CheckCircle size={16} /> Verifier le statut
-            </button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="tabs">
         <button className={`tab${tab === 'details' ? ' active' : ''}`} onClick={() => setTab('details')}>Details</button>

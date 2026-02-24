@@ -188,11 +188,12 @@ module Api
 
           begin
             pdf_binary = Base64.decode64(pdf_base64)
-            result = YousignService.send_contract_for_signing!(@project, pdf_binary)
+            result = YousignService.send_contract_for_signing!(@project, pdf_binary, admin_user: current_user)
 
             log_admin_action("send_contract", @project, {
               yousign_signature_request_id: result[:signature_request_id],
-              yousign_signer_id: result[:signer_id]
+              yousign_signer_id: result[:signer_id],
+              yousign_admin_signer_id: result[:admin_signer_id]
             })
 
             NotificationService.notify_project_owner!(
@@ -225,16 +226,39 @@ module Api
             status_data = YousignService.get_status(@project.yousign_signature_request_id)
             yousign_status = status_data["status"]
 
-            @project.update!(yousign_status: yousign_status)
+            # Determine per-signer statuses from the response
+            signers = status_data["signers"] || []
+            owner_signer = signers.find { |s| s["id"] == @project.yousign_signer_id }
+            admin_signer = signers.find { |s| s["id"] == @project.yousign_admin_signer_id }
+
+            owner_status = owner_signer&.dig("status") || "pending"
+            admin_status = admin_signer&.dig("status") || "pending"
+
+            # Determine display status based on individual signer states
+            display_status = if yousign_status == "done"
+                               "done"
+                             elsif owner_status == "signed" && admin_status == "signed"
+                               "done"
+                             elsif owner_status == "signed"
+                               "owner_signed"
+                             elsif admin_status == "signed"
+                               "admin_signed"
+                             else
+                               yousign_status
+                             end
+
+            @project.update!(yousign_status: display_status)
 
             # Auto-advance if signing is done
-            if yousign_status == "done" && @project.signing?
+            if display_status == "done" && @project.signing?
               @project.update!(status: :legal_structuring)
-              log_admin_action("signature_completed", @project, { yousign_status: yousign_status })
+              log_admin_action("signature_completed", @project, { yousign_status: display_status })
             end
 
             render json: {
-              yousign_status: yousign_status,
+              yousign_status: display_status,
+              owner_signer_status: owner_status,
+              admin_signer_status: admin_status,
               data: InvestmentProjectSerializer.new(@project.reload).serializable_hash[:data]
             }
           rescue YousignService::YousignError => e

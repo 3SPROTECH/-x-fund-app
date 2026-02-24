@@ -9,9 +9,10 @@ class YousignService
   # Orchestrates the full signing flow:
   # 1. Create signature request
   # 2. Upload PDF document
-  # 3. Add signer with signature field
-  # 4. Activate the request (sends email)
-  def self.send_contract_for_signing!(project, pdf_binary)
+  # 3. Add project owner as first signer
+  # 4. Add admin as second signer (co-signature)
+  # 5. Activate the request (sends emails to both)
+  def self.send_contract_for_signing!(project, pdf_binary, admin_user:)
     owner = project.owner
 
     # 1) Create signature request
@@ -23,33 +24,46 @@ class YousignService
     document_id = doc["id"]
     total_pages = doc["total_pages"] || 1
 
-    # 3) Add the project owner as signer with a signature field on the last page
-    signer = add_signer(
+    # 3) Add the project owner as first signer
+    owner_signer = add_signer(
       signature_request_id,
       document_id,
       owner,
       total_pages
     )
-    signer_id = signer["id"]
+    owner_signer_id = owner_signer["id"]
 
-    # 4) Activate the signature request
+    # 4) Add the admin as second signer (co-signature by platform)
+    admin_signer = add_signer(
+      signature_request_id,
+      document_id,
+      admin_user,
+      total_pages
+    )
+    admin_signer_id = admin_signer["id"]
+
+    # 5) Activate the signature request
     activated = activate(signature_request_id)
 
-    # Extract the signature link from the activated response
-    signature_link = activated.dig("signers", 0, "signature_link")
+    # Extract signature links from the activated response
+    signers = activated["signers"] || []
+    owner_signature_link = signers.find { |s| s["id"] == owner_signer_id }&.dig("signature_link")
+    admin_signature_link = signers.find { |s| s["id"] == admin_signer_id }&.dig("signature_link")
 
     # Persist YouSign identifiers on the project
     project.update!(
       yousign_signature_request_id: signature_request_id,
       yousign_document_id: document_id,
-      yousign_signer_id: signer_id,
-      yousign_signature_link: signature_link,
+      yousign_signer_id: owner_signer_id,
+      yousign_signature_link: owner_signature_link,
+      yousign_admin_signer_id: admin_signer_id,
+      yousign_admin_signature_link: admin_signature_link,
       yousign_status: "ongoing",
       yousign_sent_at: Time.current,
       status: :signing
     )
 
-    { signature_request_id:, signer_id:, signature_link: }
+    { signature_request_id:, signer_id: owner_signer_id, admin_signer_id:, signature_link: owner_signature_link, admin_signature_link: }
   end
 
   # Step 1: Create a draft signature request
