@@ -106,10 +106,16 @@ export default function AdminProjectDetailPage() {
 
   const handleSendContract = async (pdfBase64) => {
     try {
-      await adminApi.sendContract(id, pdfBase64);
-      toast.success('Contrat envoye au porteur via YouSign');
+      const res = await adminApi.sendContract(id, pdfBase64);
+      toast.success('Contrat envoyé via YouSign — signez maintenant');
       setShowContract(false);
       loadAll();
+
+      // Auto-open the admin's signing link so admin signs first
+      const adminSignLink = res.data?.admin_signature_link;
+      if (adminSignLink) {
+        window.open(adminSignLink, '_blank', 'noopener,noreferrer');
+      }
     } catch (err) {
       toast.error(err.response?.data?.errors?.[0] || "Erreur lors de l'envoi du contrat via YouSign");
     }
@@ -119,10 +125,19 @@ export default function AdminProjectDetailPage() {
     try {
       const res = await adminApi.checkSignatureStatus(id);
       const status = res.data.yousign_status;
+      const adminStatus = res.data.admin_signer_status;
+      const ownerStatus = res.data.owner_signer_status;
+
       if (status === 'done') {
-        toast.success('Le contrat a ete signe ! Statut mis a jour.');
+        toast.success('Le contrat a ete signe par les deux parties ! Statut mis a jour.');
+      } else if (status === 'admin_signed') {
+        toast.success('Votre signature a ete confirmee. Le contrat a ete envoye au porteur de projet.');
+      } else if (status === 'owner_signed') {
+        toast.success('Le porteur a signe. En attente de votre signature.');
+      } else if (adminStatus === 'pending' && ownerStatus === 'pending') {
+        toast('Aucune signature detectee pour le moment. Veuillez signer le contrat.', { icon: 'ℹ️' });
       } else {
-        toast('Statut de la signature : ' + (status || 'en attente'), { icon: 'ℹ️' });
+        toast('Statut mis a jour. En attente des signatures.', { icon: 'ℹ️' });
       }
       loadAll();
     } catch (err) {
@@ -250,13 +265,13 @@ export default function AdminProjectDetailPage() {
         </div>
       )}
 
-      {/* Contract Banner for approved projects */}
-      {a.status === 'approved' && (
+      {/* Contract Banner for approved projects without yousign data */}
+      {a.status === 'approved' && !a.yousign_status && (
         <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '2px solid var(--gold-color, #DAA520)' }}>
           <div>
             <h3 style={{ margin: 0 }}>Contrat d'investissement</h3>
             <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
-              Le projet est approuve. Generez et envoyez le contrat au porteur pour signature.
+              Le projet est approuve. Generez le contrat, signez-le, puis il sera envoye au porteur.
             </p>
           </div>
           <button className="btn btn-success" onClick={() => setShowContract(true)}>
@@ -265,8 +280,8 @@ export default function AdminProjectDetailPage() {
         </div>
       )}
 
-      {/* Signing status banner */}
-      {a.status === 'signing' && (() => {
+      {/* Signing status banner - shown when contract generated (approved+yousign) or signing */}
+      {((a.status === 'approved' && a.yousign_status) || a.status === 'signing') && (() => {
         const adminSigned = ['admin_signed', 'owner_signed', 'done'].includes(a.yousign_status);
         const ownerSigned = ['owner_signed', 'done'].includes(a.yousign_status);
         const awaitingAdmin = ['awaiting_admin', 'ongoing'].includes(a.yousign_status);

@@ -210,7 +210,8 @@ module Api
             render json: {
               message: "Contrat envoye pour signature via YouSign.",
               data: InvestmentProjectSerializer.new(@project.reload).serializable_hash[:data],
-              signature_link: result[:signature_link]
+              signature_link: result[:signature_link],
+              admin_signature_link: result[:admin_signature_link]
             }
           rescue YousignService::YousignError => e
             render json: { errors: ["Erreur YouSign: #{e.message}"] }, status: :unprocessable_entity
@@ -250,10 +251,30 @@ module Api
                                yousign_status
                              end
 
+            previous_status = @project.yousign_status
             @project.update!(yousign_status: display_status)
 
+            # Refresh owner's signature link from Yousign response (may not be available at activation with ordered signers)
+            fresh_owner_link = owner_signer&.dig("signature_link")
+            if fresh_owner_link.present? && fresh_owner_link != @project.yousign_signature_link
+              @project.update!(yousign_signature_link: fresh_owner_link)
+            end
+
+            # When admin just signed, move project to signing and notify the owner
+            if display_status == "admin_signed" && previous_status != "admin_signed"
+              @project.update!(status: :signing)
+              NotificationService.notify_project_owner!(
+                @project,
+                actor: current_user,
+                type: "contract_ready_to_sign",
+                title: "Contrat pret a signer",
+                body: "La plateforme a signe le contrat de votre projet \"#{@project.title}\". C'est a votre tour de signer."
+              )
+              log_admin_action("admin_signature_completed", @project, { yousign_status: display_status })
+            end
+
             # Auto-advance if signing is done
-            if display_status == "done" && @project.signing?
+            if display_status == "done" && !@project.legal_structuring?
               @project.update!(status: :legal_structuring)
               log_admin_action("signature_completed", @project, { yousign_status: display_status })
             end

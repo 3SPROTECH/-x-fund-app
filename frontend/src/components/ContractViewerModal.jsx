@@ -61,7 +61,7 @@ export default function ContractViewerModal({ projectAttrs, onClose, onSendToOwn
   };
 
   const handleSend = async () => {
-    if (!window.confirm('Envoyer le contrat au porteur pour signature electronique via YouSign ?')) return;
+    if (!window.confirm('Envoyer le contrat via YouSign ? Vous serez redirige pour signer en premier, puis le porteur recevra le contrat.')) return;
     setSending(true);
     try {
       // Generate the PDF as base64 and pass it to the parent handler
@@ -96,7 +96,7 @@ export default function ContractViewerModal({ projectAttrs, onClose, onSendToOwn
                 style={{ background: 'var(--rv-emerald, #10b981)' }}
               >
                 <Send size={16} />
-                {sending ? 'Envoi via YouSign...' : 'Envoyer au Porteur (YouSign)'}
+                {sending ? 'Envoi via YouSign...' : 'Envoyer & Signer (YouSign)'}
               </button>
             )}
             <button className="rv-btn-close" onClick={onClose}>

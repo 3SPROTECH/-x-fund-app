@@ -137,7 +137,7 @@ class InvestmentProjectSerializer
   end
 
   attribute :yousign_admin_signature_link do |project|
-    project.signing? ? project.yousign_admin_signature_link : nil
+    project.yousign_admin_signature_link.presence
   end
 
   attribute :images do |project|

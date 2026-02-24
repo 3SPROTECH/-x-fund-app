@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle, ChevronLeft, MessageSquare, Info, Send, Download } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, FileText, Calculator, TrendingUp, PenTool, CheckCircle, ChevronLeft, MessageSquare, Info, Send, Download, ExternalLink, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import useProjectFormStore, { MACRO_STEPS, STEP_CONFIG, createEmptyLot } from '../../stores/useProjectFormStore';
@@ -76,7 +76,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
     consentGiven,
     draftId, isDirty, setDraftId, setLastSavedAt, getSerializableState, loadFromDraft,
     reset,
-    projectStatus, setProjectStatus, setLoadedProjectId, setProjectAttributes,
+    projectStatus, projectAttributes, setProjectStatus, setLoadedProjectId, setProjectAttributes,
   } = store;
 
   const [downloadingReport, setDownloadingReport] = useState(false);
@@ -210,6 +210,13 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
           setGlobalStep(ADDITIONAL_INFO_STEP);
         } else if (project?.status === 'signing') {
           setGlobalStep(SIGNATURE_STEP);
+          // Auto-refresh signature link from YouSign if not yet available
+          if (!project.yousign_signature_link) {
+            investmentProjectsApi.refreshSignatureStatus(initialProjectId).then((res) => {
+              const refreshed = res.data.data?.attributes || res.data.data || res.data;
+              setProjectAttributes(refreshed);
+            }).catch(() => { });
+          }
         } else {
           setGlobalStep(SUBMIT_STEP);
         }
@@ -657,13 +664,42 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
               </button>
             </div>
           ) : projectStatus === 'signing' ? (
-            <div className="pf-success-banner" style={{ borderColor: 'var(--info-color, #3498db)' }}>
-              <FileText size={20} />
-              <div style={{ flex: 1 }}>
-                <strong>Contrat en attente de signature</strong>
-                <span>Veuillez consulter le contrat ci-dessous et proceder a la signature.</span>
-              </div>
-            </div>
+            (() => {
+              const pa = projectAttributes?.attributes || projectAttributes || {};
+              const sigLink = pa.yousign_signature_link;
+              const yStat = pa.yousign_status;
+              const signed = yStat === 'done' || yStat === 'owner_signed';
+
+              if (signed) return (
+                <div className="pf-success-banner" style={{ borderColor: 'var(--success-color, #10b981)' }}>
+                  <CheckCircle size={20} />
+                  <div style={{ flex: 1 }}>
+                    <strong>Contrat signe avec succes</strong>
+                    <span>Vous avez signe le contrat via YouSign. Le statut de votre projet sera mis a jour prochainement apres verification. Merci de votre patience.</span>
+                  </div>
+                </div>
+              );
+
+              return (
+                <div className="pf-success-banner" style={{ borderColor: 'var(--info-color, #3498db)' }}>
+                  <Clock size={20} />
+                  <div style={{ flex: 1 }}>
+                    <strong>Votre signature est requise</strong>
+                    <span>Le contrat a ete signe par la plateforme et vous a ete envoye par email. Vous pouvez egalement cliquer sur le bouton ci-dessous pour signer directement. Apres votre signature, le statut de votre projet sera mis a jour automatiquement. Merci de votre patience.</span>
+                  </div>
+                  {sigLink && (
+                    <button
+                      type="button"
+                      className="pf-nav-btn pf-btn-next"
+                      onClick={() => window.open(sigLink, '_blank', 'noopener,noreferrer')}
+                      style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}
+                    >
+                      <ExternalLink size={16} /> Signer le contrat
+                    </button>
+                  )}
+                </div>
+              );
+            })()
           ) : projectStatus === 'info_requested' ? (
             <div className="pf-info-banner">
               <Info size={20} />
