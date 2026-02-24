@@ -67,8 +67,8 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: 360px;
-  max-height: 480px;
+  width: min(360px, 96vw);
+  max-height: 70vh;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -325,13 +325,10 @@
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
   .notification-dropdown {
-    position: fixed;
-    top: auto;
-    right: 8px;
-    left: 8px;
-    bottom: 8px;
-    width: auto;
-    max-height: 60vh;
-    border-radius: var(--radius-lg);
+    top: calc(100% + 8px);
+    left: -125px;
+    right: auto;
+    bottom: auto;
+    transform: translateX(-50%);
   }
 }

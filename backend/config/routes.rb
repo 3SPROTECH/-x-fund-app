@@ -61,6 +61,12 @@ Rails.application.routes.draw do
         end
         resources :project_delays, only: [:index, :create]
         resources :investors, only: [:index], controller: "project_investors"
+        resources :chat_messages, only: [:index, :create] do
+          collection do
+            patch :mark_as_read
+            get :unread_count
+          end
+        end
         # Images management for projects
         member do
           post :upload_images
@@ -84,6 +90,13 @@ Rails.application.routes.draw do
         end
         member do
           patch :mark_as_read
+        end
+      end
+
+      # === Chat Conversations ===
+      resources :chat_conversations, only: [:index] do
+        collection do
+          post :request_agent
         end
       end
 

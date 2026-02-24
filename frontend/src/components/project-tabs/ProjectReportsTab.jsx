@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { investmentProjectsApi, mvpReportsApi } from '../../api/investments';
 import { adminApi } from '../../api/admin';
-import { Plus, X, Eye, Pencil, Send, Check, XCircle, Trash2, Save, CheckCircle } from 'lucide-react';
+import { delaysApi } from '../../api/delays';
+import { Plus, X, Eye, Pencil, Send, Check, XCircle, Trash2, Save, CheckCircle, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
   formatCents as fmt, formatDate as fmtDate,
   OPERATION_TYPES, OPERATION_TYPE_ICONS, OPERATION_STATUSES, getOperationStatusLabel,
   MVP_STATUS_BADGES as MVP_STATUS_BADGE, REVIEW_STATUS_LABELS, REVIEW_STATUS_BADGES as REVIEW_STATUS_BADGE,
   EMPTY_MVP_FORM,
+  DELAY_TYPE_LABELS, DELAY_STATUS_LABELS, DELAY_STATUS_BADGES,
 } from '../../utils';
 import FormSelect from '../FormSelect';
 import { LoadingSpinner } from '../../components/ui';
@@ -18,6 +20,9 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
 
   const [mvpReports, setMvpReports] = useState([]);
   const [loadingMvpReports, setLoadingMvpReports] = useState(false);
+  const [delays, setDelays] = useState([]);
+  const [loadingDelays, setLoadingDelays] = useState(false);
+  const [viewDelay, setViewDelay] = useState(null);
   const [mvpMode, setMvpMode] = useState('list');
   const [mvpForm, setMvpForm] = useState({ ...EMPTY_MVP_FORM });
   const [mvpEditingId, setMvpEditingId] = useState(null);
@@ -26,8 +31,8 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
   const [rejectModalReport, setRejectModalReport] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
 
-  // Load MVP reports on mount
-  useEffect(() => { loadMvpReports(); }, []);
+  // Load MVP reports and delays on mount
+  useEffect(() => { loadMvpReports(); loadDelays(); }, []);
 
   const loadMvpReports = async () => {
     setLoadingMvpReports(true);
@@ -38,6 +43,15 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
       setMvpReports(res.data.data || []);
     } catch { /* silent - no access */ }
     finally { setLoadingMvpReports(false); }
+  };
+
+  const loadDelays = async () => {
+    setLoadingDelays(true);
+    try {
+      const res = await delaysApi.listByProject(projectId);
+      setDelays(res.data.data || []);
+    } catch { /* silent */ }
+    finally { setLoadingDelays(false); }
   };
 
   const handleSetOperationType = async (type) => {
@@ -538,6 +552,88 @@ export default function ProjectReportsTab({ project, projectId, isAdmin, isOwner
           )}
         </div>
       )}
+
+      {/* ─── Retards declares par le porteur ─── */}
+      {delays.length > 0 && (
+        <div style={{ marginTop: '2rem' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '1rem' }}>
+            <AlertTriangle size={18} /> Retards declares ({delays.length})
+          </h3>
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Titre</th>
+                  <th>Date initiale</th>
+                  <th>Nouvelle date</th>
+                  <th>Retard</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {delays.map((d) => {
+                  const da = d.attributes || d;
+                  return (
+                    <tr key={d.id}>
+                      <td>{fmtDate(da.created_at)}</td>
+                      <td><span className="badge badge-warning">{DELAY_TYPE_LABELS[da.delay_type] || da.delay_type}</span></td>
+                      <td style={{ fontWeight: 550 }}>{da.title}</td>
+                      <td>{fmtDate(da.original_date)}</td>
+                      <td>{fmtDate(da.new_estimated_date)}</td>
+                      <td><span style={{ fontWeight: 600, color: 'var(--danger)' }}>{da.delay_days}j</span></td>
+                      <td><span className={`badge ${DELAY_STATUS_BADGES[da.status] || ''}`}>{DELAY_STATUS_LABELS[da.status] || da.status}</span></td>
+                      <td>
+                        <button className="btn-icon" title="Voir" onClick={() => setViewDelay(d)}><Eye size={16} /></button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal detail retard */}
+      {viewDelay && (() => {
+        const da = viewDelay.attributes || viewDelay;
+        return (
+          <div className="modal-overlay" onClick={() => setViewDelay(null)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '1rem' }}>
+                <AlertTriangle size={18} color="#F59E0B" /> {da.title}
+              </h3>
+              <div className="detail-grid">
+                <div className="detail-row"><span>Type</span><span className="badge badge-warning">{DELAY_TYPE_LABELS[da.delay_type] || da.delay_type}</span></div>
+                <div className="detail-row"><span>Statut</span><span className={`badge ${DELAY_STATUS_BADGES[da.status] || ''}`}>{DELAY_STATUS_LABELS[da.status] || da.status}</span></div>
+                <div className="detail-row"><span>Date initiale</span><span>{fmtDate(da.original_date)}</span></div>
+                <div className="detail-row"><span>Nouvelle date estimee</span><span>{fmtDate(da.new_estimated_date)}</span></div>
+                <div className="detail-row"><span>Retard</span><span style={{ fontWeight: 600, color: 'var(--danger)' }}>{da.delay_days} jours</span></div>
+                <div className="detail-row"><span>Declare par</span><span>{da.user_name || '\u2014'}</span></div>
+                <div className="detail-row"><span>Date de declaration</span><span>{fmtDate(da.created_at)}</span></div>
+              </div>
+              {da.description && (
+                <div style={{ marginTop: '1rem' }}>
+                  <strong>Description</strong>
+                  <p style={{ whiteSpace: 'pre-wrap', color: 'var(--text-secondary)', marginTop: '.25rem' }}>{da.description}</p>
+                </div>
+              )}
+              {da.justification && (
+                <div style={{ marginTop: '.75rem' }}>
+                  <strong>Justification</strong>
+                  <p style={{ whiteSpace: 'pre-wrap', color: 'var(--text-secondary)', marginTop: '.25rem' }}>{da.justification}</p>
+                </div>
+              )}
+              <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
+                <button className="btn" onClick={() => setViewDelay(null)}>Fermer</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal de rejet MVP (admin only) */}
       {rejectModalReport && (

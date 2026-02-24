@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, BellOff, Trash2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import notificationsApi from '../api/notifications';
 import '../styles/notifications.css';
 
@@ -17,6 +19,8 @@ function timeAgo(dateStr) {
 }
 
 export default function NotificationBell() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
@@ -75,16 +79,37 @@ export default function NotificationBell() {
     setOpen(prev => !prev);
   };
 
-  const handleMarkAsRead = async (notif) => {
-    if (notif.is_read) return;
-    try {
-      await notificationsApi.markAsRead(notif.id);
-      setNotifications(prev =>
-        prev.map(n => n.id === notif.id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch {
-      // silently fail
+  const getNotificationRoute = (notif) => {
+    const type = notif.notification_type;
+    const id = notif.notifiable_id;
+    const nType = notif.notifiable_type;
+
+    if (type === 'agent_request') return '/admin/agent-requests';
+
+    if (nType === 'InvestmentProject' && id) {
+      if (user?.role === 'administrateur') return `/admin/projects/${id}`;
+      if (user?.role === 'analyste') return `/analyste/projects/${id}`;
+      return `/projects/${id}`;
+    }
+
+    return null;
+  };
+
+  const handleNotificationClick = async (notif) => {
+    if (!notif.is_read) {
+      try {
+        await notificationsApi.markAsRead(notif.id);
+        setNotifications(prev =>
+          prev.map(n => n.id === notif.id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n)
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      } catch { /* silent */ }
+    }
+
+    const route = getNotificationRoute(notif);
+    if (route) {
+      setOpen(false);
+      navigate(route);
     }
   };
 
@@ -159,7 +184,8 @@ export default function NotificationBell() {
                 <div
                   key={notif.id}
                   className={`notification-item${!notif.is_read ? ' unread' : ''}`}
-                  onClick={() => handleMarkAsRead(notif)}
+                  onClick={() => handleNotificationClick(notif)}
+                  style={{ cursor: getNotificationRoute(notif) ? 'pointer' : 'default' }}
                 >
                   <div className={`notification-dot${notif.is_read ? ' read' : ''}`} />
                   <div className="notification-content">

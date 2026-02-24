@@ -1236,6 +1236,10 @@ textarea:focus {
 .tf-select-value {
   font-weight: 600;
   color: #B8860B;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tf-select-chevron {
@@ -1253,9 +1257,9 @@ textarea:focus {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  min-width: 100%;
-  max-height: 240px;
-  overflow-y: auto;
+  min-width: 180px;
+  width: max-content;
+  max-width: 300px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -1263,6 +1267,66 @@ textarea:focus {
   z-index: 50;
   padding: 4px;
   animation: tfDropIn .12s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.tf-select-options {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.tf-select-search {
+  display: flex;
+  align-items: center;
+  gap: .375rem;
+  padding: .375rem .5rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 4px;
+}
+
+.tf-select-search-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.tf-select-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: .8125rem;
+  color: var(--text-primary);
+  padding: 0;
+  min-width: 0;
+}
+
+.tf-select-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.tf-select-search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.tf-select-search-clear:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary, rgba(0, 0, 0, .04));
+}
+
+.tf-select-empty {
+  padding: .75rem .625rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .8125rem;
 }
 
 @keyframes tfDropIn {
@@ -2566,7 +2630,7 @@ textarea.error:focus {
 .investor-content {
   flex: 1;
   padding: 2rem 1.5rem;
-  max-width: 1320px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   overflow-x: hidden;
@@ -2590,12 +2654,12 @@ textarea.error:focus {
 }
 
 .navbar-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 2.5rem;
   display: flex;
   align-items: center;
-  gap: 10.5rem;
+  gap: 2.5rem;
   height: 70px;
 }
 
@@ -3136,6 +3200,39 @@ textarea.error:focus {
   }
 
   .navbar-profile {
+    display: none;
+  }
+
+  /* Porteur mobile: pas de hamburger, logo centré, notif à droite */
+  .navbar-container.porteur-navbar-container .porteur-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .navbar-container.porteur-navbar-container .porteur-mobile-header .pmh-left {
+    width: 40px;
+    flex: 0 0 40px;
+  }
+  .navbar-container.porteur-navbar-container .porteur-mobile-header .pmh-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    cursor: pointer;
+  }
+  .navbar-container.porteur-navbar-container .porteur-mobile-header .pmh-right {
+    width: 40px;
+    flex: 0 0 40px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .navbar-container.porteur-navbar-container .mobile-menu-btn {
+    display: none !important;
+  }
+  .navbar-container.porteur-navbar-container .navbar-brand,
+  .navbar-container.porteur-navbar-container .navbar-actions {
     display: none;
   }
 
@@ -4411,6 +4508,13 @@ textarea.error:focus {
 .porteur-navbar-container {
   gap: 0;
   justify-content: space-between;
+}
+
+/* Porteur mobile header: caché en desktop */
+@media (min-width: 769px) {
+  .navbar-container.porteur-navbar-container .porteur-mobile-header {
+    display: none;
+  }
 }
 
 /* Dashboard layout */

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../../api/admin';
 import {
   Briefcase, CheckCircle, XCircle,
-  Search, Plus, Eye, FileText, AlertCircle, ArrowRight, UserCheck,
+  Search, Eye, FileText, AlertCircle, ArrowRight, UserCheck,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TableFilters from '../../components/TableFilters';
@@ -141,9 +141,6 @@ export default function AdminProjectsPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
           <span className="badge"><Briefcase size={12} /> {meta.total_count ?? projects.length} projet(s)</span>
-          <button className="btn btn-primary" onClick={() => navigate('/admin/projects/new')}>
-            <Plus size={16} /> Créer un projet
-          </button>
         </div>
       </div>
 
@@ -213,9 +210,6 @@ export default function AdminProjectsPage() {
                                   <button className="btn-icon" title="Demander des complements" onClick={() => { setTargetId(p.id); setShowInfoModal(true); }}><AlertCircle size={16} /></button>
                                 </>
                               )}
-                              {!['draft', 'rejected', 'repaid'].includes(a.status) && (
-                                <button className="btn-icon" title="Avancer le statut" onClick={() => { setTargetId(p.id); setAdvanceStatus(''); setShowAdvanceModal(true); }}><ArrowRight size={16} /></button>
-                              )}
                             </div>
                           </td>
                         </tr>
@@ -267,36 +261,6 @@ export default function AdminProjectsPage() {
             <div className="modal-actions">
               <button className="btn" onClick={() => setShowInfoModal(false)}>Annuler</button>
               <button className="btn btn-primary" onClick={handleRequestInfo}>Envoyer la demande</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showAdvanceModal && (
-        <div className="modal-overlay" onClick={() => setShowAdvanceModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Avancer le statut du projet</h3>
-            <p className="text-muted" style={{ marginBottom: '1rem' }}>
-              Sélectionnez le nouveau statut pour ce projet.
-            </p>
-            <div className="form-group">
-              <label>Nouveau statut</label>
-              <FormSelect
-                value={advanceStatus}
-                onChange={(e) => setAdvanceStatus(e.target.value)}
-                name="advance_status"
-                options={Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v }))}
-                placeholder="Sélectionnez un statut..."
-              />
-            </div>
-            <div className="form-group">
-              <label>Commentaire (optionnel)</label>
-              <textarea value={modalComment} onChange={(e) => setModalComment(e.target.value)}
-                placeholder="Commentaire..." rows={3} />
-            </div>
-            <div className="modal-actions">
-              <button className="btn" onClick={() => setShowAdvanceModal(false)}>Annuler</button>
-              <button className="btn btn-primary" onClick={handleAdvanceStatus}>Mettre à jour</button>
             </div>
           </div>
         </div>
