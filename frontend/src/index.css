@@ -389,7 +389,7 @@ textarea:focus {
 
 .nav-link.active {
   background: rgba(218, 165, 32, .15);
-  color: #000000;
+  color: var(--text-sidebar);
 }
 
 .nav-link svg {
@@ -2998,6 +2998,160 @@ textarea.error:focus {
   width: 100%;
   margin: 0 auto;
   overflow-x: hidden;
+}
+
+/* ============================================
+   INVESTOR FONT SYSTEM — Playfair Display + DM Sans
+   Scoped to .investor-layout so other pages stay on Inter.
+   ============================================ */
+.investor-layout {
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+
+  /* Display scale (Playfair Display, weight 600) */
+  --display-xl: 600 2.6rem/1.15 var(--font-display);
+  --display-lg: 600 2rem/1.2 var(--font-display);
+  --display-md: 600 1.65rem/1.25 var(--font-display);
+  --display-sm: 600 1.3rem/1.3 var(--font-display);
+  --display-xs: 600 1.2rem/1.3 var(--font-display);
+
+  /* Body scale (DM Sans) */
+  --body-lg: 600 0.95rem/1.5 var(--font-body);
+  --body-md: 400 0.92rem/1.75 var(--font-body);
+  --body-base: 500 0.88rem/1.5 var(--font-body);
+  --body-sm: 500 0.83rem/1.5 var(--font-body);
+  --body-xs: 400 0.79rem/1.5 var(--font-body);
+  --body-xxs: 600 0.73rem/1.4 var(--font-body);
+
+  /* Letter spacing */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.05em;
+
+  /* Base body font for all investor pages */
+  font: var(--body-md);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Investor: Display headings (Playfair Display) --- */
+.investor-layout .inv-dashboard-header h1,
+.investor-layout .projects-page-header h1,
+.investor-layout .page-header h1,
+.investor-layout .dashboard-greeting {
+  font: var(--display-xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+.investor-layout .inv-metric-value,
+.investor-layout .stat-card-value,
+.investor-layout .completion-percent {
+  font: var(--display-lg);
+  letter-spacing: var(--tracking-tight);
+}
+
+.investor-layout .inv-card-title,
+.investor-layout .section-header h2 {
+  font: var(--display-xs);
+  letter-spacing: var(--tracking-tight);
+}
+
+.investor-layout .brand-title {
+  font: var(--display-sm);
+  letter-spacing: var(--tracking-tight);
+}
+
+.investor-layout .dash-project-yield,
+.investor-layout .project-yield {
+  font: var(--display-md);
+  letter-spacing: var(--tracking-tight);
+}
+
+.investor-layout .project-card-title,
+.investor-layout .dash-project-title,
+.investor-layout .completion-header h3 {
+  font: var(--display-xs);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* --- Investor: Body text (DM Sans) --- */
+.investor-layout .nav-link-text,
+.investor-layout .menu-item,
+.investor-layout .mobile-menu-item,
+.investor-layout .bottom-tab {
+  font: var(--body-base);
+}
+
+.investor-layout .inv-dashboard-header p,
+.investor-layout .dashboard-subtitle,
+.investor-layout .projects-page-header p,
+.investor-layout .page-header p,
+.investor-layout .completion-text,
+.investor-layout .project-card-location,
+.investor-layout .empty-state p {
+  font: var(--body-md);
+}
+
+.investor-layout .btn,
+.investor-layout .btn-primary,
+.investor-layout .completion-btn,
+.investor-layout .section-link {
+  font: var(--body-lg);
+}
+
+.investor-layout .inv-metric-label,
+.investor-layout .stat-card-label,
+.investor-layout .project-stat-label,
+.investor-layout .progress-label,
+.investor-layout .stat-card-change,
+.investor-layout .dash-progress-stats,
+.investor-layout .dash-project-location,
+.investor-layout .inv-no-projects,
+.investor-layout .brand-subtitle {
+  font: var(--body-sm);
+}
+
+.investor-layout .inv-view-all {
+  font: var(--body-base);
+  font-family: var(--font-body);
+}
+
+.investor-layout .project-stat-value {
+  font: var(--body-lg);
+}
+
+/* Badges & status indicators */
+.investor-layout .dash-badge-status,
+.investor-layout .project-category,
+.investor-layout .static-data-badge,
+.investor-layout .badge,
+.investor-layout .role-badge {
+  font: var(--body-xxs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+/* Fine print / helper text */
+.investor-layout .balance-badge {
+  font: var(--body-xs);
+}
+
+/* Ensure inputs & selects inherit DM Sans */
+.investor-layout input,
+.investor-layout select,
+.investor-layout textarea,
+.investor-layout button {
+  font-family: var(--font-body);
+}
+
+/* --- Investor: Mobile overrides --- */
+@media (max-width: 768px) {
+  .investor-layout .inv-dashboard-header h1,
+  .investor-layout .projects-page-header h1,
+  .investor-layout .page-header h1,
+  .investor-layout .dashboard-greeting {
+    font: 600 1.85rem/1.2 var(--font-display);
+    letter-spacing: var(--tracking-tight);
+  }
 }
 
 /* ============================================
