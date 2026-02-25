@@ -4699,6 +4699,585 @@ textarea.error:focus {
   }
 }
 
+/* ============================================
+   MY INVESTMENTS PAGE (mip-*)
+   ============================================ */
+.mip-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.75rem 2rem 4rem;
+  animation: fadeUp .3s ease-out;
+}
+
+/* ─── Page Header ─── */
+.mip-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.mip-page-title {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.mip-page-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.mip-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mip-btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s;
+  font-family: var(--font-body, inherit);
+}
+
+.mip-btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+.mip-btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.mip-btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.mip-btn-outline:hover {
+  background: var(--bg);
+}
+
+/* ─── Summary Cards ─── */
+.mip-summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.mip-summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  transition: border-color 0.2s;
+  box-shadow: var(--shadow);
+}
+
+.mip-summary-card:hover {
+  border-color: #c8c8d4;
+}
+
+.mip-summary-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+.mip-summary-value {
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.mip-summary-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-top: 0.4rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.mip-change-up {
+  color: var(--success);
+  background: var(--success-light);
+}
+
+.mip-change-down {
+  color: var(--danger);
+  background: var(--danger-light);
+}
+
+.mip-summary-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.4rem;
+}
+
+/* ─── Main Layout ─── */
+.mip-main-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ─── Chart Card ─── */
+.mip-chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.mip-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.mip-chart-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mip-chart-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.mip-chart-area {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+.mip-chart-legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.mip-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.mip-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ─── Investments Table ─── */
+.mip-table-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.mip-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.15rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.mip-table-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.mip-table-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.mip-table-card .table-filters {
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.mip-inv-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mip-inv-table th {
+  text-align: left;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.mip-inv-table th:last-child {
+  text-align: right;
+}
+
+.mip-inv-table td {
+  padding: 0.9rem 1.5rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+.mip-inv-table tr:last-child td {
+  border-bottom: none;
+}
+
+.mip-inv-table tr {
+  transition: background 0.15s;
+}
+
+.mip-inv-table tbody tr:hover {
+  background: var(--bg);
+}
+
+.mip-project-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mip-project-cell-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.mip-project-cell-type {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.mip-td-amount {
+  font-weight: 600;
+}
+
+.mip-dividend-val {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.mip-dividend-none {
+  color: var(--text-muted);
+}
+
+/* ─── Sidebar ─── */
+.mip-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: sticky;
+  top: 92px;
+}
+
+.mip-sidebar-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.mip-sidebar-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* Allocation Donut */
+.mip-donut-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  max-width: 130px;
+  max-height: 130px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mip-alloc-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mip-alloc-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.mip-alloc-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mip-alloc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.mip-alloc-item-label {
+  color: var(--text-secondary);
+}
+
+.mip-alloc-item-value {
+  font-weight: 600;
+}
+
+/* Performance */
+.mip-perf-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.82rem;
+}
+
+.mip-perf-row:last-child {
+  border-bottom: none;
+}
+
+.mip-perf-label {
+  color: var(--text-muted);
+}
+
+.mip-perf-value {
+  font-weight: 600;
+}
+
+.mip-perf-value.mip-positive {
+  color: var(--success);
+}
+
+/* Activity */
+.mip-activity-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.mip-activity-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.mip-activity-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.mip-activity-item:first-child {
+  padding-top: 0;
+}
+
+.mip-activity-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mip-activity-icon-invest {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.mip-activity-icon-dividend {
+  background: #faf7ef;
+  color: var(--gold-color);
+}
+
+.mip-activity-icon-info {
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.mip-activity-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.mip-activity-text strong {
+  color: var(--text);
+}
+
+.mip-activity-date {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+/* ─── Investor font overrides for investments page ─── */
+.investor-layout .mip-page-title {
+  font: var(--display-xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+.investor-layout .mip-page-subtitle {
+  font: var(--body-md);
+}
+
+.investor-layout .mip-summary-value {
+  font: var(--display-md);
+  letter-spacing: var(--tracking-tight);
+  font-family: var(--font-body);
+}
+
+.investor-layout .mip-summary-label,
+.investor-layout .mip-chart-title,
+.investor-layout .mip-table-title,
+.investor-layout .mip-sidebar-title {
+  font: var(--body-xxs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.investor-layout .mip-sidebar-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.investor-layout .mip-alloc-item-label,
+.investor-layout .mip-perf-label,
+.investor-layout .mip-activity-text,
+.investor-layout .mip-legend-item,
+.investor-layout .mip-project-cell-type,
+.investor-layout .mip-summary-sub,
+.investor-layout .mip-table-count {
+  font: var(--body-sm);
+}
+
+.investor-layout .mip-perf-value,
+.investor-layout .mip-alloc-item-value,
+.investor-layout .mip-td-amount {
+  font-family: var(--font-body);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 1024px) {
+  .mip-main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .mip-sidebar {
+    position: static;
+  }
+
+  .mip-summary-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mip-page {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .mip-summary-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mip-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .mip-header-actions {
+    width: 100%;
+  }
+
+  .mip-header-actions .mip-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .mip-inv-table {
+    font-size: 0.8rem;
+  }
+
+  .mip-inv-table th,
+  .mip-inv-table td {
+    padding: 0.7rem 1rem;
+  }
+
+  .mip-page {
+    padding: 1rem;
+  }
+
+  .mip-chart-area {
+    height: 160px;
+  }
+}
+
 /* ======= Admin Settings ======= */
 .settings-tabs {
   display: flex;

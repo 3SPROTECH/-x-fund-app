@@ -3,17 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X-Fund | Villa Méditerranée</title>
+    <title>X-Fund | Mes Investissements</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
     <style>
         :root {
             --black: #0a0a0a;
             --black-hover: #1a1a1a;
+            --gold-300: #e8d06b;
             --gold-400: #c9a83c;
             --gold-500: #b08d27;
             --gold-600: #96741d;
+            --gold-700: #7a5c18;
+            --gold-warm-bg: #faf7ef;
+
+            --green: #22c55e;
+            --green-light: #dcfce7;
+            --green-dark: #16a34a;
+            --red: #ef4444;
+            --red-light: #fee2e2;
 
             --gray-50: #fafafa;
             --gray-100: #f5f5f5;
@@ -56,545 +66,290 @@
             border-bottom: 1px solid var(--border-light);
             padding: 0 2.5rem;
             height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
         }
         .nav-left { display: flex; align-items: center; gap: 3rem; }
         .logo {
             font-family: 'Playfair Display', serif;
-            font-weight: 600;
-            font-size: 1.2rem;
+            font-weight: 600; font-size: 1.2rem;
             display: flex; align-items: center; gap: 0.55rem;
-            color: var(--text);
-            text-decoration: none;
-            letter-spacing: -0.02em;
+            color: var(--text); text-decoration: none; letter-spacing: -0.02em;
         }
         .logo-mark {
-            width: 30px; height: 30px;
-            background: var(--black);
-            border-radius: 7px;
+            width: 30px; height: 30px; background: var(--black); border-radius: 7px;
             display: flex; align-items: center; justify-content: center;
-            color: white;
-            font-size: 0.78rem;
-            font-weight: 700;
-            font-family: 'DM Sans', sans-serif;
+            color: white; font-size: 0.78rem; font-weight: 700; font-family: 'DM Sans', sans-serif;
         }
         .nav-links { display: flex; gap: 0.15rem; }
         .nav-link {
-            text-decoration: none;
-            color: var(--text-muted);
-            font-weight: 500;
-            font-size: 0.85rem;
-            padding: 0.45rem 0.9rem;
-            border-radius: 7px;
-            transition: all 0.2s;
+            text-decoration: none; color: var(--text-muted); font-weight: 500; font-size: 0.85rem;
+            padding: 0.45rem 0.9rem; border-radius: 7px; transition: all 0.2s;
         }
         .nav-link:hover { color: var(--text); background: var(--gray-100); }
         .nav-link.active { color: var(--text); background: var(--gray-100); }
         .nav-right { display: flex; align-items: center; gap: 0.75rem; }
         .nav-icon-btn {
-            width: 36px; height: 36px;
-            border: 1px solid var(--border);
-            background: transparent;
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: all 0.2s;
+            width: 36px; height: 36px; border: 1px solid var(--border); background: transparent;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--text-secondary); transition: all 0.2s;
         }
         .nav-icon-btn:hover { background: var(--gray-100); }
         .avatar {
-            width: 34px; height: 34px;
-            background: var(--black);
-            color: white;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 600; font-size: 0.75rem;
-            cursor: pointer;
+            width: 34px; height: 34px; background: var(--black); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem; cursor: pointer;
         }
 
         /* ─── Container ─── */
         .container { max-width: 1200px; margin: 0 auto; padding: 1.75rem 2.5rem 4rem; }
 
-        /* ─── Breadcrumb ─── */
-        .back-link {
-            display: inline-flex; align-items: center; gap: 0.35rem;
-            color: var(--text-muted); text-decoration: none;
-            font-size: 0.82rem; font-weight: 500;
-            margin-bottom: 1.75rem; transition: color 0.2s;
-        }
-        .back-link:hover { color: var(--text); }
-
-        /* ─── Hero Section ─── */
-        .hero {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2.5rem;
-            margin-bottom: 3rem;
+        /* ─── Page Header ─── */
+        .page-header {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            margin-bottom: 2rem;
             animation: fadeUp 0.5s ease both;
         }
-        .hero-gallery {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 200px 200px;
-            gap: 4px;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            position: relative;
-        }
-        .gallery-item {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            cursor: pointer;
-            transition: filter 0.3s;
-        }
-        .gallery-item:hover { filter: brightness(1.05); }
-        .gallery-item.main { grid-row: span 2; }
-        .btn-view-photos {
-            position: absolute; bottom: 0.75rem; right: 0.75rem;
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(12px);
-            color: var(--text); border: none;
-            padding: 0.45rem 0.9rem; border-radius: 7px;
-            font-weight: 600; font-size: 0.78rem;
-            display: flex; align-items: center; gap: 0.4rem;
-            cursor: pointer;
-            box-shadow: 0 1px 8px rgba(0,0,0,0.1);
-        }
-
-        .hero-info {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0.5rem 0;
-        }
-        .hero-type {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--gold-500);
-            margin-bottom: 0.75rem;
-        }
-        .hero-title {
+        .page-title {
             font-family: 'Playfair Display', serif;
-            font-size: 2.8rem;
-            font-weight: 600;
-            line-height: 1.1;
-            letter-spacing: -0.025em;
-            color: var(--text);
-            margin-bottom: 0.5rem;
+            font-size: 2rem; font-weight: 600; letter-spacing: -0.025em; line-height: 1.2;
         }
-        .hero-location {
-            display: flex; align-items: center; gap: 0.35rem;
-            color: var(--text-muted);
-            font-size: 0.88rem;
+        .page-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .header-actions { display: flex; gap: 0.5rem; }
+        .btn-header {
+            padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s;
+        }
+        .btn-header-primary {
+            background: var(--black); color: white; border: none;
+        }
+        .btn-header-primary:hover { background: var(--black-hover); }
+        .btn-header-outline {
+            background: transparent; color: var(--text); border: 1px solid var(--border);
+        }
+        .btn-header-outline:hover { background: var(--gray-50); }
+
+        /* ─── Summary Cards ─── */
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
             margin-bottom: 2rem;
+            animation: fadeUp 0.5s 0.05s ease both;
         }
-
-        .hero-metrics {
-            display: flex;
-            gap: 2.5rem;
-            padding-top: 1.75rem;
-            border-top: 1px solid var(--border);
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            transition: border-color 0.2s;
         }
-        .hero-metric {}
-        .hero-metric-value {
+        .summary-card:hover { border-color: var(--gray-300); }
+        .summary-card-label {
+            font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.6rem;
+        }
+        .summary-card-value {
             font-family: 'Playfair Display', serif;
-            font-size: 1.75rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            line-height: 1.2;
+            font-size: 1.55rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2;
         }
-        .hero-metric-label {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            margin-top: 0.15rem;
+        .summary-card-change {
+            display: inline-flex; align-items: center; gap: 0.2rem;
+            font-size: 0.72rem; font-weight: 600; margin-top: 0.4rem;
+            padding: 0.15rem 0.5rem; border-radius: 4px;
         }
+        .change-up { color: var(--green-dark); background: var(--green-light); }
+        .change-down { color: var(--red); background: var(--red-light); }
+        .summary-card-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem; }
 
-        /* ─── Content Layout ─── */
-        .content-layout {
+        /* ─── Main Layout ─── */
+        .main-layout {
             display: grid;
-            grid-template-columns: 1fr 370px;
-            gap: 3.5rem;
+            grid-template-columns: 1fr 340px;
+            gap: 1.5rem;
             align-items: start;
         }
 
-        /* ─── Tabs ─── */
-        .tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 2.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-        .tab-btn {
-            background: none; border: none;
-            font-size: 0.85rem; font-weight: 500;
-            color: var(--text-muted);
-            padding: 0.75rem 1.25rem 0.75rem 0;
-            margin-right: 1.5rem;
-            cursor: pointer;
-            position: relative;
-            transition: color 0.2s;
-        }
-        .tab-btn:hover { color: var(--text); }
-        .tab-btn.active { color: var(--text); font-weight: 600; }
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px; left: 0; right: 1.25rem;
-            height: 1.5px;
-            background: var(--black);
-            border-radius: 1px;
-        }
-
-        /* ─── Sections ─── */
-        .section-block { margin-bottom: 2.75rem; }
-        .section-label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
-        }
-        .section-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 1.15rem;
-            color: var(--text);
-        }
-
-        /* ─── Key Points — Horizontal strip ─── */
-        .key-points-strip {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0;
+        /* ─── Chart Section ─── */
+        .chart-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            overflow: hidden;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            animation: fadeUp 0.5s 0.1s ease both;
         }
-        .point-item {
-            padding: 1.25rem;
-            border-right: 1px solid var(--border);
-            transition: background 0.2s;
-        }
-        .point-item:last-child { border-right: none; }
-        .point-item:hover { background: var(--gray-50); }
-        .point-item-icon {
-            color: var(--text-muted);
-            margin-bottom: 0.65rem;
-        }
-        .point-item-title {
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-bottom: 0.2rem;
-            color: var(--text);
-        }
-        .point-item-desc {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            line-height: 1.45;
-        }
-
-        /* ─── Description ─── */
-        .description-header {
-            display: flex; gap: 1.25rem;
+        .chart-header {
+            display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 1.25rem;
-            padding-bottom: 1.25rem;
-            border-bottom: 1px solid var(--border-light);
         }
-        .desc-chip {
-            display: inline-flex; align-items: center; gap: 0.35rem;
-            font-size: 0.8rem; font-weight: 500;
-            color: var(--gold-600);
-            padding: 0.35rem 0.75rem;
-            border-radius: 6px;
-            background: #faf7ef;
+        .chart-title {
+            font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted);
         }
-        .text-content { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.75; }
-        .text-content p { margin-bottom: 0.75rem; }
-        .text-content p:last-child { margin-bottom: 0; }
-        .text-content strong { color: var(--text); font-weight: 600; }
+        .chart-tabs { display: flex; gap: 0.15rem; background: var(--gray-100); border-radius: 6px; padding: 2px; }
+        .chart-tab {
+            padding: 0.3rem 0.7rem; border-radius: 5px; font-size: 0.75rem; font-weight: 500;
+            color: var(--text-muted); background: transparent; border: none; cursor: pointer; transition: all 0.2s;
+        }
+        .chart-tab.active { background: var(--bg-card); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 
-        /* ─── Analysis ─── */
-        .analysis-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            background: var(--bg-card);
+        .chart-area {
+            width: 100%; height: 200px; position: relative;
         }
-        .analysis-row {
-            display: flex; gap: 1rem;
-            padding: 1.15rem 1.25rem;
-            border-bottom: 1px solid var(--border-light);
-            align-items: flex-start;
-            transition: background 0.15s;
-        }
-        .analysis-row:last-child { border-bottom: none; }
-        .analysis-row:hover { background: var(--gray-50); }
-        .analysis-marker {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--black);
-            flex-shrink: 0;
-            margin-top: 7px;
-        }
-        .analysis-row h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.15rem; }
-        .analysis-row p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+        .chart-area svg { width: 100%; height: 100%; }
 
-        /* ─── Timeline ─── */
-        .timeline-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0;
+        .chart-legend {
+            display: flex; gap: 1.5rem; margin-top: 1rem; padding-top: 1rem;
+            border-top: 1px solid var(--border-light);
+        }
+        .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--text-muted); }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        /* ─── Investments Table ─── */
+        .table-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
             overflow: hidden;
+            animation: fadeUp 0.5s 0.15s ease both;
         }
-        .tl-step {
-            padding: 1.25rem;
-            border-right: 1px solid var(--border);
-            position: relative;
-        }
-        .tl-step:last-child { border-right: none; }
-        .tl-step-status {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--gold-400);
-            margin-bottom: 0.75rem;
-            opacity: 0.4;
-        }
-        .tl-step-status.active { background: var(--gold-500); opacity: 1; box-shadow: 0 0 0 3px #f5f0e0; }
-        .tl-step-status.done { background: var(--gold-500); }
-        .tl-step-date { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.1rem; }
-        .tl-step-label { font-size: 0.78rem; color: var(--text-muted); }
-        .tl-step-sublabel { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem; }
-
-        /* ─── Documents ─── */
-        .doc-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-card); }
-        .doc-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0.9rem 1.25rem;
+        .table-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.15rem 1.5rem;
             border-bottom: 1px solid var(--border-light);
-            text-decoration: none; color: var(--text);
-            font-size: 0.85rem; font-weight: 500;
-            transition: background 0.15s;
         }
-        .doc-row:last-child { border-bottom: none; }
-        .doc-row:hover { background: var(--gray-50); }
-        .doc-row-left { display: flex; align-items: center; gap: 0.6rem; }
-        .doc-row-icon {
-            width: 32px; height: 32px;
-            background: #faf7ef;
-            border-radius: 7px;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--gold-500);
+        .table-title {
+            font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted);
         }
-        .doc-row-meta { font-size: 0.72rem; color: var(--text-muted); font-weight: 400; }
+        .table-count {
+            font-size: 0.75rem; color: var(--text-muted); font-weight: 500;
+        }
 
-        /* ─── Operator Card (NEW) ─── */
-        .operator-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem;
-            display: flex; gap: 1rem; align-items: center;
+        .inv-table { width: 100%; border-collapse: collapse; }
+        .inv-table th {
+            text-align: left; padding: 0.75rem 1.5rem; font-size: 0.7rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            background: var(--gray-50);
         }
-        .operator-avatar {
-            width: 44px; height: 44px;
-            background: var(--gray-100);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--text-muted);
-            flex-shrink: 0;
+        .inv-table th:last-child { text-align: right; }
+        .inv-table td {
+            padding: 0.9rem 1.5rem; font-size: 0.85rem; border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
         }
-        .operator-name { font-weight: 600; font-size: 0.88rem; }
-        .operator-detail { font-size: 0.78rem; color: var(--text-muted); }
-        .operator-badge {
-            margin-left: auto;
-            display: flex; align-items: center; gap: 0.3rem;
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: var(--gold-600);
-            background: #faf7ef;
-            padding: 0.3rem 0.65rem;
-            border-radius: 5px;
+        .inv-table tr:last-child td { border-bottom: none; }
+        .inv-table tr { transition: background 0.15s; }
+        .inv-table tbody tr:hover { background: var(--gray-50); }
+
+        .project-cell { display: flex; align-items: center; gap: 0.75rem; }
+        .project-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
         }
+        .project-cell-name { font-weight: 600; font-size: 0.85rem; }
+        .project-cell-type { font-size: 0.72rem; color: var(--text-muted); }
+
+        .td-amount { font-weight: 600; }
+        .td-right { text-align: right; }
+
+        .dividend-val { color: var(--green-dark); font-weight: 600; }
+        .dividend-none { color: var(--text-muted); }
+
+        .status-tag {
+            display: inline-flex; align-items: center; gap: 0.25rem;
+            padding: 0.2rem 0.6rem; border-radius: 5px;
+            font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        .status-active { background: var(--green-light); color: var(--green-dark); }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-completed { background: var(--gray-100); color: var(--gray-600); }
 
         /* ─── Sidebar ─── */
         .sidebar {
-            position: sticky;
-            top: 84px;
             display: flex; flex-direction: column; gap: 1rem;
-            animation: fadeUp 0.5s 0.15s ease both;
+            position: sticky; top: 84px;
+            animation: fadeUp 0.5s 0.2s ease both;
         }
 
-        .invest-widget {
+        /* Allocation Donut */
+        .allocation-card {
             background: var(--bg-card);
+            border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06);
             padding: 1.5rem;
-            border: 1px solid var(--border-light);
         }
+        .allocation-title {
+            font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 1.25rem;
+        }
+        .donut-container {
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1.25rem;
+        }
+        .donut-container svg { display: block; }
+        .alloc-legend { display: flex; flex-direction: column; gap: 0.6rem; }
+        .alloc-item {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.82rem;
+        }
+        .alloc-item-left { display: flex; align-items: center; gap: 0.5rem; }
+        .alloc-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+        .alloc-item-label { color: var(--text-secondary); }
+        .alloc-item-value { font-weight: 600; }
 
-        .widget-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
-        .widget-amount {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-        }
-        .widget-amount-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.1rem; }
-        .status-pill {
-            padding: 0.25rem 0.7rem;
-            border-radius: 999px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .progress-track {
-            height: 4px;
-            background: var(--gray-100);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-        .progress-fill {
-            height: 100%;
-            background: #22c55e;
-            border-radius: 2px;
-            transition: width 1s ease;
-        }
-        .progress-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            margin-bottom: 1.5rem;
-        }
-        .progress-row strong { color: var(--text); font-weight: 600; }
-
-        .btn-invest {
-            width: 100%;
-            padding: 0.85rem;
-            background: var(--black);
-            color: white;
-            border: none;
-            border-radius: 9px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex; justify-content: center; align-items: center; gap: 0.5rem;
-            letter-spacing: 0.005em;
-        }
-        .btn-invest:hover { background: var(--black-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
-
-        .investor-row {
-            display: flex; align-items: center;
-            gap: 0.5rem; margin-top: 1rem;
-            font-size: 0.78rem; color: var(--text-muted);
-        }
-        .avatar-stack { display: flex; }
-        .avatar-sm {
-            width: 22px; height: 22px;
-            border-radius: 50%;
-            border: 2px solid white;
-            margin-left: -6px;
-            background-color: #d4d4d4;
-        }
-        .avatar-sm:first-child { margin-left: 0; }
-
-        .widget-divider { height: 1px; background: var(--border-light); margin: 1.15rem 0; }
-
-        .btn-secondary {
-            width: 100%;
-            padding: 0.75rem;
-            background: transparent;
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: 9px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex; justify-content: center; align-items: center; gap: 0.45rem;
-        }
-        .btn-secondary:hover { background: var(--gray-50); border-color: var(--gray-300); }
-
-        .risk-note {
-            display: flex; gap: 0.5rem;
-            margin-top: 1.15rem;
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
-        .risk-note i { flex-shrink: 0; margin-top: 1px; }
-
-        /* ─── Sidebar Stats (NEW) ─── */
-        .sidebar-stats {
+        /* Recent Activity */
+        .activity-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            padding: 1.25rem;
+            padding: 1.5rem;
         }
-        .sidebar-stats-title {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
+        .activity-title {
+            font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 1rem;
         }
-        .stat-row {
-            display: flex; justify-content: space-between;
-            padding: 0.55rem 0;
+        .activity-list { display: flex; flex-direction: column; gap: 0; }
+        .activity-item {
+            display: flex; gap: 0.75rem; align-items: flex-start;
+            padding: 0.7rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .activity-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .activity-item:first-child { padding-top: 0; }
+        .activity-icon {
+            width: 30px; height: 30px; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .activity-icon-invest { background: var(--green-light); color: var(--green-dark); }
+        .activity-icon-dividend { background: var(--gold-warm-bg); color: var(--gold-500); }
+        .activity-icon-info { background: var(--gray-100); color: var(--gray-500); }
+        .activity-text { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; }
+        .activity-text strong { color: var(--text); }
+        .activity-date { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.1rem; }
+
+        /* Performance Card */
+        .perf-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+        }
+        .perf-title {
+            font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 1rem;
+        }
+        .perf-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.5rem 0;
             border-bottom: 1px solid var(--border-light);
             font-size: 0.82rem;
         }
-        .stat-row:last-child { border-bottom: none; }
-        .stat-row-label { color: var(--text-muted); }
-        .stat-row-value { font-weight: 600; color: var(--text); }
-
-        /* ─── Support ─── */
-        .support-row {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 1rem 1.25rem;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .support-row-text { font-size: 0.82rem; color: var(--text-secondary); }
-        .support-row-text strong { display: block; font-size: 0.85rem; color: var(--text); margin-bottom: 0.1rem; }
-        .btn-support {
-            padding: 0.5rem 1rem;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 7px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text);
-            cursor: pointer;
-            display: flex; align-items: center; gap: 0.35rem;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-        .btn-support:hover { background: var(--gray-50); }
+        .perf-row:last-child { border-bottom: none; }
+        .perf-label { color: var(--text-muted); }
+        .perf-value { font-weight: 600; }
+        .perf-value.positive { color: var(--green-dark); }
 
         /* ─── Animations ─── */
         @keyframes fadeUp {
@@ -604,26 +359,18 @@
 
         /* ─── Responsive ─── */
         @media (max-width: 1024px) {
-            .content-layout { grid-template-columns: 1fr; }
-            .sidebar { position: static; margin-top: 2rem; }
+            .main-layout { grid-template-columns: 1fr; }
+            .sidebar { position: static; }
+            .summary-row { grid-template-columns: 1fr 1fr; }
             .container { padding: 1.5rem; }
-            .hero { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
-            .hero-gallery {
-                grid-template-columns: 1fr;
-                grid-template-rows: 220px 120px 120px;
-            }
-            .gallery-item.main { grid-row: 1; }
-            .key-points-strip { grid-template-columns: 1fr 1fr; }
-            .key-points-strip .point-item:nth-child(2) { border-right: none; }
-            .timeline-row { grid-template-columns: 1fr; }
-            .tl-step { border-right: none; border-bottom: 1px solid var(--border); }
-            .tl-step:last-child { border-bottom: none; }
+            .summary-row { grid-template-columns: 1fr; }
             .nav-links { display: none; }
-            .hero-title { font-size: 2rem; }
-            .hero-metrics { flex-direction: column; gap: 1.25rem; }
             .navbar { padding: 0 1.25rem; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .inv-table { font-size: 0.8rem; }
+            .inv-table th, .inv-table td { padding: 0.7rem 1rem; }
         }
     </style>
 </head>
@@ -631,14 +378,11 @@
 
     <nav class="navbar">
         <div class="nav-left">
-            <a href="#" class="logo">
-                <div class="logo-mark">X</div>
-                X-Fund
-            </a>
+            <a href="#" class="logo"><div class="logo-mark">X</div> X-Fund</a>
             <div class="nav-links">
                 <a href="#" class="nav-link">Tableau de bord</a>
-                <a href="#" class="nav-link active">Projets</a>
-                <a href="#" class="nav-link">Portefeuille</a>
+                <a href="#" class="nav-link">Projets</a>
+                <a href="#" class="nav-link active">Portefeuille</a>
             </div>
         </div>
         <div class="nav-right">
@@ -649,287 +393,393 @@
 
     <div class="container">
 
-        <a href="#" class="back-link"><i data-lucide="arrow-left" size="14"></i> Projets</a>
-
-        <!-- ─── Hero: Gallery + Info side by side ─── -->
-        <div class="hero">
-            <div class="hero-gallery">
-                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Façade Villa" class="gallery-item main">
-                <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Intérieur" class="gallery-item">
-                <img src="https://www.defaziocompany.com/wp-content/uploads/bigstock-Panorama-Frame-Home-Backyard-W-371570743.jpg" alt="Jardin" class="gallery-item">
-                <button class="btn-view-photos"><i data-lucide="grid" size="13"></i> 8 photos</button>
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Mes Investissements</h1>
+                <p class="page-subtitle">Vue d'ensemble de votre portefeuille</p>
             </div>
-
-            <div class="hero-info">
-                <div class="hero-type">Résidentiel · Marchand de biens</div>
-                <h1 class="hero-title">Villa Méditerranée</h1>
-                <div class="hero-location">
-                    <i data-lucide="map-pin" size="15"></i> 12 Avenue des Fleurs, 06000 Nice
-                </div>
-
-                <div class="hero-metrics">
-                    <div class="hero-metric">
-                        <div class="hero-metric-value">11,50 %</div>
-                        <div class="hero-metric-label">Rendement cible</div>
-                    </div>
-                    <div class="hero-metric">
-                        <div class="hero-metric-value">18 mois</div>
-                        <div class="hero-metric-label">Horizon</div>
-                    </div>
-                    <div class="hero-metric">
-                        <div class="hero-metric-value">245 m²</div>
-                        <div class="hero-metric-label">Surface</div>
-                    </div>
-                </div>
+            <div class="header-actions">
+                <button class="btn-header btn-header-outline"><i data-lucide="download" size="14"></i> Exporter</button>
+                <button class="btn-header btn-header-primary"><i data-lucide="plus" size="14"></i> Investir</button>
             </div>
         </div>
 
-        <div class="content-layout">
+        <!-- Summary Cards -->
+        <div class="summary-row">
+            <div class="summary-card">
+                <div class="summary-card-label">Total investi</div>
+                <div class="summary-card-value">210 000 €</div>
+                <div class="summary-card-sub">3 projets actifs</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-label">Valeur actuelle</div>
+                <div class="summary-card-value">245 420 €</div>
+                <div class="summary-card-change change-up"><i data-lucide="trending-up" size="11"></i> +16,9 %</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-label">Dividendes reçus</div>
+                <div class="summary-card-value">35 420 €</div>
+                <div class="summary-card-change change-up"><i data-lucide="arrow-up" size="11"></i> +12 450 € ce trimestre</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-label">Rendement moyen</div>
+                <div class="summary-card-value">11,2 %</div>
+                <div class="summary-card-sub">Pondéré par montant</div>
+            </div>
+        </div>
 
-            <div class="main-content">
+        <div class="main-layout">
 
-                <div class="tabs">
-                    <button class="tab-btn active">Général</button>
-                    <button class="tab-btn">Finance</button>
-                    <button class="tab-btn">Lieu</button>
-                    <button class="tab-btn">FAQ</button>
-                </div>
+            <div class="main-col">
 
-                <!-- Key Points -->
-                <div class="section-block">
-                    <div class="section-label">Pourquoi investir</div>
-                    <div class="key-points-strip">
-                        <div class="point-item">
-                            <div class="point-item-icon"><i data-lucide="map" size="18"></i></div>
-                            <div class="point-item-title">Localisation</div>
-                            <div class="point-item-desc">Quartier Cimiez, Nice — forte demande locative</div>
+                <!-- Portfolio Value Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">Évolution du portefeuille</div>
+                        <div class="chart-tabs">
+                            <button class="chart-tab">1M</button>
+                            <button class="chart-tab">3M</button>
+                            <button class="chart-tab active">6M</button>
+                            <button class="chart-tab">1A</button>
+                            <button class="chart-tab">Max</button>
                         </div>
-                        <div class="point-item">
-                            <div class="point-item-icon"><i data-lucide="hammer" size="18"></i></div>
-                            <div class="point-item-title">Création de valeur</div>
-                            <div class="point-item-desc">Rénovation lourde et division parcellaire</div>
-                        </div>
-                        <div class="point-item">
-                            <div class="point-item-icon"><i data-lucide="file-check" size="18"></i></div>
-                            <div class="point-item-title">Permis purgé</div>
-                            <div class="point-item-desc">Obtenu et purgé de tout recours des tiers</div>
-                        </div>
-                        <div class="point-item">
-                            <div class="point-item-icon"><i data-lucide="shield-check" size="18"></i></div>
-                            <div class="point-item-title">Garanties</div>
-                            <div class="point-item-desc">Caution personnelle et hypothèque de 1er rang</div>
-                        </div>
+                    </div>
+                    <div class="chart-area">
+                        <canvas id="portfolioChart"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item"><div class="legend-dot" style="background:#b08d27;"></div> Valeur du portefeuille</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#d4d4d4;"></div> Capital investi</div>
                     </div>
                 </div>
 
-                <!-- Description -->
-                <div class="section-block">
-                    <div class="section-label">Présentation</div>
-                    <div class="description-header">
-                        <div class="desc-chip"><i data-lucide="home" size="13" color="var(--gold-500)"></i> Résidentiel</div>
-                        <div class="desc-chip"><i data-lucide="banknote" size="13" color="var(--gold-500)"></i> Marchand de biens</div>
-                        <div class="desc-chip"><i data-lucide="maximize" size="13" color="var(--gold-500)"></i> 1 200 m² terrain</div>
+                <!-- Investments Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="table-title">Mes projets</div>
+                        <div class="table-count">3 investissements</div>
                     </div>
-                    <div class="text-content">
-                        <p><strong>Opportunité d'investissement :</strong> L'opération consiste en l'acquisition d'une villa individuelle de 245 m² habitables, édifiée sur une parcelle de 1 200 m² dans le quartier prisé de Cimiez à Nice.</p>
-                        <p>Le porteur de projet, un marchand de biens expérimenté, prévoit une rénovation complète des prestations intérieures (haut de gamme), la création d'une piscine à débordement et l'aménagement paysager du terrain. La commercialisation se fera à la découpe avec le détachement d'une parcelle constructible en fond de lot.</p>
-                        <p>La marge prévisionnelle de l'opération est estimée à 22 %, offrant un matelas de sécurité confortable pour les investisseurs X-Fund.</p>
-                    </div>
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>Projet</th>
+                                <th>Montant</th>
+                                <th>Parts</th>
+                                <th>Dividendes</th>
+                                <th>Valeur actuelle</th>
+                                <th>Date</th>
+                                <th style="text-align:right;">Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="project-cell">
+                                        <div>
+                                            <div class="project-cell-name">Villa Méditerranée</div>
+                                            <div class="project-cell-type">Plus-Value · Nice</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="td-amount">5 000 €</td>
+                                <td>1</td>
+                                <td><span class="dividend-none">—</span></td>
+                                <td class="td-amount">5 000 €</td>
+                                <td>13/02/2026</td>
+                                <td class="td-right"><span class="status-tag status-active">En cours</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="project-cell">
+                                        <div>
+                                            <div class="project-cell-name">Villa Méditerranée</div>
+                                            <div class="project-cell-type">Plus-Value · Nice</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="td-amount">5 000 €</td>
+                                <td>1</td>
+                                <td><span class="dividend-none">—</span></td>
+                                <td class="td-amount">5 000 €</td>
+                                <td>12/02/2026</td>
+                                <td class="td-right"><span class="status-tag status-active">En cours</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="project-cell">
+                                        <div>
+                                            <div class="project-cell-name">Projet Lyon</div>
+                                            <div class="project-cell-type">Rendement · Lyon</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="td-amount">200 000 €</td>
+                                <td>2 000</td>
+                                <td><span class="dividend-val">+35 420 €</span></td>
+                                <td class="td-amount">200 000 €</td>
+                                <td>12/02/2026</td>
+                                <td class="td-right"><span class="status-tag status-active">En cours</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <!-- Operator -->
-                <div class="section-block">
-                    <div class="section-label">Opérateur</div>
-                    <div class="operator-card">
-                        <div class="operator-avatar"><i data-lucide="building-2" size="20"></i></div>
-                        <div>
-                            <div class="operator-name">Groupe Riviera Développement</div>
-                            <div class="operator-detail">5 opérations réalisées · Toutes remboursées par anticipation</div>
-                        </div>
-                        <div class="operator-badge"><i data-lucide="badge-check" size="13"></i> Vérifié</div>
-                    </div>
-                </div>
-
-                <!-- Analysis -->
-                <div class="section-block">
-                    <div class="section-label">Analyse du risque</div>
-                    <div class="analysis-grid">
-                        <div class="analysis-row">
-                            <div class="analysis-marker"></div>
-                            <div>
-                                <h4>Expertise de l'opérateur</h4>
-                                <p>5 opérations similaires dans ce secteur au cours des 3 dernières années, toutes remboursées par anticipation.</p>
-                            </div>
-                        </div>
-                        <div class="analysis-row">
-                            <div class="analysis-marker"></div>
-                            <div>
-                                <h4>Aléas de travaux limités</h4>
-                                <p>Les devis travaux ont été validés par notre AMO indépendant. Les entreprises retenues disposent toutes de la garantie décennale à jour.</p>
-                            </div>
-                        </div>
-                        <div class="analysis-row">
-                            <div class="analysis-marker"></div>
-                            <div>
-                                <h4>Risque commercial maîtrisé</h4>
-                                <p>Le prix de sortie estimé (8 500 €/m²) se situe dans la fourchette basse des transactions récentes pour des biens équivalents.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Timeline -->
-                <div class="section-block">
-                    <div class="section-label">Calendrier</div>
-                    <div class="timeline-row">
-                        <div class="tl-step">
-                            <div class="tl-step-status active"></div>
-                            <div class="tl-step-date">Février 2026</div>
-                            <div class="tl-step-label">Collecte & Acquisition</div>
-                            <div class="tl-step-sublabel">En cours</div>
-                        </div>
-                        <div class="tl-step">
-                            <div class="tl-step-status"></div>
-                            <div class="tl-step-date">Août 2026</div>
-                            <div class="tl-step-label">Fin des travaux</div>
-                            <div class="tl-step-sublabel">~6 mois</div>
-                        </div>
-                        <div class="tl-step">
-                            <div class="tl-step-status"></div>
-                            <div class="tl-step-date">Août 2027</div>
-                            <div class="tl-step-label">Remboursement visé</div>
-                            <div class="tl-step-sublabel">In fine</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Documents -->
-                <div class="section-block">
-                    <div class="section-label">Documents</div>
-                    <div class="doc-list">
-                        <a href="#" class="doc-row">
-                            <div class="doc-row-left">
-                                <div class="doc-row-icon"><i data-lucide="file-text" size="15"></i></div>
-                                <div>
-                                    <div>Document d'Information (DICI)</div>
-                                    <div class="doc-row-meta">PDF · 2.4 Mo</div>
-                                </div>
-                            </div>
-                            <i data-lucide="download" size="16" color="var(--text-muted)"></i>
-                        </a>
-                        <a href="#" class="doc-row">
-                            <div class="doc-row-left">
-                                <div class="doc-row-icon"><i data-lucide="file-check-2" size="15"></i></div>
-                                <div>
-                                    <div>Permis de Construire</div>
-                                    <div class="doc-row-meta">PDF · 1.8 Mo</div>
-                                </div>
-                            </div>
-                            <i data-lucide="download" size="16" color="var(--text-muted)"></i>
-                        </a>
-                        <a href="#" class="doc-row">
-                            <div class="doc-row-left">
-                                <div class="doc-row-icon"><i data-lucide="file-bar-chart" size="15"></i></div>
-                                <div>
-                                    <div>Bilan Financier</div>
-                                    <div class="doc-row-meta">PDF · 3.1 Mo</div>
-                                </div>
-                            </div>
-                            <i data-lucide="download" size="16" color="var(--text-muted)"></i>
-                        </a>
-                    </div>
-                </div>
-
             </div>
 
-            <!-- ─── Sidebar ─── -->
+            <!-- Sidebar -->
             <div class="sidebar">
 
-                <div class="invest-widget">
-                    <div class="widget-top">
-                        <div>
-                            <div class="widget-amount">450 000 €</div>
-                            <div class="widget-amount-label">Objectif de financement</div>
+                <!-- Allocation Donut -->
+                <div class="allocation-card">
+                    <div class="allocation-title">Répartition</div>
+                    <div class="donut-container">
+                        <canvas id="allocationChart" width="130" height="130" style="max-width:130px;max-height:130px;"></canvas>
+                    </div>
+                    <div class="alloc-legend">
+                        <div class="alloc-item">
+                            <div class="alloc-item-left">
+                                <div class="alloc-dot" style="background: #96741d;"></div>
+                                <span class="alloc-item-label">Projet Lyon</span>
+                            </div>
+                            <span class="alloc-item-value">95,2 %</span>
                         </div>
-                        <div class="status-pill">En collecte</div>
-                    </div>
-
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width: 65%;"></div>
-                    </div>
-                    <div class="progress-row">
-                        <span><strong>292 500 €</strong> financés</span>
-                        <span><strong>65 %</strong></span>
-                    </div>
-
-                    <button class="btn-invest">
-                        Investir dans ce projet
-                        <i data-lucide="arrow-right" size="16"></i>
-                    </button>
-
-                    <div class="investor-row">
-                        <div class="avatar-stack">
-                            <img src="https://i.pravatar.cc/100?img=1" class="avatar-sm" alt="">
-                            <img src="https://i.pravatar.cc/100?img=2" class="avatar-sm" alt="">
-                            <img src="https://i.pravatar.cc/100?img=3" class="avatar-sm" alt="">
+                        <div class="alloc-item">
+                            <div class="alloc-item-left">
+                                <div class="alloc-dot" style="background: #e8d06b;"></div>
+                                <span class="alloc-item-label">Villa Méditerranée</span>
+                            </div>
+                            <span class="alloc-item-value">4,8 %</span>
                         </div>
-                        <span>142 investisseurs</span>
-                    </div>
-
-                    <div class="widget-divider"></div>
-
-                    <button class="btn-secondary">
-                        <i data-lucide="calculator" size="15"></i>
-                        Simuler mon investissement
-                    </button>
-
-                    <div class="risk-note">
-                        <i data-lucide="info" size="14" color="var(--text-muted)"></i>
-                        <span>L'investissement présente un risque de perte en capital et d'illiquidité.</span>
                     </div>
                 </div>
 
-                <!-- Sidebar Stats -->
-                <div class="sidebar-stats">
-                    <div class="sidebar-stats-title">Détails financiers</div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Rendement cible</span>
-                        <span class="stat-row-value">11,50 %</span>
+                <!-- Performance -->
+                <div class="perf-card">
+                    <div class="perf-title">Performance</div>
+                    <div class="perf-row">
+                        <span class="perf-label">Plus-value latente</span>
+                        <span class="perf-value positive">+35 420 €</span>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Durée</span>
-                        <span class="stat-row-value">18 mois</span>
+                    <div class="perf-row">
+                        <span class="perf-label">Rendement global</span>
+                        <span class="perf-value positive">+16,9 %</span>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Remboursement</span>
-                        <span class="stat-row-value">In fine</span>
+                    <div class="perf-row">
+                        <span class="perf-label">TRI estimé</span>
+                        <span class="perf-value">11,2 %</span>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Ticket minimum</span>
-                        <span class="stat-row-value">1 000 €</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Marge opération</span>
-                        <span class="stat-row-value">22 %</span>
+                    <div class="perf-row">
+                        <span class="perf-label">Durée moy. restante</span>
+                        <span class="perf-value">14 mois</span>
                     </div>
                 </div>
 
-                <!-- Support -->
-                <div class="support-row">
-                    <div class="support-row-text">
-                        <strong>Des questions ?</strong>
-                        Notre équipe est disponible.
+                <!-- Activity -->
+                <div class="activity-card">
+                    <div class="activity-title">Activité récente</div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon activity-icon-invest"><i data-lucide="arrow-down-left" size="14"></i></div>
+                            <div>
+                                <div class="activity-text"><strong>Investissement</strong> — Villa Méditerranée</div>
+                                <div class="activity-text" style="font-weight:600;">5 000 €</div>
+                                <div class="activity-date">13 fév. 2026</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon activity-icon-invest"><i data-lucide="arrow-down-left" size="14"></i></div>
+                            <div>
+                                <div class="activity-text"><strong>Investissement</strong> — Villa Méditerranée</div>
+                                <div class="activity-text" style="font-weight:600;">5 000 €</div>
+                                <div class="activity-date">12 fév. 2026</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon activity-icon-dividend"><i data-lucide="coins" size="14"></i></div>
+                            <div>
+                                <div class="activity-text"><strong>Dividende</strong> — Projet Lyon</div>
+                                <div class="activity-text dividend-val">+12 450 €</div>
+                                <div class="activity-date">1 jan. 2026</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon activity-icon-info"><i data-lucide="file-text" size="14"></i></div>
+                            <div>
+                                <div class="activity-text"><strong>Rapport</strong> — Projet Lyon T4 disponible</div>
+                                <div class="activity-date">15 déc. 2025</div>
+                            </div>
+                        </div>
                     </div>
-                    <button class="btn-support"><i data-lucide="phone" size="14"></i> Appeler</button>
                 </div>
 
             </div>
-
         </div>
+
     </div>
 
     <script>
         lucide.createIcons();
+
+        // ─── Portfolio Line Chart ───
+        const pCtx = document.getElementById('portfolioChart').getContext('2d');
+
+        const goldGradient = pCtx.createLinearGradient(0, 0, 0, 200);
+        goldGradient.addColorStop(0, 'rgba(176, 141, 39, 0.15)');
+        goldGradient.addColorStop(1, 'rgba(176, 141, 39, 0.01)');
+
+        const grayGradient = pCtx.createLinearGradient(0, 0, 0, 200);
+        grayGradient.addColorStop(0, 'rgba(212, 212, 212, 0.12)');
+        grayGradient.addColorStop(1, 'rgba(212, 212, 212, 0.01)');
+
+        new Chart(pCtx, {
+            type: 'line',
+            data: {
+                labels: ['Sept', 'Oct', 'Nov', 'Déc', 'Jan', 'Fév'],
+                datasets: [
+                    {
+                        label: 'Valeur du portefeuille',
+                        data: [210000, 215800, 224500, 231200, 238900, 245420],
+                        borderColor: '#b08d27',
+                        backgroundColor: goldGradient,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: '#b08d27',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
+                    },
+                    {
+                        label: 'Capital investi',
+                        data: [200000, 200000, 200000, 200000, 210000, 210000],
+                        borderColor: '#d4d4d4',
+                        backgroundColor: grayGradient,
+                        borderWidth: 1.5,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: '#d4d4d4',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
+                        borderDash: [4, 3],
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0a0a0a',
+                        titleFont: { family: 'DM Sans', size: 11, weight: '500' },
+                        bodyFont: { family: 'DM Sans', size: 12, weight: '600' },
+                        padding: { x: 12, y: 8 },
+                        cornerRadius: 8,
+                        displayColors: true,
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        boxPadding: 4,
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('fr-FR') + ' €';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            font: { family: 'DM Sans', size: 11 },
+                            color: '#a3a3a3',
+                            padding: 8,
+                        }
+                    },
+                    y: {
+                        grid: { color: '#f0f0f0', drawTicks: false },
+                        border: { display: false },
+                        ticks: {
+                            font: { family: 'DM Sans', size: 10 },
+                            color: '#a3a3a3',
+                            padding: 12,
+                            callback: function(val) { return (val / 1000) + 'k'; },
+                            maxTicksLimit: 5,
+                        },
+                        beginAtZero: false,
+                    }
+                }
+            }
+        });
+
+        // ─── Allocation Donut Chart ───
+        const dCtx = document.getElementById('allocationChart').getContext('2d');
+
+        const centerTextPlugin = {
+            id: 'centerText',
+            afterDraw(chart) {
+                const { ctx, chartArea } = chart;
+                const cx = (chartArea.left + chartArea.right) / 2;
+                const cy = (chartArea.top + chartArea.bottom) / 2;
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                ctx.font = "600 16px 'Playfair Display'";
+                ctx.fillStyle = '#0a0a0a';
+                ctx.fillText('210k €', cx, cy - 6);
+
+                ctx.font = "400 10px 'DM Sans'";
+                ctx.fillStyle = '#a3a3a3';
+                ctx.fillText('3 projets', cx, cy + 10);
+
+                ctx.restore();
+            }
+        };
+
+        new Chart(dCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Projet Lyon', 'Villa Méditerranée'],
+                datasets: [{
+                    data: [200000, 10000],
+                    backgroundColor: ['#96741d', '#e8d06b'],
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    hoverOffset: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '65%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0a0a0a',
+                        titleFont: { family: 'DM Sans', size: 11, weight: '500' },
+                        bodyFont: { family: 'DM Sans', size: 12, weight: '600' },
+                        padding: { x: 12, y: 8 },
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(ctx) {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = ((ctx.parsed / total) * 100).toFixed(1);
+                                return ctx.parsed.toLocaleString('fr-FR') + ' € (' + pct + ' %)';
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [centerTextPlugin]
+        });
     </script>
 </body>
 </html>
