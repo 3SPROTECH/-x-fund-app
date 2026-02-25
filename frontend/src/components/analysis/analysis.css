@@ -1,0 +1,383 @@
+/* ============================================================
+   Analysis Page — Styles
+   Prefix: .an-  (analysis)
+   Reuses app global CSS variables from index.css
+   ============================================================ */
+
+/* ==================== PAGE CONTAINER ==================== */
+.an-page {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-w, 260px);
+  right: 0;
+  bottom: 0;
+  background: var(--bg);
+  overflow: hidden;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .an-page {
+    left: 0;
+    top: 56px;
+  }
+}
+
+/* ==================== HEADER ==================== */
+.an-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  min-height: 56px;
+}
+
+.an-header-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 10px 6px 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.an-header-back:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.an-header-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.an-header-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ==================== SPLIT LAYOUT ==================== */
+.an-split {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+@media (max-width: 1024px) {
+  .an-split {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+}
+
+/* ==================== LEFT PANEL — DATA VIEWER ==================== */
+.an-viewer {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+/* Primary tabs (Level 1) */
+.an-viewer-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.an-viewer-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.an-viewer-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.an-viewer-tab:hover {
+  color: var(--text);
+  background: var(--bg);
+}
+
+.an-viewer-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--gold-color);
+  font-weight: 600;
+}
+
+/* Sub tabs (Level 2) */
+.an-viewer-subtabs {
+  display: flex;
+  gap: 0;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.an-viewer-subtabs::-webkit-scrollbar {
+  display: none;
+}
+
+.an-viewer-subtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.an-viewer-subtab:hover {
+  color: var(--text-secondary);
+}
+
+.an-viewer-subtab.active {
+  color: var(--text);
+  border-bottom-color: var(--gold-color);
+  font-weight: 600;
+}
+
+/* Content area */
+.an-viewer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem;
+}
+
+/* ==================== RIGHT PANEL — ANALYSIS STEPPER ==================== */
+.an-stepper {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+/* Macro step navigation */
+.an-stepper-nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.an-stepper-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.an-stepper-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.an-stepper-step:hover {
+  color: var(--text);
+  background: var(--bg);
+}
+
+.an-stepper-step.active {
+  color: var(--text);
+  border-bottom-color: var(--gold-color);
+  font-weight: 600;
+}
+
+.an-stepper-step.completed {
+  color: var(--success);
+}
+
+.an-stepper-step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.an-stepper-step.active .an-stepper-step-icon {
+  background: var(--gold-color);
+  color: #fff;
+}
+
+.an-stepper-step.completed .an-stepper-step-icon {
+  background: var(--success);
+  color: #fff;
+}
+
+/* Step header */
+.an-stepper-header {
+  padding: 1.25rem 1.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.an-stepper-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.an-stepper-header p {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+/* Step content */
+.an-stepper-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem;
+}
+
+/* Step footer */
+.an-stepper-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+  flex-shrink: 0;
+}
+
+.an-stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.an-stepper-btn:hover {
+  background: var(--bg);
+  border-color: var(--text-muted);
+}
+
+.an-stepper-btn.primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.an-stepper-btn.primary:hover {
+  background: var(--primary-hover);
+}
+
+.an-stepper-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==================== TAB CONTENT PLACEHOLDER ==================== */
+.an-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.an-placeholder-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+
+.an-placeholder h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.375rem;
+}
+
+.an-placeholder p {
+  font-size: 0.8125rem;
+  max-width: 320px;
+  line-height: 1.5;
+}

@@ -43,7 +43,7 @@ import InvestorDividendDetailPage from './pages/investor/InvestorDividendDetailP
 // Analyste pages
 import AnalysteDashboardPage from './pages/analyste/AnalysteDashboardPage';
 import AnalysteProjectsPage from './pages/analyste/AnalysteProjectsPage';
-import AnalysteProjectDetailPage from './pages/analyste/AnalysteProjectDetailPage';
+import ProjectAnalysisPage from './pages/analyste/ProjectAnalysisPage';
 import AnalysteProfilePage from './pages/analyste/AnalysteProfilePage';
 import AnalysteKycPage from './pages/analyste/AnalysteKycPage';
 
@@ -228,7 +228,7 @@ export default function App() {
             />
             <Route
               path="/analyste/projects/:id"
-              element={<ProtectedRoute roles={['analyste']}><AnalysteProjectDetailPage /></ProtectedRoute>}
+              element={<ProtectedRoute roles={['analyste']}><ProjectAnalysisPage /></ProtectedRoute>}
             />
             <Route
               path="/analyste/kyc"
