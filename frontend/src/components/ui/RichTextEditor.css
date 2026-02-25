@@ -1,0 +1,137 @@
+/* ============================================================
+   Rich Text Editor — Styles
+   Prefix: .rte-
+   ============================================================ */
+
+/* Wrapper — acts as the "input" container */
+.rte-wrapper {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.rte-wrapper:focus-within {
+  border-color: #DAA520;
+  box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.12);
+}
+
+.rte-wrapper.rte-disabled {
+  background: var(--bg);
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ======= Toolbar ======= */
+.rte-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg);
+  flex-wrap: wrap;
+}
+
+.rte-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rte-toolbar-btn:hover:not(:disabled) {
+  background: var(--bg-card);
+  color: var(--text);
+}
+
+.rte-toolbar-btn.active {
+  background: var(--bg-card);
+  color: var(--gold-color);
+}
+
+.rte-toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rte-toolbar-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+/* ======= Editor content area ======= */
+.rte-content {
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  color: var(--text);
+  line-height: 1.6;
+  cursor: text;
+}
+
+.rte-content .tiptap {
+  outline: none;
+  min-height: inherit;
+}
+
+/* Placeholder */
+.rte-content .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-muted);
+  pointer-events: none;
+  height: 0;
+}
+
+/* ======= Prose styles ======= */
+.rte-content .tiptap p {
+  margin-bottom: 0.5em;
+}
+
+.rte-content .tiptap p:last-child {
+  margin-bottom: 0;
+}
+
+.rte-content .tiptap h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5em;
+}
+
+.rte-content .tiptap h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5em;
+}
+
+.rte-content .tiptap ul,
+.rte-content .tiptap ol {
+  padding-left: 1.25rem;
+  margin-bottom: 0.5em;
+}
+
+.rte-content .tiptap li {
+  margin-bottom: 0.2em;
+}
+
+.rte-content .tiptap strong {
+  font-weight: 600;
+}
+
+.rte-content .tiptap u {
+  text-decoration: underline;
+}
