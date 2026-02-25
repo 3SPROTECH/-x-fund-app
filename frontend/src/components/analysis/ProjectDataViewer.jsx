@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Eye, User, DollarSign, Building, FileText, MessageSquare } from 'lucide-react';
+import { Eye, User, DollarSign, Building, FileText, MessageSquarePlus } from 'lucide-react';
 
 import TabOverview from './tabs/TabOverview';
 import TabPorteur from './tabs/TabPorteur';
 import TabFinances from './tabs/TabFinances';
 import TabActifs from './tabs/TabActifs';
 import TabDocuments from './tabs/TabDocuments';
-import TabHistorique from './tabs/TabHistorique';
+import TabComplements from './tabs/TabComplements';
 import DocumentViewer from './DocumentViewer';
 
 const TABS = [
@@ -41,14 +41,14 @@ const TABS = [
     Component: TabDocuments,
   },
   {
-    label: 'Historique',
-    icon: MessageSquare,
-    subTabs: ['Demandes', 'Reponses'],
-    Component: TabHistorique,
+    label: 'Complements',
+    icon: MessageSquarePlus,
+    subTabs: ['Nouvelle demande', 'Historique'],
+    Component: TabComplements,
   },
 ];
 
-export default function ProjectDataViewer({ project, infoRequests }) {
+export default function ProjectDataViewer({ project, infoRequests, onRefresh }) {
   const [activeTab, setActiveTab] = useState(0);
   const [activeSubTabs, setActiveSubTabs] = useState(() => TABS.map(() => 0));
   const [activeDocument, setActiveDocument] = useState(null);
@@ -87,6 +87,8 @@ export default function ProjectDataViewer({ project, infoRequests }) {
     );
   }
 
+  const projectId = project?.id || project?.attributes?.id;
+
   return (
     <div className="an-viewer">
       {/* Level 1 — Primary tabs */}
@@ -124,8 +126,10 @@ export default function ProjectDataViewer({ project, infoRequests }) {
         <TabComponent
           subTab={currentSubTab}
           project={project}
+          projectId={projectId}
           infoRequests={infoRequests}
           onOpenDocument={handleOpenDocument}
+          onRefresh={onRefresh}
         />
       </div>
     </div>

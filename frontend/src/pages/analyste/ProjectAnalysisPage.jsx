@@ -69,7 +69,7 @@ export default function ProjectAnalysisPage() {
 
       {/* Split layout */}
       <div className="an-split">
-        <ProjectDataViewer project={project} infoRequests={infoRequests} />
+        <ProjectDataViewer project={project} infoRequests={infoRequests} onRefresh={loadProject} />
         <AnalysisStepper project={project} />
       </div>
     </div>
