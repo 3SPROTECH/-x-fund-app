@@ -147,6 +147,7 @@ Rails.application.routes.draw do
             patch :reject
             post :generate_report
             get :report
+            get 'info_requests/:info_request_id/file/:field_index', action: :download_response_file, as: :download_response_file
           end
         end
 

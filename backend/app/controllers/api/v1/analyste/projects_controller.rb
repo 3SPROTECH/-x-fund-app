@@ -3,7 +3,7 @@ module Api
     module Analyste
       class ProjectsController < ApplicationController
         before_action :require_analyste!
-        before_action :set_project, only: [:show, :submit_opinion, :request_info, :approve, :reject, :generate_report, :report]
+        before_action :set_project, only: [:show, :submit_opinion, :request_info, :approve, :reject, :generate_report, :report, :download_response_file]
 
         def index
           projects = InvestmentProject.where(analyst_id: current_user.id)
@@ -190,6 +190,19 @@ module Api
             data: InvestmentProjectSerializer.new(@project.reload).serializable_hash[:data],
             report: AnalystReportSerializer.new(report).serializable_hash[:data]
           }, status: :created
+        end
+
+        # GET /api/v1/analyste/projects/:id/info_requests/:info_request_id/file/:field_index
+        def download_response_file
+          ir = @project.info_requests.find(params[:info_request_id])
+          prefix = "field_#{params[:field_index]}_"
+          attachment = ir.response_files.find { |f| f.filename.to_s.start_with?(prefix) }
+
+          unless attachment
+            return render json: { error: "Fichier non trouve." }, status: :not_found
+          end
+
+          redirect_to rails_blob_url(attachment, disposition: "attachment"), allow_other_host: true
         end
 
         # GET /api/v1/analyste/projects/:id/report

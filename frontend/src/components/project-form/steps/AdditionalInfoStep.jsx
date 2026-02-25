@@ -12,8 +12,10 @@ export default function AdditionalInfoStep({ onSubmitRef }) {
 
     const [pendingRequests, setPendingRequests] = useState([]);
     const [historyRequests, setHistoryRequests] = useState([]);
-    // { [requestId]: { "0": "value", "1": "value" } }
+    // { [requestId]: { "0": "value", "1": "value" } }  (text responses + filenames for display)
     const [responsesMap, setResponsesMap] = useState({});
+    // { [requestId]: { "2": File } }  (actual File objects for upload)
+    const [fileMap, setFileMap] = useState({});
     const [loading, setLoading] = useState(true);
     const [submitted, setSubmitted] = useState(false);
 
@@ -60,6 +62,15 @@ export default function AdditionalInfoStep({ onSubmitRef }) {
         }));
     };
 
+    const updateFile = (requestId, index, file) => {
+        setFileMap(prev => ({
+            ...prev,
+            [requestId]: { ...(prev[requestId] || {}), [String(index)]: file },
+        }));
+        // Also store the filename in responsesMap for display and validation
+        updateResponse(requestId, index, file.name);
+    };
+
     const handleSubmit = useCallback(async () => {
         if (pendingRequests.length === 0) return true; // no pending, pass through
 
@@ -67,10 +78,17 @@ export default function AdditionalInfoStep({ onSubmitRef }) {
         for (const ir of pendingRequests) {
             const fields = ir.fields || [];
             const irResponses = responsesMap[ir.id] || {};
+            const irFiles = fileMap[ir.id] || {};
             for (let i = 0; i < fields.length; i++) {
-                if (fields[i].required && !irResponses[String(i)]?.trim?.()) {
-                    toast.error(`Le champ "${fields[i].label}" est requis.`);
-                    return false;
+                const idx = String(i);
+                if (fields[i].required) {
+                    const hasValue = fields[i].field_type === 'file'
+                        ? !!irFiles[idx]
+                        : !!irResponses[idx]?.trim?.();
+                    if (!hasValue) {
+                        toast.error(`Le champ "${fields[i].label}" est requis.`);
+                        return false;
+                    }
                 }
             }
         }
@@ -82,7 +100,7 @@ export default function AdditionalInfoStep({ onSubmitRef }) {
         });
 
         try {
-            await porteurInfoApi.submitInfoResponse(projectId, submissions);
+            await porteurInfoApi.submitInfoResponse(projectId, submissions, fileMap);
             setSubmitted(true);
             setProjectStatus('info_resubmitted');
             toast.success('Compléments envoyés avec succès !');
@@ -91,7 +109,7 @@ export default function AdditionalInfoStep({ onSubmitRef }) {
             toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de l\'envoi');
             return false;
         }
-    }, [pendingRequests, responsesMap, projectId, setProjectStatus]);
+    }, [pendingRequests, responsesMap, fileMap, projectId, setProjectStatus]);
 
     // Expose submit handler to parent via ref
     useEffect(() => {
@@ -220,7 +238,7 @@ export default function AdditionalInfoStep({ onSubmitRef }) {
                                                                 type="file"
                                                                 onChange={(e) => {
                                                                     const file = e.target.files?.[0];
-                                                                    if (file) updateResponse(ir.id, idx, file.name);
+                                                                    if (file) updateFile(ir.id, idx, file);
                                                                 }}
                                                             />
                                                         </label>

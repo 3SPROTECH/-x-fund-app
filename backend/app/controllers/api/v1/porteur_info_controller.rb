@@ -12,7 +12,10 @@ module Api
       end
 
       # PATCH /api/v1/porteur/projects/:project_id/info_request/submit
-      # Accepts { submissions: { "ir_id": { "0": "val", ... }, ... } }
+      # Accepts multipart form with:
+      #   submissions[ir_id][0] = "text value"
+      #   submissions[ir_id][2] = "filename.pdf"   (for file fields, the filename)
+      #   files[ir_id][2] = <uploaded file>         (actual file binary)
       def submit
         submissions = params[:submissions]
         unless submissions.present?
@@ -28,6 +31,24 @@ module Api
         pending.each do |ir|
           ir_responses = submissions[ir.id.to_s]
           next unless ir_responses.present?
+
+          # Convert ActionController::Parameters to a plain hash
+          ir_responses = ir_responses.to_unsafe_h if ir_responses.respond_to?(:to_unsafe_h)
+
+          # Attach uploaded files
+          ir_files = params.dig(:files, ir.id.to_s)
+          if ir_files.present?
+            ir_files.each do |field_index, file|
+              next unless file.is_a?(ActionDispatch::Http::UploadedFile)
+              ir.response_files.attach(
+                io: file.tempfile,
+                filename: "field_#{field_index}_#{file.original_filename}",
+                content_type: file.content_type
+              )
+              # Store the original filename in responses
+              ir_responses[field_index.to_s] = file.original_filename
+            end
+          end
 
           ir.update!(
             responses: ir_responses,

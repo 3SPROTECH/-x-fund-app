@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import {
   Plus, Trash2, Send, Type, AlignLeft, Hash, Upload,
-  CheckCircle, Clock, Eye, ChevronDown, ChevronUp,
+  CheckCircle, Clock, Eye, ChevronDown, ChevronUp, Download,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { analysteApi } from '../../../api/analyste';
+import client from '../../../api/client';
 
 const FIELD_TYPES = [
   { value: 'text', label: 'Texte court', icon: Type },
@@ -186,7 +187,40 @@ function NouvelleDemande({ projectId, onSubmitted }) {
 
 /* ─── History — requests + responses ─── */
 
-function Historique({ infoRequests }) {
+function FileDownloadLink({ projectId, infoRequestId, fieldIndex, fileName }) {
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const res = await client.get(
+        `/analyste/projects/${projectId}/info_requests/${infoRequestId}/file/${fieldIndex}`,
+        { responseType: 'blob' }
+      );
+      const url = window.URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Erreur lors du telechargement');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <button className="an-doc-attach" onClick={handleDownload} disabled={downloading} title={`Telecharger ${fileName}`}>
+      <Download size={11} />
+      {downloading ? 'Telechargement...' : (fileName.length > 25 ? fileName.substring(0, 22) + '...' : fileName)}
+    </button>
+  );
+}
+
+function Historique({ infoRequests, projectId }) {
   if (!infoRequests || infoRequests.length === 0) {
     return <div className="an-empty">Aucune demande envoyee pour le moment.</div>;
   }
@@ -197,6 +231,7 @@ function Historique({ infoRequests }) {
         const attr = ir.attributes || ir;
         const fields = attr.fields || [];
         const responses = attr.responses || {};
+        const responseFileFields = attr.response_file_fields || {};
         const hasResponses = Object.keys(responses).length > 0;
         const config = STATUS_CONFIG[attr.status] || STATUS_CONFIG.pending;
         const StatusIcon = config.icon;
@@ -221,7 +256,11 @@ function Historique({ infoRequests }) {
 
             {/* Fields + responses */}
             {fields.map((field, idx) => {
-              const response = responses[String(idx)];
+              const idxStr = String(idx);
+              const response = responses[idxStr];
+              const isFileField = field.field_type === 'file';
+              const hasFile = !!responseFileFields[idxStr];
+
               return (
                 <div className="an-ir-field" key={idx}>
                   <div className="an-ir-field-header">
@@ -237,9 +276,20 @@ function Historique({ infoRequests }) {
                     <div className="an-ir-field-comment">{field.comment}</div>
                   )}
                   {hasResponses && (
-                    <div className={`an-ir-response${response ? '' : ' empty'}`}>
-                      {response || 'Non renseigne'}
-                    </div>
+                    isFileField && hasFile ? (
+                      <div className="an-ir-response">
+                        <FileDownloadLink
+                          projectId={projectId}
+                          infoRequestId={ir.id}
+                          fieldIndex={idx}
+                          fileName={responseFileFields[idxStr]}
+                        />
+                      </div>
+                    ) : (
+                      <div className={`an-ir-response${response ? '' : ' empty'}`}>
+                        {response || 'Non renseigne'}
+                      </div>
+                    )
                   )}
                 </div>
               );
@@ -265,7 +315,7 @@ export default function TabComplements({ subTab, projectId, infoRequests, onRefr
     case 0:
       return <NouvelleDemande projectId={projectId} onSubmitted={onRefresh} />;
     case 1:
-      return <Historique infoRequests={infoRequests} />;
+      return <Historique infoRequests={infoRequests} projectId={projectId} />;
     default:
       return <NouvelleDemande projectId={projectId} onSubmitted={onRefresh} />;
   }
