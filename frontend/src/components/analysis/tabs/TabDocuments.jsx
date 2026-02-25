@@ -24,7 +24,7 @@ function AssetSelector({ assets, selected, onSelect }) {
   );
 }
 
-function DocList({ docs, title }) {
+function DocList({ docs, title, onOpenDocument }) {
   if (!docs || docs.length === 0) {
     return (
       <div className="an-section">
@@ -39,9 +39,14 @@ function DocList({ docs, title }) {
       <div className="an-section-title">{title} ({docs.length})</div>
       {docs.map((doc) => {
         const config = STATUS_CONFIG[doc.status] || STATUS_CONFIG.empty;
-        const Icon = config.icon;
+        const isClickable = doc.status === 'uploaded' && doc.fileName;
+
         return (
-          <div className="an-doc-item" key={doc.type}>
+          <div
+            className={`an-doc-item${isClickable ? ' clickable' : ''}`}
+            key={doc.type}
+            onClick={isClickable ? () => onOpenDocument?.({ label: doc.label, fileName: doc.fileName }) : undefined}
+          >
             <div className={`an-doc-icon${doc.status === 'uploaded' ? ' uploaded' : ''}`}>
               {doc.status === 'uploaded' ? <CheckCircle size={16} /> : <FileText size={16} />}
             </div>
@@ -67,7 +72,7 @@ function DocList({ docs, title }) {
   );
 }
 
-function Justificatifs({ assets, selectedAsset, setSelectedAsset }) {
+function Justificatifs({ assets, selectedAsset, setSelectedAsset, onOpenDocument }) {
   if (assets.length === 0) {
     return <div className="an-empty">Aucun actif renseigne.</div>;
   }
@@ -78,12 +83,12 @@ function Justificatifs({ assets, selectedAsset, setSelectedAsset }) {
   return (
     <>
       <AssetSelector assets={assets} selected={selectedAsset} onSelect={setSelectedAsset} />
-      <DocList docs={docs} title="Documents justificatifs" />
+      <DocList docs={docs} title="Documents justificatifs" onOpenDocument={onOpenDocument} />
     </>
   );
 }
 
-function PreuvesGaranties({ assets, selectedAsset, setSelectedAsset }) {
+function PreuvesGaranties({ assets, selectedAsset, setSelectedAsset, onOpenDocument }) {
   if (assets.length === 0) {
     return <div className="an-empty">Aucun actif renseigne.</div>;
   }
@@ -94,20 +99,20 @@ function PreuvesGaranties({ assets, selectedAsset, setSelectedAsset }) {
   return (
     <>
       <AssetSelector assets={assets} selected={selectedAsset} onSelect={setSelectedAsset} />
-      <DocList docs={docs} title="Preuves de garanties" />
+      <DocList docs={docs} title="Preuves de garanties" onOpenDocument={onOpenDocument} />
     </>
   );
 }
 
-export default function TabDocuments({ subTab, project }) {
+export default function TabDocuments({ subTab, project, onOpenDocument }) {
   const attrs = project?.attributes || project || {};
   const snapshot = attrs.form_snapshot || {};
   const assets = snapshot.assets || [];
   const [selectedAsset, setSelectedAsset] = useState(0);
 
   switch (subTab) {
-    case 0: return <Justificatifs assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} />;
-    case 1: return <PreuvesGaranties assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} />;
-    default: return <Justificatifs assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} />;
+    case 0: return <Justificatifs assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} onOpenDocument={onOpenDocument} />;
+    case 1: return <PreuvesGaranties assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} onOpenDocument={onOpenDocument} />;
+    default: return <Justificatifs assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} onOpenDocument={onOpenDocument} />;
   }
 }

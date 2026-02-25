@@ -1,3 +1,4 @@
+import { Paperclip } from 'lucide-react';
 import { formatCents } from '../../../utils';
 
 const COMMERCIALIZATION_LABELS = {
@@ -88,7 +89,7 @@ function Structure({ fin, attrs }) {
   );
 }
 
-function Projections({ snapshot, attrs }) {
+function Projections({ snapshot, attrs, onOpenDocument }) {
   const proj = snapshot.projections || {};
 
   return (
@@ -120,7 +121,24 @@ function Projections({ snapshot, attrs }) {
         <div className="an-fields">
           <Field label="Montant total" value={formatCents(attrs.total_amount_cents)} />
           <Field label="Investissement minimum" value={formatCents(attrs.min_investment_cents)} />
-          <Field label="Fonds propres" value={formatCents(attrs.equity_cents)} />
+          <div className="an-field">
+            <span className="an-field-label">Fonds propres</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="an-field-value">
+                {formatCents(attrs.equity_cents) || <span className="muted">Non renseigne</span>}
+              </span>
+              {proj.proofFileName && (
+                <button
+                  className="an-doc-attach"
+                  onClick={() => onOpenDocument?.({ label: 'Preuve de fonds propres', fileName: proj.proofFileName })}
+                  title={proj.proofFileName}
+                >
+                  <Paperclip size={11} />
+                  {proj.proofFileName.substring(0, 20)}
+                </button>
+              )}
+            </div>
+          </div>
           <Field label="Pret bancaire" value={formatCents(attrs.bank_loan_cents)} />
           <Field label="Frais de notaire" value={formatCents(attrs.notary_fees_cents)} />
           <Field label="Budget travaux" value={formatCents(attrs.works_budget_cents)} />
@@ -141,14 +159,14 @@ function Projections({ snapshot, attrs }) {
   );
 }
 
-export default function TabFinances({ subTab, project }) {
+export default function TabFinances({ subTab, project, onOpenDocument }) {
   const attrs = project?.attributes || project || {};
   const snapshot = attrs.form_snapshot || {};
   const fin = snapshot.financialStructure || {};
 
   switch (subTab) {
     case 0: return <Structure fin={fin} attrs={attrs} />;
-    case 1: return <Projections snapshot={snapshot} attrs={attrs} />;
+    case 1: return <Projections snapshot={snapshot} attrs={attrs} onOpenDocument={onOpenDocument} />;
     default: return <Structure fin={fin} attrs={attrs} />;
   }
 }

@@ -7,6 +7,7 @@ import TabFinances from './tabs/TabFinances';
 import TabActifs from './tabs/TabActifs';
 import TabDocuments from './tabs/TabDocuments';
 import TabHistorique from './tabs/TabHistorique';
+import DocumentViewer from './DocumentViewer';
 
 const TABS = [
   {
@@ -50,6 +51,7 @@ const TABS = [
 export default function ProjectDataViewer({ project, infoRequests }) {
   const [activeTab, setActiveTab] = useState(0);
   const [activeSubTabs, setActiveSubTabs] = useState(() => TABS.map(() => 0));
+  const [activeDocument, setActiveDocument] = useState(null);
 
   const currentTab = TABS[activeTab];
   const currentSubTab = activeSubTabs[activeTab];
@@ -57,6 +59,7 @@ export default function ProjectDataViewer({ project, infoRequests }) {
 
   const handleTabClick = (index) => {
     setActiveTab(index);
+    setActiveDocument(null);
   };
 
   const handleSubTabClick = (index) => {
@@ -65,7 +68,24 @@ export default function ProjectDataViewer({ project, infoRequests }) {
       next[activeTab] = index;
       return next;
     });
+    setActiveDocument(null);
   };
+
+  const handleOpenDocument = (doc) => {
+    setActiveDocument(doc);
+  };
+
+  const handleBackFromDocument = () => {
+    setActiveDocument(null);
+  };
+
+  if (activeDocument) {
+    return (
+      <div className="an-viewer">
+        <DocumentViewer document={activeDocument} onBack={handleBackFromDocument} />
+      </div>
+    );
+  }
 
   return (
     <div className="an-viewer">
@@ -105,6 +125,7 @@ export default function ProjectDataViewer({ project, infoRequests }) {
           subTab={currentSubTab}
           project={project}
           infoRequests={infoRequests}
+          onOpenDocument={handleOpenDocument}
         />
       </div>
     </div>

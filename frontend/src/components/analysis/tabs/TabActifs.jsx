@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield } from 'lucide-react';
+import { Shield, Paperclip, AlertCircle, CheckCircle } from 'lucide-react';
 
 const GUARANTEE_TYPES = {
   hypotheque: 'Hypotheque', fiducie: 'Fiducie',
@@ -65,7 +65,7 @@ function Details({ asset }) {
   );
 }
 
-function Depenses({ asset }) {
+function Depenses({ asset, onOpenDocument }) {
   const costs = asset.costs || { items: [], total: 0 };
   if (costs.items.length === 0) {
     return <div className="an-empty">Aucune depense renseignee.</div>;
@@ -80,6 +80,7 @@ function Depenses({ asset }) {
             <th>Poste</th>
             <th>Categorie</th>
             <th style={{ textAlign: 'right' }}>Montant</th>
+            <th>Justificatif</th>
           </tr>
         </thead>
         <tbody>
@@ -89,6 +90,23 @@ function Depenses({ asset }) {
               <td style={{ textTransform: 'capitalize' }}>{item.category}</td>
               <td style={{ textAlign: 'right', fontWeight: 600 }}>
                 {item.amount ? `${parseFloat(item.amount).toLocaleString('fr-FR')} €` : '—'}
+              </td>
+              <td>
+                {item.hasJustificatif ? (
+                  <button
+                    className="an-doc-attach"
+                    onClick={() => onOpenDocument?.({ label: `Justificatif — ${item.label}`, fileName: item.justificatifName || 'justificatif.pdf' })}
+                    title={item.justificatifName || 'Voir le justificatif'}
+                  >
+                    <CheckCircle size={11} />
+                    {item.justificatifName ? item.justificatifName.substring(0, 18) : 'Voir'}
+                  </button>
+                ) : (
+                  <span className="an-doc-missing">
+                    <AlertCircle size={11} />
+                    Non fourni
+                  </span>
+                )}
               </td>
             </tr>
           ))}
@@ -190,7 +208,7 @@ function Garanties({ asset }) {
   );
 }
 
-export default function TabActifs({ subTab, project }) {
+export default function TabActifs({ subTab, project, onOpenDocument }) {
   const attrs = project?.attributes || project || {};
   const snapshot = attrs.form_snapshot || {};
   const assets = snapshot.assets || [];
@@ -206,7 +224,7 @@ export default function TabActifs({ subTab, project }) {
     <>
       <AssetSelector assets={assets} selected={selectedAsset} onSelect={setSelectedAsset} />
       {subTab === 0 && <Details asset={asset} />}
-      {subTab === 1 && <Depenses asset={asset} />}
+      {subTab === 1 && <Depenses asset={asset} onOpenDocument={onOpenDocument} />}
       {subTab === 2 && <Lots asset={asset} />}
       {subTab === 3 && <Garanties asset={asset} />}
     </>
