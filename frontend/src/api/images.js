@@ -16,6 +16,22 @@ export const propertyImagesApi = {
   },
 };
 
+export const projectPhotosApi = {
+  uploadPhotos(projectId, photos) {
+    const formData = new FormData();
+    photos.forEach((photo) => {
+      formData.append('photos[]', photo);
+    });
+    return client.post(`/investment_projects/${projectId}/upload_photos`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  deletePhoto(projectId, photoId) {
+    return client.delete(`/investment_projects/${projectId}/delete_photo/${photoId}`);
+  },
+};
+
 export const projectImagesApi = {
   uploadImages(projectId, images) {
     const formData = new FormData();

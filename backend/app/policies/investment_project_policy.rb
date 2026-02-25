@@ -39,6 +39,14 @@ class InvestmentProjectPolicy < ApplicationPolicy
     admin? || (user.porteur_de_projet? && record.owner == user)
   end
 
+  def upload_photos?
+    admin? || (user.porteur_de_projet? && record.owner == user)
+  end
+
+  def delete_photo?
+    admin? || (user.porteur_de_projet? && record.owner == user)
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       if user.administrateur?

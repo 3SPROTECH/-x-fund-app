@@ -92,9 +92,10 @@ export const MACRO_STEPS = [
 export const STEP_CONFIG = [
   // Macro 0 - Présentation
   { macro: 0, micro: 0, title: 'Fiche présentation du projet', desc: 'Informations générales, valorisation et stratégie.' },
-  { macro: 0, micro: 1, title: 'Localisation du projet', desc: 'Adresse, environnement et atouts de l\'emplacement.' },
-  { macro: 0, micro: 2, title: 'Le porteur de projet', desc: 'Identité, expérience et track record.' },
-  { macro: 0, micro: 3, title: 'La structuration financière', desc: 'Montant, rentabilité et stratégie de commercialisation.' },
+  { macro: 0, micro: 1, title: 'Photos du projet', desc: 'Ajoutez au moins 3 photos pour illustrer votre projet.' },
+  { macro: 0, micro: 2, title: 'Localisation du projet', desc: 'Adresse, environnement et atouts de l\'emplacement.' },
+  { macro: 0, micro: 3, title: 'Le porteur de projet', desc: 'Identité, expérience et track record.' },
+  { macro: 0, micro: 4, title: 'La structuration financière', desc: 'Montant, rentabilité et stratégie de commercialisation.' },
   // Macro 1 - Finances
   { macro: 1, micro: 0, title: 'Hub des adresses', desc: 'Gérez les actifs liés à ce projet.' },
   { macro: 1, micro: 1, title: 'Détails de l\'actif et calendrier', desc: 'Acquisition, lots et calendrier des travaux.' },
@@ -314,28 +315,35 @@ function validateSignature(consentGiven) {
 
 export const STEP_VALIDATORS = [
   (state) => validatePresentation(state.presentation),         // 0
-  (state) => validateLocation(state.location),                  // 1
-  (state) => validateProjectOwner(state.projectOwner),          // 2
-  (state) => validateFinancialStructure(state.financialStructure), // 3
-  () => ({}), // 4 - Hub
-  (state) => {                                                  // 5 - Asset details
+  (state) => {                                                  // 1 - Photos
+    const errors = {};
+    if (!state.photos || state.photos.length < 3) {
+      errors['photos.minimum'] = 'Au moins 3 photos sont requises.';
+    }
+    return errors;
+  },
+  (state) => validateLocation(state.location),                  // 2
+  (state) => validateProjectOwner(state.projectOwner),          // 3
+  (state) => validateFinancialStructure(state.financialStructure), // 4
+  () => ({}), // 5 - Hub
+  (state) => {                                                  // 6 - Asset details
     const asset = state.assets[state.selectedAssetIndex];
     return asset ? validateAssetDetails(asset.details) : {};
   },
-  (state) => {                                                  // 6 - Expense plan
+  (state) => {                                                  // 7 - Expense plan
     const asset = state.assets[state.selectedAssetIndex];
     return asset ? validateExpensePlan(asset.costs) : {};
   },
-  () => ({}), // 7 - Lots
-  (state) => {                                                  // 8 - Guarantees (NEW)
+  () => ({}), // 8 - Lots
+  (state) => {                                                  // 9 - Guarantees
     const asset = state.assets[state.selectedAssetIndex];
     return asset ? validateGuarantee(asset.guarantee, asset.guaranteeDocs) : {};
   },
-  () => ({}), // 9 - Docs (was 8)
-  () => ({}), // 10 - Contribution (was 9)
-  () => ({}), // 11 - Simulation (was 10)
-  () => ({}), // 12 - Additional Info (was 11)
-  (state) => validateSignature(state.consentGiven),             // 13 (was 12)
+  () => ({}), // 10 - Docs
+  () => ({}), // 11 - Contribution
+  () => ({}), // 12 - Simulation
+  () => ({}), // 13 - Additional Info
+  (state) => validateSignature(state.consentGiven),             // 14 - Signature
 ];
 
 // ─── Store ──────────────────────────────────────────────────────────
@@ -348,6 +356,9 @@ const useProjectFormStore = create((set, get) => ({
   location: { ...INITIAL_LOCATION },
   projectOwner: { ...INITIAL_PROJECT_OWNER },
   financialStructure: { ...INITIAL_FINANCIAL_STRUCTURE },
+
+  // Project photos (File objects, in-memory only)
+  photos: [],
 
   // Multi-asset system
   assets: [createEmptyAsset()],
@@ -422,6 +433,20 @@ const useProjectFormStore = create((set, get) => ({
       isDirty: true,
     })),
 
+  // ── Photo management ──────────────────────────────────────────
+  addPhotos: (files) =>
+    set((s) => ({
+      photos: [...s.photos, ...files],
+      flaggedFields: { ...s.flaggedFields, 'photos.minimum': undefined },
+      isDirty: true,
+    })),
+
+  removePhoto: (index) =>
+    set((s) => ({
+      photos: s.photos.filter((_, i) => i !== index),
+      isDirty: true,
+    })),
+
   updateLocation: (field, value) =>
     set((s) => ({
       location: { ...s.location, [field]: value },
@@ -464,10 +489,10 @@ const useProjectFormStore = create((set, get) => ({
     }),
 
   openAsset: (index) =>
-    set({ selectedAssetIndex: index, globalStepIndex: 5 }),
+    set({ selectedAssetIndex: index, globalStepIndex: 6 }),
 
   returnToHub: () =>
-    set({ selectedAssetIndex: null, globalStepIndex: 4 }),
+    set({ selectedAssetIndex: null, globalStepIndex: 5 }),
 
   updateAssetLabel: (index, label) =>
     set((s) => {
@@ -747,6 +772,7 @@ const useProjectFormStore = create((set, get) => ({
     }
     set({
       ...draftData,
+      photos: [], // File objects cannot be restored from draft
       draftId,
       isDirty: false,
       flaggedFields: {},
@@ -806,8 +832,8 @@ const useProjectFormStore = create((set, get) => ({
     // Macro 1: requires presentation title + type filled
     if (config.macro === 1) {
       if (!s.presentation.title || !s.presentation.propertyType) return true;
-      // Sub-flow steps (5-9) require an asset to be selected
-      if (stepIndex >= 5 && stepIndex <= 9 && s.selectedAssetIndex === null) return true;
+      // Sub-flow steps (6-10) require an asset to be selected
+      if (stepIndex >= 6 && stepIndex <= 10 && s.selectedAssetIndex === null) return true;
       return false;
     }
 
@@ -836,6 +862,7 @@ const useProjectFormStore = create((set, get) => ({
     set({
       globalStepIndex: 0,
       presentation: { ...INITIAL_PRESENTATION },
+      photos: [],
       location: { ...INITIAL_LOCATION },
       projectOwner: { ...INITIAL_PROJECT_OWNER },
       financialStructure: { ...INITIAL_FINANCIAL_STRUCTURE },

@@ -46,7 +46,7 @@ export default function ProjectPhotosTab({ project, projectId, isAdmin, onRefres
           <div>
             <h3 style={{ marginBottom: '.25rem' }}>Galerie du projet</h3>
             <p style={{ fontSize: '.875rem', color: 'var(--text-secondary)', margin: 0 }}>
-              {(a.images?.length || 0) + (a.property_photos?.length || 0)} photo(s)
+              {(a.photos?.length || 0) + (a.images?.length || 0) + (a.property_photos?.length || 0)} photo(s)
             </p>
           </div>
           {isAdmin && (
@@ -70,7 +70,39 @@ export default function ProjectPhotosTab({ project, projectId, isAdmin, onRefres
           )}
         </div>
 
-        {/* Images du projet */}
+        {/* Photos du projet (uploaded during submission) */}
+        {a.photos && a.photos.length > 0 && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h4 style={{ fontSize: '.9rem', marginBottom: '.75rem', color: 'var(--text-secondary)' }}>
+              Photos du projet ({a.photos.length})
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+              {a.photos.map((photo) => (
+                <div key={photo.id} style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }} onClick={() => setSelectedImage({ url: getImageUrl(photo.url), filename: photo.filename })} onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)'; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'; }}>
+                  <img
+                    src={getImageUrl(photo.url)}
+                    alt={photo.filename}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#f5f5f5' }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    padding: '.5rem',
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                    color: 'white',
+                    fontSize: '.75rem',
+                  }}>
+                    {photo.filename}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Images du projet (additional documents) */}
         {a.images && a.images.length > 0 && (
           <div style={{ marginBottom: '1.5rem' }}>
             <h4 style={{ fontSize: '.9rem', marginBottom: '.75rem', color: 'var(--text-secondary)' }}>
@@ -160,7 +192,7 @@ export default function ProjectPhotosTab({ project, projectId, isAdmin, onRefres
         )}
 
         {/* État vide */}
-        {(!a.images || a.images.length === 0) && (!a.property_photos || a.property_photos.length === 0) && (
+        {(!a.photos || a.photos.length === 0) && (!a.images || a.images.length === 0) && (!a.property_photos || a.property_photos.length === 0) && (
           <div style={{
             aspectRatio: '16/9',
             background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)',

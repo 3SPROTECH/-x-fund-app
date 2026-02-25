@@ -1,7 +1,7 @@
 module Api
   module V1
     class InvestmentProjectsController < ApplicationController
-      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image, :analyst_report, :signature_status]
+      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image, :upload_photos, :delete_photo, :analyst_report, :signature_status]
 
       def index
         projects = policy_scope(InvestmentProject)
@@ -171,6 +171,36 @@ module Api
         render json: { error: "Image introuvable" }, status: :not_found
       end
 
+      def upload_photos
+        authorize @investment_project
+
+        if params[:photos].present?
+          params[:photos].each do |photo|
+            @investment_project.photos.attach(photo)
+          end
+          render json: {
+            message: "Photos ajoutees avec succes",
+            data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data]
+          }, status: :ok
+        else
+          render json: { error: "Aucune photo fournie" }, status: :unprocessable_entity
+        end
+      end
+
+      def delete_photo
+        authorize @investment_project
+
+        photo = @investment_project.photos.find(params[:photo_id])
+        photo.purge
+
+        render json: {
+          message: "Photo supprimee avec succes",
+          data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data]
+        }, status: :ok
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: "Photo introuvable" }, status: :not_found
+      end
+
       def analyst_report
         unless @investment_project.owner_id == current_user.id
           return render json: { error: "Acces non autorise." }, status: :forbidden
@@ -229,6 +259,7 @@ module Api
           .includes(:owner, :reviewer, :analyst, :analyst_reports, :info_requests,
                     properties: [:owner, { photos_attachments: :blob }])
           .with_attached_additional_documents
+          .with_attached_photos
           .find(params[:id])
       end
 

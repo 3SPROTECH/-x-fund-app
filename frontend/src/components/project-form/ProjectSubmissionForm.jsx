@@ -7,9 +7,11 @@ import useProjectFormStore, { MACRO_STEPS, STEP_CONFIG, createEmptyLot } from '.
 import { projectDraftsApi } from '../../api/projectDrafts';
 import { companiesApi } from '../../api/companies';
 import { investmentProjectsApi, platformConfigApi } from '../../api/investments';
+import { projectPhotosApi } from '../../api/images';
 import { generatePdfReport } from '../../utils/reportGenerator';
 
 import StepPresentation from './steps/StepPresentation';
+import StepPhotos from './steps/StepPhotos';
 import StepLocation from './steps/StepLocation';
 import StepProjectOwner from './steps/StepProjectOwner';
 import StepFinancialStructure from './steps/StepFinancialStructure';
@@ -30,28 +32,29 @@ const MACRO_ICONS = [FileText, Calculator, TrendingUp, MessageSquare, PenTool];
 
 const STEP_COMPONENTS = [
   StepPresentation,        // 0  - Macro 0
-  StepLocation,            // 1
-  StepProjectOwner,        // 2
-  StepFinancialStructure,  // 3
-  AssetHub,                // 4  - Macro 1 (hub)
-  AssetDetails,            // 5  - Asset sub-flow step 1
-  ExpensePlan,             // 6  - Asset sub-flow step 2
-  SalesPlanLots,           // 7  - Asset sub-flow step 3
-  GuaranteeStep,           // 8  - Asset sub-flow step 4 (NEW)
-  VerificationDocs,        // 9  - Asset sub-flow step 5
-  ContributionStep,        // 10 - Macro 2
-  FinancingSimulation,     // 11
-  AdditionalInfoStep,      // 12 - Macro 3 (Compléments)
-  SignatureStep,           // 13 - Macro 4 (locked until signing)
+  StepPhotos,              // 1  - Macro 0 (photos)
+  StepLocation,            // 2
+  StepProjectOwner,        // 3
+  StepFinancialStructure,  // 4
+  AssetHub,                // 5  - Macro 1 (hub)
+  AssetDetails,            // 6  - Asset sub-flow step 1
+  ExpensePlan,             // 7  - Asset sub-flow step 2
+  SalesPlanLots,           // 8  - Asset sub-flow step 3
+  GuaranteeStep,           // 9  - Asset sub-flow step 4
+  VerificationDocs,        // 10 - Asset sub-flow step 5
+  ContributionStep,        // 11 - Macro 2
+  FinancingSimulation,     // 12
+  AdditionalInfoStep,      // 13 - Macro 3 (Compléments)
+  SignatureStep,           // 14 - Macro 4 (locked until signing)
 ];
 
-const HUB_INDEX = 4;
-const SUB_FLOW_START = 5;
-const SUB_FLOW_END = 9;
-const PROJECTION_START = 10;
-const SUBMIT_STEP = 11; // FinancingSimulation — last editable step
-const ADDITIONAL_INFO_STEP = 12; // Compléments step
-const SIGNATURE_STEP = 13; // SignatureStep
+const HUB_INDEX = 5;
+const SUB_FLOW_START = 6;
+const SUB_FLOW_END = 10;
+const PROJECTION_START = 11;
+const SUBMIT_STEP = 12; // FinancingSimulation — last editable step
+const ADDITIONAL_INFO_STEP = 13; // Compléments step
+const SIGNATURE_STEP = 14; // SignatureStep
 
 const SUB_FLOW_LABELS = [
   'Détails de l\'actif',
@@ -411,7 +414,18 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         funding_end_date: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
       };
 
-      await investmentProjectsApi.create({ ...projectPayload, properties_data: propertiesData, form_snapshot: state });
+      const createRes = await investmentProjectsApi.create({ ...projectPayload, properties_data: propertiesData, form_snapshot: state });
+
+      // Upload project photos after creation
+      const createdProjectId = createRes.data?.data?.id;
+      if (createdProjectId && store.photos.length > 0) {
+        try {
+          await projectPhotosApi.uploadPhotos(createdProjectId, store.photos);
+        } catch {
+          // Non-blocking: project is created, photos upload failed
+          toast.error('Le projet a été soumis mais certaines photos n\'ont pas pu être uploadées.');
+        }
+      }
 
       if (draftId) {
         try { await projectDraftsApi.delete(draftId); } catch { }
@@ -447,7 +461,10 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         s.updatePresentation('revenuePeriod', 'annual');
         s.updatePresentation('additionalInfo', 'Quartier en pleine revalorisation, proximité métro.');
         break;
-      case 1: // Location
+      case 1: // Photos (no test fill — requires actual files)
+        toast('Pas de données test pour les photos (fichiers requis)', { icon: 'ℹ️' });
+        break;
+      case 2: // Location
         s.updateLocation('address', '24 Rue du Rouet');
         s.updateLocation('postalCode', '13008');
         s.updateLocation('city', 'Marseille');
@@ -457,7 +474,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         s.updateLocation('nearbyAmenities', ['commerces', 'ecoles', 'sante']);
         s.updateLocation('strategicAdvantages', 'Quartier en forte revalorisation, proche du Prado et du Vélodrome.');
         break;
-      case 2: // Project Owner
+      case 3: // Project Owner
         s.updateProjectOwner('structure', 'sas');
         s.updateProjectOwner('companyName', 'Immo Sud Développement SAS');
         s.updateProjectOwner('linkedinUrl', 'https://linkedin.com/company/immo-sud-dev');
@@ -470,7 +487,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         s.updateProjectOwner('teamDescription', 'Équipe de 5 personnes : 2 chefs de projet, 1 architecte partenaire, 1 comptable, 1 commercial.');
         s.updateProjectOwner('additionalInfo', 'Partenariat bancaire avec CIC et Crédit Agricole.');
         break;
-      case 3: // Financial Structure
+      case 4: // Financial Structure
         s.updateFinancialStructure('totalFunding', '650000');
         s.updateFinancialStructure('grossMargin', '12.5');
         s.updateFinancialStructure('netYield', '9.2');
@@ -479,7 +496,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         s.updateFinancialStructure('financialDossierStatus', ['business_plan_valide', 'financement_bancaire_obtenu']);
         s.updateFinancialStructure('additionalInfo', 'Pré-commercialisation de 2 lots sur 6 déjà engagée.');
         break;
-      case 5: { // Asset Details
+      case 6: { // Asset Details
         const ai = s.selectedAssetIndex;
         if (ai !== null) {
           s.updateAssetDetails('isRefinancing', false);
@@ -490,7 +507,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         }
         break;
       }
-      case 6: { // Expense Plan
+      case 7: { // Expense Plan
         const ai2 = s.selectedAssetIndex;
         if (ai2 !== null) {
           const asset = s.assets[ai2];
@@ -505,7 +522,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         }
         break;
       }
-      case 7: { // Sales Plan / Lots
+      case 8: { // Sales Plan / Lots
         const ai3 = s.selectedAssetIndex;
         if (ai3 !== null) {
           const asset = s.assets[ai3];
@@ -515,7 +532,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         }
         break;
       }
-      case 8: { // Guarantee
+      case 9: { // Guarantee
         if (s.selectedAssetIndex !== null) {
           s.updateAssetGuarantee('type', 'hypotheque');
           s.updateAssetGuarantee('rank', '1er_rang');
@@ -524,7 +541,7 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         }
         break;
       }
-      case 10: // Contribution
+      case 11: // Contribution
         s.updateProjections('contributionPct', 25);
         s.updateProjections('durationMonths', 18);
         break;

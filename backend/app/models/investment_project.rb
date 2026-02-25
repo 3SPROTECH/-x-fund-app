@@ -21,6 +21,7 @@ class InvestmentProject < ApplicationRecord
   has_one_attached :fici_document
   has_one_attached :pv_decision
   has_one_attached :note_operation
+  has_many_attached :photos
   has_many_attached :additional_documents
   has_one_attached :price_grid
   has_one_attached :block_buyer_loi

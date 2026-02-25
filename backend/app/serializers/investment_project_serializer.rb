@@ -144,6 +144,25 @@ class InvestmentProjectSerializer
     project.yousign_admin_signature_link.presence
   end
 
+  attribute :photos do |project|
+    next [] unless project.photos.attached?
+
+    project.photos.map { |photo|
+      begin
+        {
+          id: photo.id,
+          url: Rails.application.routes.url_helpers.rails_blob_path(photo, only_path: true),
+          filename: photo.filename.to_s,
+          content_type: photo.content_type,
+          byte_size: photo.byte_size
+        }
+      rescue => e
+        Rails.logger.error("Error generating photo URL: #{e.message}")
+        nil
+      end
+    }.compact
+  end
+
   attribute :images do |project|
     next [] unless project.additional_documents.attached?
 
