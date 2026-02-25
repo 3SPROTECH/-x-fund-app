@@ -1,0 +1,875 @@
+/* ============================================
+   Investor Project Detail — Premium Layout
+   Matches the test.html reference design
+   Uses existing X-Fund design tokens
+   ============================================ */
+
+/* ─── Hero Section ─── */
+.ipd-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  margin-bottom: 3rem;
+  animation: ipd-fadeUp 0.5s ease both;
+}
+
+.ipd-hero-gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 200px 200px;
+  gap: 4px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+.ipd-gallery-item {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: filter 0.3s;
+  background: var(--border-light);
+}
+
+.ipd-gallery-item:hover {
+  filter: brightness(1.05);
+}
+
+.ipd-gallery-item.main {
+  grid-row: span 2;
+}
+
+.ipd-btn-view-photos {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text);
+  border: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: 7px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+  font-family: var(--font-body);
+}
+
+.ipd-hero-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+.ipd-hero-type {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold-color);
+  margin-bottom: 0.75rem;
+  font-family: var(--font-body);
+}
+
+.ipd-hero-title {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.ipd-hero-location {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-bottom: 2rem;
+  font-family: var(--font-body);
+}
+
+.ipd-hero-metrics {
+  display: flex;
+  gap: 2.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.ipd-hero-metric-value {
+  font-family: var(--font-body);
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.ipd-hero-metric-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+  font-family: var(--font-body);
+}
+
+/* ─── Content Layout ─── */
+.ipd-content-layout {
+  display: grid;
+  grid-template-columns: 1fr 370px;
+  gap: 3.5rem;
+  align-items: start;
+}
+
+/* ─── Tabs ─── */
+.ipd-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.ipd-tab-btn {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 0.75rem 1.25rem 0.75rem 0;
+  margin-right: 1.5rem;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+  font-family: var(--font-body);
+}
+
+.ipd-tab-btn:hover {
+  color: var(--text);
+}
+
+.ipd-tab-btn.active {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ipd-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 1.25rem;
+  height: 1.5px;
+  background: var(--primary);
+  border-radius: 1px;
+}
+
+/* ─── Sections ─── */
+.ipd-section {
+  margin-bottom: 2.75rem;
+}
+
+.ipd-section-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  font-family: var(--font-body);
+}
+
+.ipd-section-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 1.15rem;
+  color: var(--text);
+}
+
+/* ─── Key Points Strip ─── */
+.ipd-key-points {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ipd-point-item {
+  padding: 1.25rem;
+  border-right: 1px solid var(--border);
+  transition: background 0.2s;
+}
+
+.ipd-point-item:last-child {
+  border-right: none;
+}
+
+.ipd-point-item:hover {
+  background: var(--bg);
+}
+
+.ipd-point-icon {
+  color: var(--text-muted);
+  margin-bottom: 0.65rem;
+}
+
+.ipd-point-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.2rem;
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+.ipd-point-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  font-family: var(--font-body);
+}
+
+/* ─── Description ─── */
+.ipd-desc-header {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  flex-wrap: wrap;
+}
+
+.ipd-desc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #96741d;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  background: #faf7ef;
+  font-family: var(--font-body);
+}
+
+.ipd-text-content {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.75;
+  font-family: var(--font-body);
+}
+
+.ipd-text-content p {
+  margin-bottom: 0.75rem;
+}
+
+.ipd-text-content p:last-child {
+  margin-bottom: 0;
+}
+
+.ipd-text-content strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ─── Operator Card ─── */
+.ipd-operator {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.ipd-operator-avatar {
+  width: 44px;
+  height: 44px;
+  background: var(--bg);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.ipd-operator-name {
+  font-weight: 600;
+  font-size: 0.88rem;
+  font-family: var(--font-body);
+}
+
+.ipd-operator-detail {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+}
+
+.ipd-operator-badge {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #96741d;
+  background: #faf7ef;
+  padding: 0.3rem 0.65rem;
+  border-radius: 5px;
+  font-family: var(--font-body);
+  white-space: nowrap;
+}
+
+/* ─── Analysis Grid ─── */
+.ipd-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.ipd-analysis-row {
+  display: flex;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  align-items: flex-start;
+  transition: background 0.15s;
+}
+
+.ipd-analysis-row:last-child {
+  border-bottom: none;
+}
+
+.ipd-analysis-row:hover {
+  background: var(--bg);
+}
+
+.ipd-analysis-marker {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+
+.ipd-analysis-row h4 {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+  font-family: var(--font-body);
+}
+
+.ipd-analysis-row p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  font-family: var(--font-body);
+}
+
+/* ─── Timeline ─── */
+.ipd-timeline {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ipd-tl-step {
+  padding: 1.25rem;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+
+.ipd-tl-step:last-child {
+  border-right: none;
+}
+
+.ipd-tl-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold-color);
+  margin-bottom: 0.75rem;
+  opacity: 0.4;
+}
+
+.ipd-tl-dot.active {
+  opacity: 1;
+  box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.2);
+}
+
+.ipd-tl-dot.done {
+  opacity: 1;
+}
+
+.ipd-tl-date {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.1rem;
+  font-family: var(--font-body);
+}
+
+.ipd-tl-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+}
+
+.ipd-tl-sublabel {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+  font-family: var(--font-body);
+}
+
+/* ─── Documents ─── */
+.ipd-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.ipd-doc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background 0.15s;
+  cursor: pointer;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  width: 100%;
+  font-family: var(--font-body);
+}
+
+.ipd-doc-row:last-child {
+  border-bottom: none;
+}
+
+.ipd-doc-row:hover {
+  background: var(--bg);
+}
+
+.ipd-doc-row-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ipd-doc-icon {
+  width: 32px;
+  height: 32px;
+  background: #faf7ef;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-color);
+  flex-shrink: 0;
+}
+
+.ipd-doc-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ─── Sidebar ─── */
+.ipd-sidebar {
+  position: sticky !important;
+  top: calc(72px + 2rem) !important;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: ipd-fadeUp 0.5s 0.15s ease both;
+}
+
+/* ─── Invest Widget ─── */
+.ipd-invest-widget {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 32px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  border: 1px solid var(--border-light);
+}
+
+.ipd-widget-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.ipd-widget-amount {
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.ipd-widget-amount-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+  font-family: var(--font-body);
+}
+
+.ipd-progress-track {
+  height: 4px;
+  background: var(--border-light);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.ipd-progress-fill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 2px;
+  transition: width 1s ease;
+}
+
+.ipd-progress-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  font-family: var(--font-body);
+}
+
+.ipd-progress-row strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ipd-btn-invest {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: 0.005em;
+  font-family: var(--font-body);
+}
+
+.ipd-btn-invest:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.ipd-investor-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+}
+
+.ipd-avatar-stack {
+  display: flex;
+}
+
+.ipd-avatar-sm {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-left: -6px;
+  background-color: #d4d4d4;
+}
+
+.ipd-avatar-sm:first-child {
+  margin-left: 0;
+}
+
+.ipd-widget-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 1.15rem 0;
+}
+
+.ipd-btn-secondary {
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-body);
+}
+
+.ipd-btn-secondary:hover {
+  background: var(--bg);
+  border-color: var(--text-muted);
+}
+
+.ipd-risk-note {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.15rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  font-family: var(--font-body);
+}
+
+.ipd-risk-note svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ─── Sidebar Stats ─── */
+.ipd-sidebar-stats {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.ipd-sidebar-stats-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  font-family: var(--font-body);
+}
+
+.ipd-stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.82rem;
+  font-family: var(--font-body);
+}
+
+.ipd-stat-row:last-child {
+  border-bottom: none;
+}
+
+.ipd-stat-row-label {
+  color: var(--text-muted);
+}
+
+.ipd-stat-row-value {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ─── Support Row ─── */
+.ipd-support-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ipd-support-text {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+}
+
+.ipd-support-text strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text);
+  margin-bottom: 0.1rem;
+}
+
+.ipd-btn-support {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-family: var(--font-body);
+}
+
+.ipd-btn-support:hover {
+  background: var(--bg);
+}
+
+/* ─── Back Link ─── */
+.ipd-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 1.75rem;
+  transition: color 0.2s;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-body);
+}
+
+.ipd-back-link:hover {
+  color: var(--text);
+}
+
+/* ─── Gallery Placeholder ─── */
+.ipd-gallery-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--border-light);
+  color: var(--text-muted);
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-family: var(--font-body);
+}
+
+/* ─── Animations ─── */
+@keyframes ipd-fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 1024px) {
+  .ipd-content-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ipd-sidebar {
+    position: static;
+    margin-top: 2rem;
+  }
+
+  .ipd-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .ipd-hero-gallery {
+    grid-template-columns: 1fr;
+    grid-template-rows: 220px 120px 120px;
+  }
+
+  .ipd-gallery-item.main {
+    grid-row: 1;
+  }
+
+  .ipd-key-points {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ipd-key-points .ipd-point-item:nth-child(2) {
+    border-right: none;
+  }
+
+  .ipd-timeline {
+    grid-template-columns: 1fr;
+  }
+
+  .ipd-tl-step {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ipd-tl-step:last-child {
+    border-bottom: none;
+  }
+
+  .ipd-hero-title {
+    font-size: 2rem;
+  }
+
+  .ipd-hero-metrics {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .ipd-desc-header {
+    gap: 0.75rem;
+  }
+
+  .ipd-operator {
+    flex-wrap: wrap;
+  }
+
+  .ipd-operator-badge {
+    margin-left: 0;
+  }
+}

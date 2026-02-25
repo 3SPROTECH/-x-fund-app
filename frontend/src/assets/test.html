@@ -3,56 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X-Fund | Projets d'investissement</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>X-Fund | Villa Méditerranée</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
         :root {
-            /* Professional Dark Slate Brand */
-            --brand-primary: #1e293b; 
-            --brand-primary-hover: #0f172a;
-            --brand-primary-light: #f1f5f9;
-            --brand-accent: #C5A059; /* Subtle Muted Gold Accent */
-            
-            /* UI Colors */
-            --bg-body: #f8fafc;
+            --black: #0a0a0a;
+            --black-hover: #1a1a1a;
+            --gold-400: #c9a83c;
+            --gold-500: #b08d27;
+            --gold-600: #96741d;
+
+            --gray-50: #fafafa;
+            --gray-100: #f5f5f5;
+            --gray-200: #e5e5e5;
+            --gray-300: #d4d4d4;
+            --gray-400: #a3a3a3;
+            --gray-500: #737373;
+            --gray-600: #525252;
+            --gray-700: #404040;
+            --gray-800: #262626;
+            --gray-900: #171717;
+
+            --bg: #fafafa;
             --bg-card: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --text-light: #94a3b8;
-            --border-color: #e2e8f0;
-            --success: #10b981;
-            --progress-bg: #f1f5f9;
-            --warning: #f59e0b;
-            
-            /* Shadows & Radii */
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            --text: #0a0a0a;
+            --text-secondary: #525252;
+            --text-muted: #a3a3a3;
+            --border: #e5e5e5;
+            --border-light: #f0f0f0;
+
+            --radius: 10px;
+            --radius-lg: 14px;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            line-height: 1.5;
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* --- Navbar --- */
+        /* ─── Navbar ─── */
         .navbar {
-            background-color: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0 2rem;
-            height: 72px;
+            background: rgba(255,255,255,0.88);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border-light);
+            padding: 0 2.5rem;
+            height: 64px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -60,281 +63,567 @@
             top: 0;
             z-index: 100;
         }
-
         .nav-left { display: flex; align-items: center; gap: 3rem; }
-        .logo { font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
-        .nav-links { display: flex; gap: 2rem; }
-        .nav-link {
-            text-decoration: none; color: var(--text-muted); font-weight: 500;
-            font-size: 0.95rem; padding: 1.5rem 0; border-bottom: 2px solid transparent; transition: all 0.2s;
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: flex; align-items: center; gap: 0.55rem;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.02em;
         }
-        .nav-link:hover { color: var(--text-main); }
-        .nav-link.active { color: var(--text-main); border-bottom-color: var(--brand-accent); }
-        .nav-right { display: flex; align-items: center; gap: 1.5rem; }
-        .avatar { width: 40px; height: 40px; background-color: var(--brand-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; cursor: pointer; }
-
-        /* --- Page Header & Filters --- */
-        .container {
-            max-width: 1280px;
-            margin: 2rem auto 4rem;
-            padding: 0 2rem;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 3rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .page-title h1 {
-            font-size: 2.25rem;
+        .logo-mark {
+            width: 30px; height: 30px;
+            background: var(--black);
+            border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            font-size: 0.78rem;
             font-weight: 700;
-            color: var(--text-main);
+            font-family: 'DM Sans', sans-serif;
+        }
+        .nav-links { display: flex; gap: 0.15rem; }
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.85rem;
+            padding: 0.45rem 0.9rem;
+            border-radius: 7px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover { color: var(--text); background: var(--gray-100); }
+        .nav-link.active { color: var(--text); background: var(--gray-100); }
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+        .nav-icon-btn {
+            width: 36px; height: 36px;
+            border: 1px solid var(--border);
+            background: transparent;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .nav-icon-btn:hover { background: var(--gray-100); }
+        .avatar {
+            width: 34px; height: 34px;
+            background: var(--black);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        /* ─── Container ─── */
+        .container { max-width: 1200px; margin: 0 auto; padding: 1.75rem 2.5rem 4rem; }
+
+        /* ─── Breadcrumb ─── */
+        .back-link {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            color: var(--text-muted); text-decoration: none;
+            font-size: 0.82rem; font-weight: 500;
+            margin-bottom: 1.75rem; transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--text); }
+
+        /* ─── Hero Section ─── */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+            animation: fadeUp 0.5s ease both;
+        }
+        .hero-gallery {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 200px 200px;
+            gap: 4px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            position: relative;
+        }
+        .gallery-item {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            transition: filter 0.3s;
+        }
+        .gallery-item:hover { filter: brightness(1.05); }
+        .gallery-item.main { grid-row: span 2; }
+        .btn-view-photos {
+            position: absolute; bottom: 0.75rem; right: 0.75rem;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            color: var(--text); border: none;
+            padding: 0.45rem 0.9rem; border-radius: 7px;
+            font-weight: 600; font-size: 0.78rem;
+            display: flex; align-items: center; gap: 0.4rem;
+            cursor: pointer;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.1);
+        }
+
+        .hero-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0.5rem 0;
+        }
+        .hero-type {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--gold-500);
+            margin-bottom: 0.75rem;
+        }
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 600;
+            line-height: 1.1;
+            letter-spacing: -0.025em;
+            color: var(--text);
             margin-bottom: 0.5rem;
         }
-
-        .page-title p {
+        .hero-location {
+            display: flex; align-items: center; gap: 0.35rem;
             color: var(--text-muted);
-            font-size: 1.05rem;
+            font-size: 0.88rem;
+            margin-bottom: 2rem;
         }
 
-        .search-input {
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            background: var(--bg-card) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2394a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 0.85rem center;
-            font-size: 0.95rem;
-            width: 300px;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .search-input:focus { 
-            border-color: var(--brand-primary); 
-            box-shadow: 0 0 0 3px var(--brand-primary-light);
-        }
-
-        /* --- Sections --- */
-        .project-section {
-            margin-bottom: 4rem;
-        }
-
-        .section-header {
+        .hero-metrics {
             display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 2.5rem;
+            padding-top: 1.75rem;
+            border-top: 1px solid var(--border);
         }
-
-        .section-title {
-            font-size: 1.5rem;
+        .hero-metric {}
+        .hero-metric-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
             font-weight: 600;
-            color: var(--text-main);
+            letter-spacing: -0.02em;
+            line-height: 1.2;
         }
-
-        .section-badge {
-            background-color: var(--border-color);
+        .hero-metric-label {
+            font-size: 0.78rem;
             color: var(--text-muted);
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 0.2rem 0.6rem;
-            border-radius: 999px;
+            margin-top: 0.15rem;
         }
 
-        /* --- Projects Grid --- */
-        .projects-grid {
+        /* ─── Content Layout ─── */
+        .content-layout {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: 1fr 370px;
+            gap: 3.5rem;
+            align-items: start;
         }
 
-        .project-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
+        /* ─── Tabs ─── */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .tab-btn {
+            background: none; border: none;
+            font-size: 0.85rem; font-weight: 500;
+            color: var(--text-muted);
+            padding: 0.75rem 1.25rem 0.75rem 0;
+            margin-right: 1.5rem;
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .project-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-card-hover);
-            border-color: #cbd5e1;
-        }
-
-        /* Card Image & Frosted Badge */
-        .card-image-wrap {
             position: relative;
-            height: 200px;
-            width: 100%;
+            transition: color 0.2s;
         }
-
-        .card-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .badge-frosted {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            color: var(--text-main);
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.4rem 0.8rem;
-            border-radius: 999px;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .badge-frosted::before {
+        .tab-btn:hover { color: var(--text); }
+        .tab-btn.active { color: var(--text); font-weight: 600; }
+        .tab-btn.active::after {
             content: '';
-            display: block;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-        }
-        .badge-frosted.active::before { background-color: var(--success); }
-        .badge-frosted.upcoming::before { background-color: var(--warning); }
-        .badge-frosted.funded::before { background-color: var(--brand-primary); }
-
-        /* Card Content */
-        .card-content {
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
+            position: absolute;
+            bottom: -1px; left: 0; right: 1.25rem;
+            height: 1.5px;
+            background: var(--black);
+            border-radius: 1px;
         }
 
-        .card-title {
-            font-size: 1.15rem;
+        /* ─── Sections ─── */
+        .section-block { margin-bottom: 2.75rem; }
+        .section-label {
+            font-size: 0.72rem;
             font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 0.25rem;
-        }
-
-        .card-location {
-            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .card-location svg {
-            width: 14px;
-            height: 14px;
-            stroke-width: 2px;
-        }
-
-        /* Data Metrics Grid */
-        .card-metrics {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 1.25rem;
-            padding: 0.75rem;
-            background-color: var(--bg-body);
-            border-radius: var(--radius-sm);
-        }
-
-        .metric-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .metric-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 0.15rem;
-        }
-
-        .metric-value {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .metric-value.highlight {
-            color: var(--brand-accent);
-        }
-
-        /* Progress Area */
-        .progress-section {
-            margin-top: auto;
             margin-bottom: 1rem;
         }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
             font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 0.4rem;
+            margin-bottom: 1.15rem;
+            color: var(--text);
+        }
+
+        /* ─── Key Points — Horizontal strip ─── */
+        .key-points-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        .point-item {
+            padding: 1.25rem;
+            border-right: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+        .point-item:last-child { border-right: none; }
+        .point-item:hover { background: var(--gray-50); }
+        .point-item-icon {
+            color: var(--text-muted);
+            margin-bottom: 0.65rem;
+        }
+        .point-item-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.2rem;
+            color: var(--text);
+        }
+        .point-item-desc {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+
+        /* ─── Description ─── */
+        .description-header {
+            display: flex; gap: 1.25rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .desc-chip {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            font-size: 0.8rem; font-weight: 500;
+            color: var(--gold-600);
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            background: #faf7ef;
+        }
+        .text-content { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.75; }
+        .text-content p { margin-bottom: 0.75rem; }
+        .text-content p:last-child { margin-bottom: 0; }
+        .text-content strong { color: var(--text); font-weight: 600; }
+
+        /* ─── Analysis ─── */
+        .analysis-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: var(--bg-card);
+        }
+        .analysis-row {
+            display: flex; gap: 1rem;
+            padding: 1.15rem 1.25rem;
+            border-bottom: 1px solid var(--border-light);
+            align-items: flex-start;
+            transition: background 0.15s;
+        }
+        .analysis-row:last-child { border-bottom: none; }
+        .analysis-row:hover { background: var(--gray-50); }
+        .analysis-marker {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--black);
+            flex-shrink: 0;
+            margin-top: 7px;
+        }
+        .analysis-row h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.15rem; }
+        .analysis-row p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+
+        /* ─── Timeline ─── */
+        .timeline-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        .tl-step {
+            padding: 1.25rem;
+            border-right: 1px solid var(--border);
+            position: relative;
+        }
+        .tl-step:last-child { border-right: none; }
+        .tl-step-status {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--gold-400);
+            margin-bottom: 0.75rem;
+            opacity: 0.4;
+        }
+        .tl-step-status.active { background: var(--gold-500); opacity: 1; box-shadow: 0 0 0 3px #f5f0e0; }
+        .tl-step-status.done { background: var(--gold-500); }
+        .tl-step-date { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.1rem; }
+        .tl-step-label { font-size: 0.78rem; color: var(--text-muted); }
+        .tl-step-sublabel { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem; }
+
+        /* ─── Documents ─── */
+        .doc-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-card); }
+        .doc-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.9rem 1.25rem;
+            border-bottom: 1px solid var(--border-light);
+            text-decoration: none; color: var(--text);
+            font-size: 0.85rem; font-weight: 500;
+            transition: background 0.15s;
+        }
+        .doc-row:last-child { border-bottom: none; }
+        .doc-row:hover { background: var(--gray-50); }
+        .doc-row-left { display: flex; align-items: center; gap: 0.6rem; }
+        .doc-row-icon {
+            width: 32px; height: 32px;
+            background: #faf7ef;
+            border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gold-500);
+        }
+        .doc-row-meta { font-size: 0.72rem; color: var(--text-muted); font-weight: 400; }
+
+        /* ─── Operator Card (NEW) ─── */
+        .operator-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            display: flex; gap: 1rem; align-items: center;
+        }
+        .operator-avatar {
+            width: 44px; height: 44px;
+            background: var(--gray-100);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .operator-name { font-weight: 600; font-size: 0.88rem; }
+        .operator-detail { font-size: 0.78rem; color: var(--text-muted); }
+        .operator-badge {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 0.3rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--gold-600);
+            background: #faf7ef;
+            padding: 0.3rem 0.65rem;
+            border-radius: 5px;
+        }
+
+        /* ─── Sidebar ─── */
+        .sidebar {
+            position: sticky;
+            top: 84px;
+            display: flex; flex-direction: column; gap: 1rem;
+            animation: fadeUp 0.5s 0.15s ease both;
+        }
+
+        .invest-widget {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06);
+            padding: 1.5rem;
+            border: 1px solid var(--border-light);
+        }
+
+        .widget-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+        .widget-amount {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+        .widget-amount-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.1rem; }
+        .status-pill {
+            padding: 0.25rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            background: #e8f5e9;
+            color: #2e7d32;
         }
 
         .progress-track {
-            height: 6px;
-            background-color: var(--progress-bg);
-            border-radius: 999px;
+            height: 4px;
+            background: var(--gray-100);
+            border-radius: 2px;
             overflow: hidden;
+            margin-bottom: 0.5rem;
         }
-
         .progress-fill {
             height: 100%;
-            background-color: var(--success);
-            border-radius: 999px;
-            transition: width 0.5s ease;
+            background: #22c55e;
+            border-radius: 2px;
+            transition: width 1s ease;
         }
-
-        /* Card Footer */
-        .card-footer {
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
+        .progress-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+        .progress-row strong { color: var(--text); font-weight: 600; }
+
+        .btn-invest {
+            width: 100%;
+            padding: 0.85rem;
+            background: var(--black);
+            color: white;
+            border: none;
+            border-radius: 9px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+            letter-spacing: 0.005em;
+        }
+        .btn-invest:hover { background: var(--black-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+
+        .investor-row {
+            display: flex; align-items: center;
+            gap: 0.5rem; margin-top: 1rem;
+            font-size: 0.78rem; color: var(--text-muted);
+        }
+        .avatar-stack { display: flex; }
+        .avatar-sm {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            border: 2px solid white;
+            margin-left: -6px;
+            background-color: #d4d4d4;
+        }
+        .avatar-sm:first-child { margin-left: 0; }
+
+        .widget-divider { height: 1px; background: var(--border-light); margin: 1.15rem 0; }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 0.75rem;
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; justify-content: center; align-items: center; gap: 0.45rem;
+        }
+        .btn-secondary:hover { background: var(--gray-50); border-color: var(--gray-300); }
+
+        .risk-note {
+            display: flex; gap: 0.5rem;
+            margin-top: 1.15rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .risk-note i { flex-shrink: 0; margin-top: 1px; }
+
+        /* ─── Sidebar Stats (NEW) ─── */
+        .sidebar-stats {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+        }
+        .sidebar-stats-title {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+        .stat-row {
+            display: flex; justify-content: space-between;
+            padding: 0.55rem 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.82rem;
+        }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-row-label { color: var(--text-muted); }
+        .stat-row-value { font-weight: 600; color: var(--text); }
+
+        /* ─── Support ─── */
+        .support-row {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.25rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .support-row-text { font-size: 0.82rem; color: var(--text-secondary); }
+        .support-row-text strong { display: block; font-size: 0.85rem; color: var(--text); margin-bottom: 0.1rem; }
+        .btn-support {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex; align-items: center; gap: 0.35rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .btn-support:hover { background: var(--gray-50); }
+
+        /* ─── Animations ─── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .investor-count {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            font-weight: 500;
+        /* ─── Responsive ─── */
+        @media (max-width: 1024px) {
+            .content-layout { grid-template-columns: 1fr; }
+            .sidebar { position: static; margin-top: 2rem; }
+            .container { padding: 1.5rem; }
+            .hero { grid-template-columns: 1fr; }
         }
-
-        /* Funded State Adjustments */
-        .project-card.is-funded {
-            background-color: #fafafa;
-        }
-        .project-card.is-funded .card-image {
-            filter: grayscale(30%);
-            opacity: 0.9;
-        }
-        .project-card.is-funded .progress-fill {
-            background-color: var(--brand-primary);
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .page-header { flex-direction: column; align-items: stretch; gap: 1.5rem; }
-            .search-input { width: 100%; }
+            .hero-gallery {
+                grid-template-columns: 1fr;
+                grid-template-rows: 220px 120px 120px;
+            }
+            .gallery-item.main { grid-row: 1; }
+            .key-points-strip { grid-template-columns: 1fr 1fr; }
+            .key-points-strip .point-item:nth-child(2) { border-right: none; }
+            .timeline-row { grid-template-columns: 1fr; }
+            .tl-step { border-right: none; border-bottom: 1px solid var(--border); }
+            .tl-step:last-child { border-bottom: none; }
             .nav-links { display: none; }
+            .hero-title { font-size: 2rem; }
+            .hero-metrics { flex-direction: column; gap: 1.25rem; }
+            .navbar { padding: 0 1.25rem; }
         }
     </style>
 </head>
@@ -342,10 +631,10 @@
 
     <nav class="navbar">
         <div class="nav-left">
-            <div class="logo">
-                <i data-lucide="building-2" style="color: var(--brand-accent)"></i>
+            <a href="#" class="logo">
+                <div class="logo-mark">X</div>
                 X-Fund
-            </div>
+            </a>
             <div class="nav-links">
                 <a href="#" class="nav-link">Tableau de bord</a>
                 <a href="#" class="nav-link active">Projets</a>
@@ -353,265 +642,290 @@
             </div>
         </div>
         <div class="nav-right">
+            <button class="nav-icon-btn"><i data-lucide="bell" size="16"></i></button>
             <div class="avatar">IN</div>
         </div>
     </nav>
 
     <div class="container">
-        <div class="page-header">
-            <div class="page-title">
-                <h1>Les opportunités</h1>
-                <p>Découvrez et investissez dans nos projets immobiliers rigoureusement sélectionnés.</p>
+
+        <a href="#" class="back-link"><i data-lucide="arrow-left" size="14"></i> Projets</a>
+
+        <!-- ─── Hero: Gallery + Info side by side ─── -->
+        <div class="hero">
+            <div class="hero-gallery">
+                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Façade Villa" class="gallery-item main">
+                <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Intérieur" class="gallery-item">
+                <img src="https://www.defaziocompany.com/wp-content/uploads/bigstock-Panorama-Frame-Home-Backyard-W-371570743.jpg" alt="Jardin" class="gallery-item">
+                <button class="btn-view-photos"><i data-lucide="grid" size="13"></i> 8 photos</button>
             </div>
-            <input type="text" class="search-input" placeholder="Rechercher une ville, un nom de projet...">
+
+            <div class="hero-info">
+                <div class="hero-type">Résidentiel · Marchand de biens</div>
+                <h1 class="hero-title">Villa Méditerranée</h1>
+                <div class="hero-location">
+                    <i data-lucide="map-pin" size="15"></i> 12 Avenue des Fleurs, 06000 Nice
+                </div>
+
+                <div class="hero-metrics">
+                    <div class="hero-metric">
+                        <div class="hero-metric-value">11,50 %</div>
+                        <div class="hero-metric-label">Rendement cible</div>
+                    </div>
+                    <div class="hero-metric">
+                        <div class="hero-metric-value">18 mois</div>
+                        <div class="hero-metric-label">Horizon</div>
+                    </div>
+                    <div class="hero-metric">
+                        <div class="hero-metric-value">245 m²</div>
+                        <div class="hero-metric-label">Surface</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <section class="project-section">
-            <div class="section-header">
-                <h2 class="section-title">En cours de collecte</h2>
-                <span class="section-badge">3</span>
-            </div>
-            <div class="projects-grid">
-                
-                <div class="project-card">
-                    <div class="card-image-wrap">
-                        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Villa Méditerranée" class="card-image">
-                        <span class="badge-frosted active">Ouvert</span>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Villa Méditerranée</h3>
-                        <div class="card-location"><i data-lucide="map-pin"></i> Nice, Alpes-Maritimes</div>
-                        <div class="card-metrics">
-                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">450 000 €</span></div>
-                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">11.5%</span></div>
-                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">18 mois</span></div>
+        <div class="content-layout">
+
+            <div class="main-content">
+
+                <div class="tabs">
+                    <button class="tab-btn active">Général</button>
+                    <button class="tab-btn">Finance</button>
+                    <button class="tab-btn">Lieu</button>
+                    <button class="tab-btn">FAQ</button>
+                </div>
+
+                <!-- Key Points -->
+                <div class="section-block">
+                    <div class="section-label">Pourquoi investir</div>
+                    <div class="key-points-strip">
+                        <div class="point-item">
+                            <div class="point-item-icon"><i data-lucide="map" size="18"></i></div>
+                            <div class="point-item-title">Localisation</div>
+                            <div class="point-item-desc">Quartier Cimiez, Nice — forte demande locative</div>
                         </div>
-                        <div class="progress-section">
-                            <div class="progress-header"><span>292 500 € collectés</span><span>65%</span></div>
-                            <div class="progress-track"><div class="progress-fill" style="width: 65%;"></div></div>
+                        <div class="point-item">
+                            <div class="point-item-icon"><i data-lucide="hammer" size="18"></i></div>
+                            <div class="point-item-title">Création de valeur</div>
+                            <div class="point-item-desc">Rénovation lourde et division parcellaire</div>
                         </div>
-                        <div class="card-footer">
-                            <div class="investor-count"><i data-lucide="users" size="14"></i> 142 investisseurs</div>
-                            <div>Reste 12 jours</div>
+                        <div class="point-item">
+                            <div class="point-item-icon"><i data-lucide="file-check" size="18"></i></div>
+                            <div class="point-item-title">Permis purgé</div>
+                            <div class="point-item-desc">Obtenu et purgé de tout recours des tiers</div>
+                        </div>
+                        <div class="point-item">
+                            <div class="point-item-icon"><i data-lucide="shield-check" size="18"></i></div>
+                            <div class="point-item-title">Garanties</div>
+                            <div class="point-item-desc">Caution personnelle et hypothèque de 1er rang</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="project-card">
-                    <div class="card-image-wrap">
-                        <img src="https://images.unsplash.com/photo-1554469384-e58fac16e23a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Bureaux Haussmann" class="card-image">
-                        <span class="badge-frosted active">Ouvert</span>
+                <!-- Description -->
+                <div class="section-block">
+                    <div class="section-label">Présentation</div>
+                    <div class="description-header">
+                        <div class="desc-chip"><i data-lucide="home" size="13" color="var(--gold-500)"></i> Résidentiel</div>
+                        <div class="desc-chip"><i data-lucide="banknote" size="13" color="var(--gold-500)"></i> Marchand de biens</div>
+                        <div class="desc-chip"><i data-lucide="maximize" size="13" color="var(--gold-500)"></i> 1 200 m² terrain</div>
                     </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Bureaux Haussmann</h3>
-                        <div class="card-location"><i data-lucide="map-pin"></i> Paris 8ème</div>
-                        <div class="card-metrics">
-                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">1 200 000 €</span></div>
-                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">9.0%</span></div>
-                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">24 mois</span></div>
+                    <div class="text-content">
+                        <p><strong>Opportunité d'investissement :</strong> L'opération consiste en l'acquisition d'une villa individuelle de 245 m² habitables, édifiée sur une parcelle de 1 200 m² dans le quartier prisé de Cimiez à Nice.</p>
+                        <p>Le porteur de projet, un marchand de biens expérimenté, prévoit une rénovation complète des prestations intérieures (haut de gamme), la création d'une piscine à débordement et l'aménagement paysager du terrain. La commercialisation se fera à la découpe avec le détachement d'une parcelle constructible en fond de lot.</p>
+                        <p>La marge prévisionnelle de l'opération est estimée à 22 %, offrant un matelas de sécurité confortable pour les investisseurs X-Fund.</p>
+                    </div>
+                </div>
+
+                <!-- Operator -->
+                <div class="section-block">
+                    <div class="section-label">Opérateur</div>
+                    <div class="operator-card">
+                        <div class="operator-avatar"><i data-lucide="building-2" size="20"></i></div>
+                        <div>
+                            <div class="operator-name">Groupe Riviera Développement</div>
+                            <div class="operator-detail">5 opérations réalisées · Toutes remboursées par anticipation</div>
                         </div>
-                        <div class="progress-section">
-                            <div class="progress-header"><span>1 068 000 € collectés</span><span>89%</span></div>
-                            <div class="progress-track"><div class="progress-fill" style="width: 89%;"></div></div>
+                        <div class="operator-badge"><i data-lucide="badge-check" size="13"></i> Vérifié</div>
+                    </div>
+                </div>
+
+                <!-- Analysis -->
+                <div class="section-block">
+                    <div class="section-label">Analyse du risque</div>
+                    <div class="analysis-grid">
+                        <div class="analysis-row">
+                            <div class="analysis-marker"></div>
+                            <div>
+                                <h4>Expertise de l'opérateur</h4>
+                                <p>5 opérations similaires dans ce secteur au cours des 3 dernières années, toutes remboursées par anticipation.</p>
+                            </div>
                         </div>
-                        <div class="card-footer">
-                            <div class="investor-count"><i data-lucide="users" size="14"></i> 418 investisseurs</div>
-                            <div>Reste 3 jours</div>
+                        <div class="analysis-row">
+                            <div class="analysis-marker"></div>
+                            <div>
+                                <h4>Aléas de travaux limités</h4>
+                                <p>Les devis travaux ont été validés par notre AMO indépendant. Les entreprises retenues disposent toutes de la garantie décennale à jour.</p>
+                            </div>
+                        </div>
+                        <div class="analysis-row">
+                            <div class="analysis-marker"></div>
+                            <div>
+                                <h4>Risque commercial maîtrisé</h4>
+                                <p>Le prix de sortie estimé (8 500 €/m²) se situe dans la fourchette basse des transactions récentes pour des biens équivalents.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="project-card">
-                    <div class="card-image-wrap">
-                        <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Résidence Les Alouettes" class="card-image">
-                        <span class="badge-frosted active">Ouvert</span>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Résidence Les Alouettes</h3>
-                        <div class="card-location"><i data-lucide="map-pin"></i> Lyon, Rhône</div>
-                        <div class="card-metrics">
-                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">750 000 €</span></div>
-                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">10.2%</span></div>
-                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">12 mois</span></div>
+                <!-- Timeline -->
+                <div class="section-block">
+                    <div class="section-label">Calendrier</div>
+                    <div class="timeline-row">
+                        <div class="tl-step">
+                            <div class="tl-step-status active"></div>
+                            <div class="tl-step-date">Février 2026</div>
+                            <div class="tl-step-label">Collecte & Acquisition</div>
+                            <div class="tl-step-sublabel">En cours</div>
                         </div>
-                        <div class="progress-section">
-                            <div class="progress-header"><span>187 500 € collectés</span><span>25%</span></div>
-                            <div class="progress-track"><div class="progress-fill" style="width: 25%;"></div></div>
+                        <div class="tl-step">
+                            <div class="tl-step-status"></div>
+                            <div class="tl-step-date">Août 2026</div>
+                            <div class="tl-step-label">Fin des travaux</div>
+                            <div class="tl-step-sublabel">~6 mois</div>
                         </div>
-                        <div class="card-footer">
-                            <div class="investor-count"><i data-lucide="users" size="14"></i> 89 investisseurs</div>
-                            <div>Reste 21 jours</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <section class="project-section">
-            <div class="section-header">
-                <h2 class="section-title">Prochainement</h2>
-                <span class="section-badge">2</span>
-            </div>
-            <div class="projects-grid">
-                
-                <div class="project-card">
-                    <div class="card-image-wrap">
-                        <img src="https://domainedelours.fr/wp-content/uploads/2020/02/21.jpg" alt="Domaine de l'Ours" class="card-image">
-                        <span class="badge-frosted upcoming">Bientôt</span>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Le Domaine de l'Ours</h3>
-                        <div class="card-location"><i data-lucide="map-pin"></i> Bordeaux, Gironde</div>
-                        <div class="card-metrics">
-                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">850 000 €</span></div>
-                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">10.5%</span></div>
-                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">12 mois</span></div>
-                        </div>
-                        <div class="progress-section">
-                            <div class="progress-header"><span>Ouverture le 28 Fév. à 12h</span><span>0%</span></div>
-                            <div class="progress-track"><div class="progress-fill" style="width: 0%;"></div></div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="investor-count"><i data-lucide="bell" size="14"></i> M'alerter</div>
-                            <div>Analyse terminée</div>
+                        <div class="tl-step">
+                            <div class="tl-step-status"></div>
+                            <div class="tl-step-date">Août 2027</div>
+                            <div class="tl-step-label">Remboursement visé</div>
+                            <div class="tl-step-sublabel">In fine</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="project-card">
-                    <div class="card-image-wrap">
-                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Espace Co-working" class="card-image">
-                        <span class="badge-frosted upcoming">Bientôt</span>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Le Hub Co-working</h3>
-                        <div class="card-location"><i data-lucide="map-pin"></i> Lille, Nord</div>
-                        <div class="card-metrics">
-                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">520 000 €</span></div>
-                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">9.5%</span></div>
-                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">18 mois</span></div>
-                        </div>
-                        <div class="progress-section">
-                            <div class="progress-header"><span>Ouverture le 05 Mar. à 10h</span><span>0%</span></div>
-                            <div class="progress-track"><div class="progress-fill" style="width: 0%;"></div></div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="investor-count"><i data-lucide="bell" size="14"></i> M'alerter</div>
-                            <div>Analyse terminée</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <section class="project-section">
-            <div class="section-header">
-                <h2 class="section-title">Déjà financés</h2>
-                <span class="section-badge">4</span>
-            </div>
-            <div class="projects-grid">
-                
-                <div class="project-card is-funded">
-                    <div class="card-image-wrap">
-                        <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Résidence Les Pins" class="card-image">
-                        <span class="badge-frosted funded">Financé</span>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Résidence Les Pins</h3>
-                        <div class="card-location"><i data-lucide="map-pin"></i> Montpellier, Hérault</div>
-                        <div class="card-metrics">
-                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">600 000 €</span></div>
-                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">10.0%</span></div>
-                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">20 mois</span></div>
-                        </div>
-                        <div class="progress-section">
-                            <div class="progress-header"><span>Financé avec succès</span><span style="color: var(--brand-primary)">100%</span></div>
-                            <div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="investor-count"><i data-lucide="users" size="14"></i> 210 investisseurs</div>
-                            <div>Février 2026</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="project-card is-funded">
-                    <div class="card-image-wrap">
-                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Lotissement Horizon" class="card-image">
-                        <span class="badge-frosted funded">Financé</span>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Lotissement Horizon</h3>
-                        <div class="card-location"><i data-lucide="map-pin"></i> Toulouse, Haute-Garonne</div>
-                        <div class="card-metrics">
-                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">950 000 €</span></div>
-                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">11.0%</span></div>
-                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">24 mois</span></div>
-                        </div>
-                        <div class="progress-section">
-                            <div class="progress-header"><span>Financé avec succès</span><span style="color: var(--brand-primary)">100%</span></div>
-                            <div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="investor-count"><i data-lucide="users" size="14"></i> 345 investisseurs</div>
-                            <div>Janvier 2026</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="project-card is-funded">
-                    <div class="card-image-wrap">
-                        <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Villa Cotière" class="card-image">
-                        <span class="badge-frosted funded">Financé</span>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Rénovation Villa Côtière</h3>
-                        <div class="card-location"><i data-lucide="map-pin"></i> Biarritz, Pyrénées-Atlantiques</div>
-                        <div class="card-metrics">
-                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">380 000 €</span></div>
-                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">9.8%</span></div>
-                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">12 mois</span></div>
-                        </div>
-                        <div class="progress-section">
-                            <div class="progress-header"><span>Financé avec succès</span><span style="color: var(--brand-primary)">100%</span></div>
-                            <div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="investor-count"><i data-lucide="users" size="14"></i> 112 investisseurs</div>
-                            <div>Décembre 2025</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="project-card is-funded">
-                    <div class="card-image-wrap">
-                        <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Appartements Centre-Ville" class="card-image">
-                        <span class="badge-frosted funded">Financé</span>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Immeuble Centre-Ville</h3>
-                        <div class="card-location"><i data-lucide="map-pin"></i> Strasbourg, Bas-Rhin</div>
-                        <div class="card-metrics">
-                            <div class="metric-item"><span class="metric-label">Objectif</span><span class="metric-value">1 100 000 €</span></div>
-                            <div class="metric-item"><span class="metric-label">Rendement</span><span class="metric-value highlight">10.5%</span></div>
-                            <div class="metric-item"><span class="metric-label">Durée</span><span class="metric-value">18 mois</span></div>
-                        </div>
-                        <div class="progress-section">
-                            <div class="progress-header"><span>Financé avec succès</span><span style="color: var(--brand-primary)">100%</span></div>
-                            <div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="investor-count"><i data-lucide="users" size="14"></i> 405 investisseurs</div>
-                            <div>Novembre 2025</div>
-                        </div>
+                <!-- Documents -->
+                <div class="section-block">
+                    <div class="section-label">Documents</div>
+                    <div class="doc-list">
+                        <a href="#" class="doc-row">
+                            <div class="doc-row-left">
+                                <div class="doc-row-icon"><i data-lucide="file-text" size="15"></i></div>
+                                <div>
+                                    <div>Document d'Information (DICI)</div>
+                                    <div class="doc-row-meta">PDF · 2.4 Mo</div>
+                                </div>
+                            </div>
+                            <i data-lucide="download" size="16" color="var(--text-muted)"></i>
+                        </a>
+                        <a href="#" class="doc-row">
+                            <div class="doc-row-left">
+                                <div class="doc-row-icon"><i data-lucide="file-check-2" size="15"></i></div>
+                                <div>
+                                    <div>Permis de Construire</div>
+                                    <div class="doc-row-meta">PDF · 1.8 Mo</div>
+                                </div>
+                            </div>
+                            <i data-lucide="download" size="16" color="var(--text-muted)"></i>
+                        </a>
+                        <a href="#" class="doc-row">
+                            <div class="doc-row-left">
+                                <div class="doc-row-icon"><i data-lucide="file-bar-chart" size="15"></i></div>
+                                <div>
+                                    <div>Bilan Financier</div>
+                                    <div class="doc-row-meta">PDF · 3.1 Mo</div>
+                                </div>
+                            </div>
+                            <i data-lucide="download" size="16" color="var(--text-muted)"></i>
+                        </a>
                     </div>
                 </div>
 
             </div>
-        </section>
 
+            <!-- ─── Sidebar ─── -->
+            <div class="sidebar">
+
+                <div class="invest-widget">
+                    <div class="widget-top">
+                        <div>
+                            <div class="widget-amount">450 000 €</div>
+                            <div class="widget-amount-label">Objectif de financement</div>
+                        </div>
+                        <div class="status-pill">En collecte</div>
+                    </div>
+
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: 65%;"></div>
+                    </div>
+                    <div class="progress-row">
+                        <span><strong>292 500 €</strong> financés</span>
+                        <span><strong>65 %</strong></span>
+                    </div>
+
+                    <button class="btn-invest">
+                        Investir dans ce projet
+                        <i data-lucide="arrow-right" size="16"></i>
+                    </button>
+
+                    <div class="investor-row">
+                        <div class="avatar-stack">
+                            <img src="https://i.pravatar.cc/100?img=1" class="avatar-sm" alt="">
+                            <img src="https://i.pravatar.cc/100?img=2" class="avatar-sm" alt="">
+                            <img src="https://i.pravatar.cc/100?img=3" class="avatar-sm" alt="">
+                        </div>
+                        <span>142 investisseurs</span>
+                    </div>
+
+                    <div class="widget-divider"></div>
+
+                    <button class="btn-secondary">
+                        <i data-lucide="calculator" size="15"></i>
+                        Simuler mon investissement
+                    </button>
+
+                    <div class="risk-note">
+                        <i data-lucide="info" size="14" color="var(--text-muted)"></i>
+                        <span>L'investissement présente un risque de perte en capital et d'illiquidité.</span>
+                    </div>
+                </div>
+
+                <!-- Sidebar Stats -->
+                <div class="sidebar-stats">
+                    <div class="sidebar-stats-title">Détails financiers</div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Rendement cible</span>
+                        <span class="stat-row-value">11,50 %</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Durée</span>
+                        <span class="stat-row-value">18 mois</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Remboursement</span>
+                        <span class="stat-row-value">In fine</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Ticket minimum</span>
+                        <span class="stat-row-value">1 000 €</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Marge opération</span>
+                        <span class="stat-row-value">22 %</span>
+                    </div>
+                </div>
+
+                <!-- Support -->
+                <div class="support-row">
+                    <div class="support-row-text">
+                        <strong>Des questions ?</strong>
+                        Notre équipe est disponible.
+                    </div>
+                    <button class="btn-support"><i data-lucide="phone" size="14"></i> Appeler</button>
+                </div>
+
+            </div>
+
+        </div>
     </div>
 
     <script>

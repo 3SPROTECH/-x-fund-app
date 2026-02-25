@@ -56,7 +56,6 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
 }
 
 body {
@@ -65,12 +64,10 @@ body {
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
 #root {
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
 a {
@@ -575,6 +572,7 @@ textarea:focus {
   max-width: 100%;
   box-sizing: border-box;
 }
+
 .file-upload-dropzone {
   border: 2px dashed var(--border);
   border-radius: 10px;
@@ -586,10 +584,12 @@ textarea:focus {
   transition: all 0.3s ease;
   min-width: 0;
 }
+
 .file-upload-dropzone:hover {
   border-color: var(--primary);
   background: #f8fafc;
 }
+
 .file-upload-btn {
   display: inline-flex;
   align-items: center;
@@ -607,17 +607,21 @@ textarea:focus {
   background: none;
   box-sizing: border-box;
 }
+
 .file-upload-btn span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .file-upload-btn:hover {
   color: var(--primary);
 }
+
 .file-upload-btn input[type="file"] {
   display: none;
 }
+
 .file-upload-filenames {
   margin-top: 10px;
   display: flex;
@@ -627,6 +631,7 @@ textarea:focus {
   min-width: 0;
   max-width: 100%;
 }
+
 .file-upload-filename {
   font-size: 12px;
   font-weight: 600;
@@ -1650,12 +1655,14 @@ textarea:focus {
   max-height: 90vh;
   overflow: hidden;
 }
+
 .modal-form-scroll .modal-form-inner {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
 }
+
 .modal-form-scroll .modal-form-inner .modal-body {
   overflow-y: auto;
   flex: 1;
@@ -1664,6 +1671,7 @@ textarea:focus {
   padding: 0 0.25rem;
   -webkit-overflow-scrolling: touch;
 }
+
 .modal-form-scroll .modal-form-inner .modal-actions {
   margin-top: 1rem;
 }
@@ -2011,9 +2019,17 @@ textarea:focus {
   border-radius: 50%;
 }
 
-.badge-frosted.frosted-active::before { background-color: var(--success); }
-.badge-frosted.frosted-upcoming::before { background-color: var(--warning); }
-.badge-frosted.frosted-funded::before { background-color: var(--primary); }
+.badge-frosted.frosted-active::before {
+  background-color: var(--success);
+}
+
+.badge-frosted.frosted-upcoming::before {
+  background-color: var(--warning);
+}
+
+.badge-frosted.frosted-funded::before {
+  background-color: var(--primary);
+}
 
 /* Card Metrics Grid */
 .card-metrics {
@@ -2123,7 +2139,7 @@ textarea:focus {
   margin-bottom: 3rem;
 }
 
-.project-section > .section-header {
+.project-section>.section-header {
   display: flex;
   align-items: center;
   gap: .75rem;
@@ -2988,16 +3004,14 @@ textarea.error:focus {
   flex-direction: column;
   min-height: 100vh;
   background: #f8f9fb;
-  overflow: clip;
 }
 
 .investor-content {
   flex: 1;
-  padding: 2rem 1.5rem;
+  padding: 2rem 2rem;
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
-  overflow-x: hidden;
 }
 
 /* ============================================
@@ -3119,6 +3133,37 @@ textarea.error:focus {
   font: var(--body-lg);
 }
 
+/* Ensure numeric/value text in investor pages uses body typeface */
+.investor-layout .inv-metric-value,
+.investor-layout .stat-card-value,
+.investor-layout .completion-percent,
+.investor-layout .dash-project-yield,
+.investor-layout .project-yield,
+.investor-layout .project-stat-value,
+.investor-layout .stat-value,
+.investor-layout .metric-value,
+.investor-layout .section-count,
+.investor-layout .balance-badge,
+.investor-layout .wallet-amount,
+.investor-layout .amount-positive,
+.investor-layout .amount-negative,
+.investor-layout .progress-header,
+.investor-layout .ipd-hero-metric-value,
+.investor-layout .ipd-widget-amount,
+.investor-layout .ipd-stat-row-value {
+  font-family: var(--font-body);
+}
+
+/* Keep shared investor controls on DM Sans */
+.investor-layout .btn-add-funds,
+.investor-layout .nav-avatar,
+.investor-layout .tf-select-trigger,
+.investor-layout .tf-select-option,
+.investor-layout .fs-select-trigger,
+.investor-layout .fs-select-option {
+  font-family: var(--font-body);
+}
+
 /* Badges & status indicators */
 .investor-layout .dash-badge-status,
 .investor-layout .project-category,
@@ -3145,6 +3190,7 @@ textarea.error:focus {
 
 /* --- Investor: Mobile overrides --- */
 @media (max-width: 768px) {
+
   .investor-layout .inv-dashboard-header h1,
   .investor-layout .projects-page-header h1,
   .investor-layout .page-header h1,
@@ -3767,10 +3813,12 @@ textarea.error:focus {
     justify-content: space-between;
     width: 100%;
   }
+
   .navbar-container.porteur-navbar-container .porteur-mobile-header .pmh-left {
     width: 40px;
     flex: 0 0 40px;
   }
+
   .navbar-container.porteur-navbar-container .porteur-mobile-header .pmh-logo {
     display: flex;
     align-items: center;
@@ -3778,6 +3826,7 @@ textarea.error:focus {
     flex: 1;
     cursor: pointer;
   }
+
   .navbar-container.porteur-navbar-container .porteur-mobile-header .pmh-right {
     width: 40px;
     flex: 0 0 40px;
@@ -3785,9 +3834,11 @@ textarea.error:focus {
     justify-content: flex-end;
     align-items: center;
   }
+
   .navbar-container.porteur-navbar-container .mobile-menu-btn {
     display: none !important;
   }
+
   .navbar-container.porteur-navbar-container .nav-brand,
   .navbar-container.porteur-navbar-container .nav-right {
     display: none;
@@ -6449,8 +6500,15 @@ textarea.error:focus {
 }
 
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 2px 8px rgba(230, 126, 34, 0.08); }
-  50% { box-shadow: 0 2px 16px rgba(230, 126, 34, 0.18); }
+
+  0%,
+  100% {
+    box-shadow: 0 2px 8px rgba(230, 126, 34, 0.08);
+  }
+
+  50% {
+    box-shadow: 0 2px 16px rgba(230, 126, 34, 0.18);
+  }
 }
 
 /* ── Info resubmitted card ── */
@@ -6619,6 +6677,7 @@ textarea.error:focus {
   .porteur-project-grid {
     grid-template-columns: 1fr;
   }
+
   .porteur-section {
     margin-bottom: 2rem;
   }
@@ -6636,9 +6695,11 @@ textarea.error:focus {
   margin-bottom: 1rem;
   transition: border-color var(--transition);
 }
+
 .analyste-check-section:hover {
   border-color: var(--primary);
 }
+
 .analyste-check-label {
   display: flex;
   align-items: center;
@@ -6648,12 +6709,14 @@ textarea.error:focus {
   cursor: pointer;
   color: var(--text-primary);
 }
+
 .analyste-check-label input[type="checkbox"] {
   width: 18px;
   height: 18px;
   accent-color: var(--primary);
   cursor: pointer;
 }
+
 .analyste-check-desc {
   font-size: .8rem;
   color: var(--text-muted);
@@ -6670,6 +6733,7 @@ textarea.error:focus {
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
 }
+
 .analyste-actions .btn {
   flex: 1;
   min-width: 140px;
@@ -6685,16 +6749,19 @@ textarea.error:focus {
   background: var(--bg);
   border: 1px solid var(--border);
 }
+
 .analyste-review-banner.analyste-review-opinion_approved {
   background: var(--success-light);
   border-color: var(--success);
   color: var(--success);
 }
+
 .analyste-review-banner.analyste-review-opinion_rejected {
   background: var(--danger-light);
   border-color: var(--danger);
   color: var(--danger);
 }
+
 .analyste-review-banner.analyste-review-opinion_info_requested {
   background: var(--info-light);
   border-color: var(--info);
@@ -6706,6 +6773,7 @@ textarea.error:focus {
   border: 1px solid var(--border);
   transition: border-color var(--transition);
 }
+
 .analyste-review-section.has-opinion {
   border-color: var(--success);
 }
@@ -6715,6 +6783,7 @@ textarea.error:focus {
   .analyste-actions {
     flex-direction: column;
   }
+
   .analyste-actions .btn {
     min-width: unset;
   }
