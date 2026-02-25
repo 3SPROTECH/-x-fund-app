@@ -62,6 +62,7 @@ export default function InvestorProjectDetailPage() {
 
   // Collect all available images
   const allImages = [
+    ...(a.photos || []).map(img => ({ id: img.id, url: getImageUrl(img.url), alt: img.filename })),
     ...(a.images || []).map(img => ({ id: img.id, url: getImageUrl(img.url), alt: img.filename })),
     ...(a.property_photos || []).map(p => ({ id: p.id, url: getImageUrl(p.url), alt: p.filename })),
   ];

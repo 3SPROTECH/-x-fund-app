@@ -235,6 +235,7 @@ function DeleteBtn({ onDelete }) {
 export default function ProjectCard({ project, user, onDelete, onClick }) {
   const attrs = project.attributes || project;
   const firstImage =
+    (attrs.photos?.length > 0) ? attrs.photos[0] :
     (attrs.images?.length > 0) ? attrs.images[0] :
     (attrs.property_photos?.length > 0) ? attrs.property_photos[0] : null;
 

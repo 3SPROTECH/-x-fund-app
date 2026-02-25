@@ -245,7 +245,7 @@ export default function PorteurDashboardPage() {
     const p = item.data;
     const a = p.attributes || p;
     const progress = Math.min(a.funding_progress_percent || 0, 100);
-    const firstImage = (a.images?.length > 0) ? a.images[0] : (a.property_photos?.length > 0) ? a.property_photos[0] : null;
+    const firstImage = (a.photos?.length > 0) ? a.photos[0] : (a.images?.length > 0) ? a.images[0] : (a.property_photos?.length > 0) ? a.property_photos[0] : null;
     const isOwner = user?.id === a.owner_id;
     const canDelete = user?.role === 'porteur_de_projet' && isOwner && a.status === 'draft';
     const showForm = isOwner && ['draft', 'pending_analysis', 'info_requested', 'info_resubmitted', 'approved', 'signing'].includes(a.status);
@@ -311,7 +311,7 @@ export default function PorteurDashboardPage() {
   /* ── Render: Read-only financed card ── */
   const renderReadOnlyCard = (p) => {
     const a = p.attributes || p;
-    const firstImage = (a.images?.length > 0) ? a.images[0] : (a.property_photos?.length > 0) ? a.property_photos[0] : null;
+    const firstImage = (a.photos?.length > 0) ? a.photos[0] : (a.images?.length > 0) ? a.images[0] : (a.property_photos?.length > 0) ? a.property_photos[0] : null;
 
     return (
       <div key={p.id} className="pd-card pd-card--readonly">

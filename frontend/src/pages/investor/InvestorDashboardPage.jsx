@@ -150,6 +150,7 @@ function ProjectCard({ project, onClick }) {
   const yieldRate = p.net_yield_percent ?? p.gross_yield_percent ?? 0;
   const raisedFormatted = fmt(p.amount_raised_cents ?? 0);
   const firstImage =
+    p.photos?.length > 0 ? p.photos[0] :
     p.images?.length > 0 ? p.images[0] :
     p.property_photos?.length > 0 ? p.property_photos[0] : null;
 
