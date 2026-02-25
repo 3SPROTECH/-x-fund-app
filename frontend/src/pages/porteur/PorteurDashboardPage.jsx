@@ -1,20 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { investmentProjectsApi } from '../../api/investments';
 import { projectDraftsApi } from '../../api/projectDrafts';
 import { getImageUrl } from '../../api/client';
 import {
-  Plus, MapPin, Image as ImageIcon, FileEdit, Clock, Trash2,
-  ChevronDown, CheckCircle, AlertCircle, ClipboardList, AlertTriangle, PenTool,
+  Plus, MapPin, Image as ImageIcon, FileEdit, Trash2,
+  ChevronDown, Inbox, AlertTriangle, PenTool,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import TableFilters from '../../components/TableFilters';
 import {
   formatCents,
   formatDate as fmtDate,
   PROJECT_STATUS_LABELS as STATUS_LABELS,
-  PROJECT_STATUS_BADGES as STATUS_BADGE,
 } from '../../utils';
 import { LoadingSpinner } from '../../components/ui';
 
@@ -46,14 +44,36 @@ const STATIC_TASKS = [
 ];
 
 const TASK_STATUS_LABELS = { en_cours: 'En cours', en_attente: 'En attente', termine: 'Termine' };
-const TASK_STATUS_CLASSES = { en_cours: 'badge-warning', en_attente: 'badge-info', termine: 'badge-success' };
+const TASK_STATUS_CLASSES = { en_cours: 'pd-task-en-cours', en_attente: 'pd-task-en-attente', termine: 'pd-task-termine' };
+
+/* ── Filter tabs ── */
+const FILTER_TABS = [
+  { value: '', label: 'Tous' },
+  { value: 'signing', label: 'En Signature' },
+  { value: 'info_requested', label: 'Complements' },
+  { value: 'pending_analysis', label: 'En Analyse' },
+  { value: 'funding_active', label: 'En Collecte' },
+  { value: 'funded', label: 'Finance' },
+];
+
+/* ── Badge style mapping ── */
+const BADGE_CLASS_MAP = {
+  signing: 'pd-b-signature',
+  info_requested: 'pd-b-complements',
+  info_resubmitted: 'pd-b-complements',
+  pending_analysis: 'pd-b-analyse',
+  approved: 'pd-b-analyse',
+  funding_active: 'pd-b-collecte',
+  funded: 'pd-b-finance',
+  draft: 'pd-b-draft',
+};
 
 export default function PorteurDashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   /* ── Own projects ── */
-  const [projects, setProjects] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
   const [drafts, setDrafts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -66,7 +86,7 @@ export default function PorteurDashboardPage() {
   const [openFaq, setOpenFaq] = useState(null);
 
   /* ── Load own projects + drafts ── */
-  useEffect(() => { loadOwnProjects(); }, [statusFilter]);
+  useEffect(() => { loadOwnProjects(); }, []);
 
   useEffect(() => {
     projectDraftsApi.list().then((res) => {
@@ -77,10 +97,8 @@ export default function PorteurDashboardPage() {
   const loadOwnProjects = async () => {
     setLoading(true);
     try {
-      const params = { owned: true };
-      if (statusFilter) params.status = statusFilter;
-      const res = await investmentProjectsApi.list(params);
-      setProjects(res.data.data || []);
+      const res = await investmentProjectsApi.list({ owned: true });
+      setAllProjects(res.data.data || []);
     } catch {
       toast.error('Erreur lors du chargement des projets');
     } finally {
@@ -108,6 +126,31 @@ export default function PorteurDashboardPage() {
     loadFinanced();
   }, [user?.id]);
 
+  /* ── Client-side filtering ── */
+  const filteredProjects = useMemo(() => {
+    if (!statusFilter) return allProjects;
+    return allProjects.filter((p) => {
+      const a = p.attributes || p;
+      return a.status === statusFilter;
+    });
+  }, [allProjects, statusFilter]);
+
+  /* ── Dynamic stats ── */
+  const stats = useMemo(() => {
+    const signingCount = allProjects.filter((p) => (p.attributes || p).status === 'signing').length;
+    const collecteCount = allProjects.filter((p) => (p.attributes || p).status === 'funding_active').length;
+    const fundedCount = allProjects.filter((p) => (p.attributes || p).status === 'funded').length;
+    const urgentTasks = STATIC_TASKS.filter((t) => t.status === 'en_cours').length;
+    return {
+      totalProjects: allProjects.length + drafts.length,
+      collecteCount,
+      signingCount,
+      taskCount: STATIC_TASKS.length,
+      urgentTasks,
+      fundedCount,
+    };
+  }, [allProjects, drafts]);
+
   /* ── Delete handlers ── */
   const handleDeleteDraft = async (draftId, e) => {
     e.stopPropagation();
@@ -133,85 +176,67 @@ export default function PorteurDashboardPage() {
     }
   };
 
-  /* ── Filter config ── */
-  const statusOptions = [
-    { value: '', label: 'Tous' },
-    { value: 'draft', label: 'Brouillon' },
-    { value: 'pending_analysis', label: 'En Analyse' },
-    { value: 'info_requested', label: 'Complements requis' },
-    { value: 'approved', label: 'Approuve' },
-    { value: 'funding_active', label: 'En Collecte' },
-    { value: 'funded', label: 'Finance' },
-  ];
-
   /* ── Merge drafts + projects for unified grid ── */
-  const allItems = [];
+  const allItems = useMemo(() => {
+    const items = [];
+    const ACTION_STATUSES = ['info_requested', 'info_resubmitted', 'signing'];
 
-  // Only show drafts when filter is empty or explicitly set to 'draft'
-  if (!statusFilter || statusFilter === 'draft') {
-    drafts.forEach((draft) => {
-      allItems.push({ type: 'draft', data: draft });
+    if (!statusFilter || statusFilter === 'draft') {
+      drafts.forEach((draft) => {
+        items.push({ type: 'draft', data: draft });
+      });
+    }
+
+    filteredProjects.forEach((p) => {
+      items.push({ type: 'project', data: p });
     });
-  }
 
-  // Sort: info_requested and info_resubmitted projects come first
-  const ACTION_STATUSES = ['info_requested', 'info_resubmitted', 'signing'];
+    items.sort((a, b) => {
+      if (a.type === 'draft' && b.type === 'draft') return 0;
+      if (a.type === 'draft') return -1;
+      if (b.type === 'draft') return 1;
+      const aStatus = (a.data.attributes || a.data).status;
+      const bStatus = (b.data.attributes || b.data).status;
+      const aAction = ACTION_STATUSES.includes(aStatus) ? 0 : 1;
+      const bAction = ACTION_STATUSES.includes(bStatus) ? 0 : 1;
+      return aAction - bAction;
+    });
 
-  projects.forEach((p) => {
-    allItems.push({ type: 'project', data: p });
-  });
+    return items;
+  }, [drafts, filteredProjects, statusFilter]);
 
-  // Sort to put action-required projects first
-  allItems.sort((a, b) => {
-    if (a.type === 'draft' && b.type === 'draft') return 0;
-    if (a.type === 'draft') return -1; // drafts stay at top
-    if (b.type === 'draft') return 1;
-    const aStatus = (a.data.attributes || a.data).status;
-    const bStatus = (b.data.attributes || b.data).status;
-    const aAction = ACTION_STATUSES.includes(aStatus) ? 0 : 1;
-    const bAction = ACTION_STATUSES.includes(bStatus) ? 0 : 1;
-    return aAction - bAction;
-  });
-
-  /* ── Render helpers ── */
+  /* ── Render: Project card ── */
   const renderProjectCard = (item) => {
     if (item.type === 'draft') {
       const draft = item.data;
       const fd = draft.form_data || {};
       const title = fd.presentation?.title || 'Projet sans nom';
-      const updatedAt = draft.updated_at
-        ? new Date(draft.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
-        : '';
 
       return (
         <div
           key={`draft-${draft.id}`}
-          className="porteur-project-card"
+          className="pd-card"
           onClick={() => navigate(`/projects/new?draft=${draft.id}`)}
         >
-          <div className="porteur-card-visual porteur-card-visual--draft">
-            <FileEdit size={32} opacity={0.3} color="var(--gold-color)" />
+          <div className="pd-card-thumb">
+            <FileEdit size={18} opacity={0.35} />
+            <span className="pd-card-badge pd-b-draft">Brouillon</span>
+            <button
+              className="pd-card-delete-btn"
+              onClick={(e) => handleDeleteDraft(draft.id, e)}
+              title="Supprimer le brouillon"
+            >
+              <Trash2 size={13} />
+            </button>
           </div>
-          <div className="porteur-card-body">
-            <div className="porteur-card-top">
-              <h4 className="porteur-card-title">{title}</h4>
-              <div className="porteur-card-actions">
-                <span className="badge badge-warning">Brouillon</span>
-                <button
-                  className="porteur-card-delete"
-                  onClick={(e) => handleDeleteDraft(draft.id, e)}
-                  title="Supprimer le brouillon"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            </div>
+          <div className="pd-card-body">
+            <div className="pd-card-name">{title}</div>
             {fd.location?.city && (
-              <p className="porteur-card-location"><MapPin size={13} /> {fd.location.city}</p>
+              <div className="pd-card-loc"><MapPin size={10} /> {fd.location.city}</div>
             )}
-            <div className="porteur-card-meta">
-              <Clock size={12} /> <span>{updatedAt}</span>
-            </div>
+            <button className="pd-card-action" onClick={(e) => e.stopPropagation()}>
+              <FileEdit size={12} /> Completer le brouillon
+            </button>
           </div>
         </div>
       );
@@ -223,73 +248,59 @@ export default function PorteurDashboardPage() {
     const firstImage = (a.images?.length > 0) ? a.images[0] : (a.property_photos?.length > 0) ? a.property_photos[0] : null;
     const isOwner = user?.id === a.owner_id;
     const canDelete = user?.role === 'porteur_de_projet' && isOwner && a.status === 'draft';
-    const showForm = isOwner && (a.status === 'draft' || a.status === 'pending_analysis' || a.status === 'info_requested' || a.status === 'info_resubmitted' || a.status === 'approved' || a.status === 'signing');
+    const showForm = isOwner && ['draft', 'pending_analysis', 'info_requested', 'info_resubmitted', 'approved', 'signing'].includes(a.status);
     const cardHref = showForm ? `/projects/new?project=${p.id}` : `/projects/${p.id}`;
     const isActionRequired = a.status === 'info_requested';
-    const isInfoResubmitted = a.status === 'info_resubmitted';
     const isSigning = a.status === 'signing';
 
     return (
       <div
         key={p.id}
-        className={`porteur-project-card ${isActionRequired ? 'porteur-card--action-required' : ''} ${isInfoResubmitted ? 'porteur-card--info-resubmitted' : ''} ${isSigning ? 'porteur-card--signing' : ''}`}
+        className="pd-card"
         onClick={() => navigate(cardHref)}
       >
-        <div className="porteur-card-visual">
+        <div className="pd-card-thumb">
           {firstImage ? (
             <img src={getImageUrl(firstImage.url)} alt={a.title} />
           ) : (
-            <div className="porteur-card-placeholder">
-              <ImageIcon size={28} opacity={0.25} />
-            </div>
+            <ImageIcon size={18} opacity={0.3} />
+          )}
+          <span className={`pd-card-badge ${BADGE_CLASS_MAP[a.status] || ''}`}>
+            {STATUS_LABELS[a.status] || a.status}
+          </span>
+          {canDelete && (
+            <button
+              className="pd-card-delete-btn"
+              onClick={(e) => handleDeleteProject(p.id, a.title, e)}
+              title="Supprimer"
+            >
+              <Trash2 size={13} />
+            </button>
           )}
         </div>
-        <div className="porteur-card-body">
-          <div className="porteur-card-top">
-            <h4 className="porteur-card-title">{a.title}</h4>
-            <div className="porteur-card-actions">
-              <span className={`badge ${STATUS_BADGE[a.status] || ''}`}>{STATUS_LABELS[a.status] || a.status}</span>
-              {canDelete && (
-                <button
-                  className="porteur-card-delete"
-                  onClick={(e) => handleDeleteProject(p.id, a.title, e)}
-                  title="Supprimer"
-                >
-                  <Trash2 size={15} />
-                </button>
-              )}
-            </div>
-          </div>
+        <div className="pd-card-body">
+          <div className="pd-card-name">{a.title}</div>
           {a.property_city && (
-            <p className="porteur-card-location"><MapPin size={13} /> {a.property_city}</p>
-          )}
-          {a.status === 'funding_active' && (
-            <div className="porteur-card-progress">
-              <div className="progress-bar-container">
-                <div className="progress-bar" style={{ width: `${progress}%` }} />
-              </div>
-              <div className="porteur-card-progress-info">
-                <span>{formatCents(a.amount_raised_cents)} leves</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-            </div>
-          )}
-          {isActionRequired && (
-            <div className="porteur-card-cta">
-              <AlertTriangle size={14} />
-              <span>Compléter les informations</span>
-            </div>
-          )}
-          {isInfoResubmitted && (
-            <div className="porteur-card-cta porteur-card-cta--success">
-              <CheckCircle size={14} />
-              <span>Compléments envoyés — en attente</span>
-            </div>
+            <div className="pd-card-loc"><MapPin size={10} /> {a.property_city}</div>
           )}
           {isSigning && (
-            <div className="porteur-card-cta porteur-card-cta--signing">
-              <PenTool size={14} />
-              <span>Signer le contrat</span>
+            <button className="pd-card-action" onClick={(e) => e.stopPropagation()}>
+              <PenTool size={12} /> Signer le contrat
+            </button>
+          )}
+          {isActionRequired && (
+            <button className="pd-card-action" onClick={(e) => e.stopPropagation()}>
+              <AlertTriangle size={12} /> Completer les informations
+            </button>
+          )}
+          {a.status === 'funding_active' && (
+            <div className="pd-card-progress">
+              <div className="pd-prog-track">
+                <div className="pd-prog-fill" style={{ width: `${progress}%` }} />
+              </div>
+              <div className="pd-prog-label">
+                {formatCents(a.amount_raised_cents)} leves · {Math.round(progress)} %
+              </div>
             </div>
           )}
         </div>
@@ -297,85 +308,107 @@ export default function PorteurDashboardPage() {
     );
   };
 
+  /* ── Render: Read-only financed card ── */
   const renderReadOnlyCard = (p) => {
     const a = p.attributes || p;
-    const progress = Math.min(a.funding_progress_percent || 0, 100);
     const firstImage = (a.images?.length > 0) ? a.images[0] : (a.property_photos?.length > 0) ? a.property_photos[0] : null;
 
     return (
-      <div key={p.id} className="porteur-project-card porteur-readonly-card">
-        <div className="porteur-card-visual">
+      <div key={p.id} className="pd-card pd-card--readonly">
+        <div className="pd-card-thumb">
           {firstImage ? (
             <img src={getImageUrl(firstImage.url)} alt={a.title} />
           ) : (
-            <div className="porteur-card-placeholder">
-              <ImageIcon size={28} opacity={0.25} />
-            </div>
+            <ImageIcon size={18} opacity={0.3} />
           )}
+          <span className="pd-card-badge pd-b-finance">Finance</span>
         </div>
-        <div className="porteur-card-body">
-          <div className="porteur-card-top">
-            <h4 className="porteur-card-title">{a.title}</h4>
-            <span className="badge badge-success">Finance</span>
-          </div>
+        <div className="pd-card-body">
+          <div className="pd-card-name">{a.title}</div>
           {a.property_city && (
-            <p className="porteur-card-location"><MapPin size={13} /> {a.property_city}</p>
+            <div className="pd-card-loc"><MapPin size={10} /> {a.property_city}</div>
           )}
-
         </div>
       </div>
     );
   };
 
   return (
-    <div className="porteur-dashboard">
+    <div className="pd-page">
 
-      {/* ═══ Section 1: Welcome + My Projects ═══ */}
-      <section className="porteur-section">
-        <div className="porteur-section-header">
-          <div>
-            <h1 className="porteur-welcome">Bienvenue, {user?.first_name}</h1>
-            <p className="porteur-welcome-sub">Gerez vos projets et suivez leur avancement</p>
-          </div>
+      {/* ── Header ── */}
+      <div className="pd-header">
+        <div>
+          <h1 className="pd-greeting">Bienvenue, {user?.first_name}</h1>
+          <p className="pd-greeting-sub">Gerez vos projets et suivez leur avancement</p>
+        </div>
+        <button className="pd-btn-primary" onClick={() => navigate('/projects/new')}>
+          <Plus size={15} /> Creer un projet
+        </button>
+      </div>
+
+      {/* ── Stats row ── */}
+      <div className="pd-stats-row">
+        <div className="pd-stat-card">
+          <div className="pd-stat-label">Projets</div>
+          <div className="pd-stat-value">{stats.totalProjects}</div>
+          <div className="pd-stat-sub">{stats.collecteCount} en collecte</div>
+        </div>
+        <div className="pd-stat-card">
+          <div className="pd-stat-label">En signature</div>
+          <div className="pd-stat-value">{stats.signingCount}</div>
+          <div className="pd-stat-sub">{stats.signingCount > 0 ? 'Action requise' : 'Aucune action'}</div>
+        </div>
+        <div className="pd-stat-card">
+          <div className="pd-stat-label">Taches</div>
+          <div className="pd-stat-value">{stats.taskCount}</div>
+          <div className="pd-stat-sub">{stats.urgentTasks} urgente{stats.urgentTasks > 1 ? 's' : ''}</div>
+        </div>
+        <div className="pd-stat-card">
+          <div className="pd-stat-label">Finance</div>
+          <div className="pd-stat-value">{stats.fundedCount}</div>
+          <div className="pd-stat-sub">{stats.fundedCount > 0 ? `${stats.fundedCount} projet${stats.fundedCount > 1 ? 's' : ''}` : 'Aucun projet'}</div>
+        </div>
+      </div>
+
+      {/* ── My Projects ── */}
+      <section className="pd-section">
+        <div className="pd-section-header">
+          <h2 className="pd-section-title">Mes projets</h2>
         </div>
 
-        <div className="porteur-filters-row">
-          <TableFilters
-            filters={[
-              { key: 'status', label: 'Statut', value: statusFilter, options: statusOptions },
-            ]}
-            onFilterChange={(key, value) => setStatusFilter(value)}
-          />
+        <div className="pd-filter-bar">
+          {FILTER_TABS.map((tab) => (
+            <button
+              key={tab.value}
+              className={`pd-filter-chip${statusFilter === tab.value ? ' active' : ''}`}
+              onClick={() => setStatusFilter(tab.value)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {loading ? (
           <LoadingSpinner />
         ) : (
-          <div className="porteur-project-grid">
+          <div className="pd-projects-grid">
             {allItems.map((item) => renderProjectCard(item))}
-
-            {/* CTA Card */}
-            <div
-              className="porteur-cta-card"
-              onClick={() => navigate('/projects/new')}
-            >
-              <div className="porteur-cta-icon">
-                <Plus size={28} strokeWidth={2} />
-              </div>
-              <span className="porteur-cta-label">Creer un projet</span>
+            <div className="pd-card-create" onClick={() => navigate('/projects/new')}>
+              <div className="pd-card-create-icon"><Plus size={16} /></div>
+              <span>Creer un projet</span>
             </div>
           </div>
         )}
       </section>
 
-      {/* ═══ Section 2: Tasks ═══ */}
-      <section className="porteur-section">
-        <h2 className="porteur-section-title">
-          <ClipboardList size={20} />
-          Mes taches
-        </h2>
-        <div className="table-container">
-          <table className="table">
+      {/* ── Tasks ── */}
+      <section className="pd-section">
+        <div className="pd-section-header">
+          <h2 className="pd-section-title">Mes taches</h2>
+        </div>
+        <div className="pd-table-wrap">
+          <table>
             <thead>
               <tr>
                 <th>Tache</th>
@@ -387,11 +420,11 @@ export default function PorteurDashboardPage() {
             <tbody>
               {STATIC_TASKS.map((t) => (
                 <tr key={t.id}>
-                  <td data-label="Tache">{t.title}</td>
-                  <td data-label="Assigne par">{t.assignedBy}</td>
-                  <td data-label="Echeance">{fmtDate(t.dueDate)}</td>
-                  <td data-label="Statut">
-                    <span className={`badge ${TASK_STATUS_CLASSES[t.status] || ''}`}>
+                  <td className="pd-task-name">{t.title}</td>
+                  <td className="pd-task-secondary">{t.assignedBy}</td>
+                  <td className="pd-task-secondary">{fmtDate(t.dueDate)}</td>
+                  <td>
+                    <span className={`pd-task-status ${TASK_STATUS_CLASSES[t.status] || ''}`}>
                       {TASK_STATUS_LABELS[t.status] || t.status}
                     </span>
                   </td>
@@ -402,48 +435,45 @@ export default function PorteurDashboardPage() {
         </div>
       </section>
 
-      {/* ═══ Section 3: Financed Projects ═══ */}
-      <section className="porteur-section">
-        <h2 className="porteur-section-title">
-          <CheckCircle size={20} />
-          Projets finances
-        </h2>
+      {/* ── Financed Projects ── */}
+      <section className="pd-section">
+        <div className="pd-section-header">
+          <h2 className="pd-section-title">Projets finances</h2>
+        </div>
         {financedLoading ? (
           <LoadingSpinner />
         ) : financedProjects.length === 0 ? (
-          <div className="porteur-empty-state">
-            <AlertCircle size={20} />
-            <span>Aucun projet finance pour le moment</span>
+          <div className="pd-empty-state">
+            <Inbox size={16} /> Aucun projet finance pour le moment
           </div>
         ) : (
-          <div className="porteur-project-grid">
+          <div className="pd-projects-grid">
             {financedProjects.map((p) => renderReadOnlyCard(p))}
           </div>
         )}
       </section>
 
-      {/* ═══ Section 4: FAQ ═══ */}
-      <section className="porteur-section">
-        <h2 className="porteur-section-title">Questions frequentes</h2>
-        <div className="porteur-faq">
+      {/* ── FAQ ── */}
+      <section className="pd-section">
+        <div className="pd-section-header">
+          <h2 className="pd-section-title">Questions frequentes</h2>
+        </div>
+        <div className="pd-faq-list">
           {FAQ_ITEMS.map((item, idx) => (
-            <div key={idx} className={`porteur-faq-item${openFaq === idx ? ' open' : ''}`}>
+            <div key={idx} className={`pd-faq-item${openFaq === idx ? ' open' : ''}`}>
               <button
-                className="porteur-faq-trigger"
+                className="pd-faq-trigger"
                 onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
               >
                 <span>{item.q}</span>
-                <ChevronDown size={16} className="porteur-faq-chevron" />
+                <ChevronDown size={15} className="pd-faq-chev" />
               </button>
-              {openFaq === idx && (
-                <div className="porteur-faq-answer">
-                  <p>{item.a}</p>
-                </div>
-              )}
+              <div className="pd-faq-answer">{item.a}</div>
             </div>
           ))}
         </div>
       </section>
+
     </div>
   );
 }
