@@ -381,3 +381,350 @@
   max-width: 320px;
   line-height: 1.5;
 }
+
+/* ==================== CONTENT DISPLAY COMPONENTS ==================== */
+
+/* Section title within tab content */
+.an-section {
+  margin-bottom: 1.5rem;
+}
+
+.an-section:last-child {
+  margin-bottom: 0;
+}
+
+.an-section-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* Field grid — two column layout for label/value pairs */
+.an-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+@media (max-width: 640px) {
+  .an-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.an-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.an-fields .an-field:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
+.an-field.full {
+  grid-column: 1 / -1;
+}
+
+.an-field-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.an-field-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.an-field-value.muted {
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.an-field-value.pre {
+  white-space: pre-wrap;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Badge list — horizontal wrapping */
+.an-badge-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.an-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  background: var(--bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.an-badge.green {
+  background: var(--success-light);
+  color: var(--success);
+  border-color: var(--success);
+}
+
+/* KPI row — highlight numbers */
+.an-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.an-kpi {
+  padding: 0.75rem;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.an-kpi-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.25rem;
+}
+
+.an-kpi-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.an-kpi-value.success {
+  color: var(--success);
+}
+
+/* Asset selector */
+.an-asset-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.an-asset-tab {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.an-asset-tab:hover {
+  border-color: var(--text-muted);
+}
+
+.an-asset-tab.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* Simple table for lots */
+.an-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.an-table th {
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.an-table td {
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text);
+}
+
+.an-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Document list */
+.an-doc-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.an-doc-item:last-child {
+  border-bottom: none;
+}
+
+.an-doc-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.an-doc-icon.uploaded {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.an-doc-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.an-doc-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.an-doc-meta {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+/* Info request card */
+.an-ir-card {
+  padding: 0.875rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  margin-bottom: 0.75rem;
+}
+
+.an-ir-card:last-child {
+  margin-bottom: 0;
+}
+
+.an-ir-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.625rem;
+}
+
+.an-ir-field {
+  padding: 0.5rem 0.625rem;
+  background: var(--bg-card);
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  margin-bottom: 0.375rem;
+}
+
+.an-ir-field:last-child {
+  margin-bottom: 0;
+}
+
+.an-ir-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.an-ir-field-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.an-ir-field-type {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.an-ir-field-comment {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.an-ir-response {
+  margin-top: 0.375rem;
+  padding-top: 0.375rem;
+  border-top: 1px solid var(--border-light);
+  font-size: 0.8125rem;
+  color: var(--text);
+}
+
+.an-ir-response.empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Empty state (smaller variant) */
+.an-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+/* Guarantee score display */
+.an-score-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--border-light);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.an-score-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Link style */
+.an-link {
+  color: var(--info);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.an-link:hover {
+  text-decoration: underline;
+}
