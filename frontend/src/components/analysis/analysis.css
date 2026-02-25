@@ -274,6 +274,42 @@
   color: #fff;
 }
 
+/* Micro step progress bar */
+.an-micro-nav {
+  padding: 1rem 1.5rem 0;
+  flex-shrink: 0;
+}
+
+.an-micro-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.an-micro-tab {
+  flex: 1;
+  height: 5px;
+  background: var(--border);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.an-micro-tab.completed {
+  background: var(--primary);
+}
+
+.an-micro-tab.active {
+  background: var(--gold-color);
+}
+
+.an-micro-status {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* Step header */
 .an-stepper-header {
   padding: 1.25rem 1.5rem 0.75rem;
@@ -1159,4 +1195,41 @@
   border-top: 1px solid var(--border-light);
   font-size: 0.6875rem;
   color: var(--text-muted);
+}
+
+/* ==================== STEP FORM FIELDS ==================== */
+
+.an-step-section {
+  margin-bottom: 1.5rem;
+}
+
+.an-step-section-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.an-step-section-desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.an-step-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.an-step-field-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.an-step-field-label .required {
+  color: var(--danger);
+  margin-left: 2px;
 }

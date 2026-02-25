@@ -10,47 +10,84 @@ const STEPS = [
   {
     label: 'Presentation',
     icon: FileText,
-    title: 'Presentation du projet',
-    desc: 'Evaluez la qualite et la coherence de la presentation du dossier.',
-    Component: StepPresentation,
+    micro: [
+      {
+        title: 'Presentation du projet',
+        desc: 'Evaluez la qualite et la coherence de la presentation du dossier.',
+        Component: StepPresentation,
+      },
+    ],
   },
   {
     label: "Analyse de l'actif",
     icon: Building,
-    title: "Analyse de l'actif immobilier",
-    desc: "Analysez l'actif, sa valorisation, son emplacement et les risques associes.",
-    Component: StepAnalyseActif,
+    micro: [
+      {
+        title: "Analyse de l'actif immobilier",
+        desc: "Analysez l'actif, sa valorisation, son emplacement et les risques associes.",
+        Component: StepAnalyseActif,
+      },
+    ],
   },
   {
     label: 'Resume',
     icon: ClipboardList,
-    title: 'Resume et synthese',
-    desc: 'Redigez la synthese de votre analyse avec les points cles.',
-    Component: StepResume,
+    micro: [
+      {
+        title: 'Resume et synthese',
+        desc: 'Redigez la synthese de votre analyse avec les points cles.',
+        Component: StepResume,
+      },
+    ],
   },
   {
     label: 'Scoring',
     icon: Star,
-    title: 'Scoring et decision',
-    desc: 'Attribuez les scores et prenez votre decision finale.',
-    Component: StepScoring,
+    micro: [
+      {
+        title: 'Scoring et decision',
+        desc: 'Attribuez les scores et prenez votre decision finale.',
+        Component: StepScoring,
+      },
+    ],
   },
 ];
 
 export default function AnalysisStepper({ project }) {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [macroIndex, setMacroIndex] = useState(0);
+  const [microIndex, setMicroIndex] = useState(0);
 
-  const step = STEPS[currentStep];
-  const StepComponent = step.Component;
-  const isFirst = currentStep === 0;
-  const isLast = currentStep === STEPS.length - 1;
+  const macro = STEPS[macroIndex];
+  const micro = macro.micro[microIndex];
+  const StepComponent = micro.Component;
+
+  const isFirstGlobal = macroIndex === 0 && microIndex === 0;
+  const isLastGlobal =
+    macroIndex === STEPS.length - 1 &&
+    microIndex === macro.micro.length - 1;
 
   const handlePrev = () => {
-    if (!isFirst) setCurrentStep((s) => s - 1);
+    if (microIndex > 0) {
+      setMicroIndex((i) => i - 1);
+    } else if (macroIndex > 0) {
+      const prevMacro = STEPS[macroIndex - 1];
+      setMacroIndex((i) => i - 1);
+      setMicroIndex(prevMacro.micro.length - 1);
+    }
   };
 
   const handleNext = () => {
-    if (!isLast) setCurrentStep((s) => s + 1);
+    if (microIndex < macro.micro.length - 1) {
+      setMicroIndex((i) => i + 1);
+    } else if (macroIndex < STEPS.length - 1) {
+      setMacroIndex((i) => i + 1);
+      setMicroIndex(0);
+    }
+  };
+
+  const handleMacroClick = (idx) => {
+    setMacroIndex(idx);
+    setMicroIndex(0);
   };
 
   return (
@@ -59,14 +96,14 @@ export default function AnalysisStepper({ project }) {
       <div className="an-stepper-nav">
         {STEPS.map((s, idx) => {
           const Icon = s.icon;
-          const isActive = idx === currentStep;
-          const isCompleted = idx < currentStep;
+          const isActive = idx === macroIndex;
+          const isCompleted = idx < macroIndex;
 
           return (
             <button
               key={idx}
               className={`an-stepper-step${isActive ? ' active' : ''}${isCompleted ? ' completed' : ''}`}
-              onClick={() => setCurrentStep(idx)}
+              onClick={() => handleMacroClick(idx)}
             >
               <span className="an-stepper-step-icon">
                 {isCompleted ? <Check size={12} /> : <Icon size={12} />}
@@ -77,10 +114,27 @@ export default function AnalysisStepper({ project }) {
         })}
       </div>
 
+      {/* Micro step progress bar */}
+      {macro.micro.length > 1 && (
+        <div className="an-micro-nav">
+          <div className="an-micro-tabs">
+            {macro.micro.map((_, idx) => (
+              <div
+                key={idx}
+                className={`an-micro-tab${idx < microIndex ? ' completed' : ''}${idx === microIndex ? ' active' : ''}`}
+              />
+            ))}
+          </div>
+          <div className="an-micro-status">
+            Etape {microIndex + 1} sur {macro.micro.length}
+          </div>
+        </div>
+      )}
+
       {/* Step header */}
       <div className="an-stepper-header">
-        <h3>{step.title}</h3>
-        <p>{step.desc}</p>
+        <h3>{micro.title}</h3>
+        <p>{micro.desc}</p>
       </div>
 
       {/* Step content */}
@@ -93,14 +147,14 @@ export default function AnalysisStepper({ project }) {
         <button
           className="an-stepper-btn"
           onClick={handlePrev}
-          disabled={isFirst}
+          disabled={isFirstGlobal}
         >
           <ArrowLeft size={14} /> Precedent
         </button>
         <button
           className="an-stepper-btn primary"
           onClick={handleNext}
-          disabled={isLast}
+          disabled={isLastGlobal}
         >
           Suivant <ArrowRight size={14} />
         </button>
