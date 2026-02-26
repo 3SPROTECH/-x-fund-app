@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Eye, User, DollarSign, Building, FileText, MessageSquarePlus } from 'lucide-react';
 
 import TabOverview from './tabs/TabOverview';
@@ -71,8 +71,28 @@ export default function ProjectDataViewer({ project, infoRequests, onRefresh }) 
     setActiveDocument(null);
   };
 
+  // Build a filename→url lookup from API-served attachments (photos, images, documents)
+  const fileUrlMap = useMemo(() => {
+    const attrs = project?.attributes || project || {};
+    const map = {};
+    const sources = [
+      ...(attrs.photos || []),
+      ...(attrs.images || []),
+      ...(attrs.property_photos || []),
+      ...(attrs.documents || []),
+      ...(attrs.project_documents || []),
+    ];
+    for (const file of sources) {
+      if (file.filename && file.url) {
+        map[file.filename] = file.url;
+      }
+    }
+    return map;
+  }, [project]);
+
   const handleOpenDocument = (doc) => {
-    setActiveDocument(doc);
+    const url = doc.url || fileUrlMap[doc.fileName] || null;
+    setActiveDocument({ ...doc, url });
   };
 
   const handleBackFromDocument = () => {

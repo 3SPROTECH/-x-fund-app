@@ -27,7 +27,8 @@ function GuaranteeDocRow({ doc, onUpload, onToggleComment, onUpdateComment }) {
             <Paperclip size={14} />
             <span>Upload</span>
             <input type="file" onChange={(e) => {
-              if (e.target.files?.[0]) onUpload(doc.type, e.target.files[0].name);
+              const f = e.target.files?.[0];
+              if (f) onUpload(doc.type, f.name, f);
             }} />
           </label>
           <button type="button" className="pf-action-btn-text" onClick={() => onToggleComment(doc.type)}>
@@ -75,8 +76,11 @@ export default function GuaranteeStep() {
   const commented = guaranteeDocs.filter((d) => d.status === 'commented').length;
   const pending = guaranteeDocs.filter((d) => d.status === 'empty').length;
 
-  const handleDocUpload = (docType, fileName) => {
+  const addDocumentFile = useProjectFormStore((s) => s.addDocumentFile);
+
+  const handleDocUpload = (docType, fileName, file) => {
     updateGuaranteeDoc(docType, 'fileName', fileName);
+    if (file) addDocumentFile(fileName, file);
   };
 
   const handleDocComment = (docType, value) => {

@@ -163,6 +163,25 @@ class InvestmentProjectSerializer
     }.compact
   end
 
+  attribute :project_documents do |project|
+    next [] unless project.project_documents.attached?
+
+    project.project_documents.map { |doc|
+      begin
+        {
+          id: doc.id,
+          url: Rails.application.routes.url_helpers.rails_blob_path(doc, only_path: true),
+          filename: doc.filename.to_s,
+          content_type: doc.content_type,
+          byte_size: doc.byte_size
+        }
+      rescue => e
+        Rails.logger.error("Error generating document URL: #{e.message}")
+        nil
+      end
+    }.compact
+  end
+
   attribute :images do |project|
     next [] unless project.additional_documents.attached?
 

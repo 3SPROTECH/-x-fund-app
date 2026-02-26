@@ -3,11 +3,14 @@ import useProjectFormStore from '../../../stores/useProjectFormStore';
 import AccordionSection from '../shared/AccordionSection';
 
 function CostRow({ item, onUpdate, onRemove, removable }) {
+  const addDocumentFile = useProjectFormStore((s) => s.addDocumentFile);
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       onUpdate(item.id, 'hasJustificatif', true);
       onUpdate(item.id, 'justificatifName', file.name);
+      addDocumentFile(file.name, file);
     }
   };
 

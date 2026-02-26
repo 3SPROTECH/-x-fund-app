@@ -3,6 +3,7 @@ import useProjectFormStore from '../../../stores/useProjectFormStore';
 import FormSelect from '../../FormSelect';
 
 function LotCard({ lot, index, onUpdate, onRemove }) {
+  const addDocumentFile = useProjectFormStore((s) => s.addDocumentFile);
   const isPrecom = lot.preCommercialized === 'oui';
   const isRented = lot.rented === 'oui';
   const showDocs = isPrecom || isRented;
@@ -52,7 +53,7 @@ function LotCard({ lot, index, onUpdate, onRemove }) {
               ) : (
                 <label className="pf-file-upload-btn">
                   <Paperclip size={14} /> Fichier promesse de vente
-                  <input type="file" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpdate(lot.id, 'promesseFileName', f.name); }} />
+                  <input type="file" onChange={(e) => { const f = e.target.files?.[0]; if (f) { onUpdate(lot.id, 'promesseFileName', f.name); addDocumentFile(f.name, f); } }} />
                 </label>
               )}
             </div>
@@ -74,7 +75,7 @@ function LotCard({ lot, index, onUpdate, onRemove }) {
               ) : (
                 <label className="pf-file-upload-btn">
                   <Paperclip size={14} /> Fichier bail
-                  <input type="file" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpdate(lot.id, 'bailFileName', f.name); }} />
+                  <input type="file" onChange={(e) => { const f = e.target.files?.[0]; if (f) { onUpdate(lot.id, 'bailFileName', f.name); addDocumentFile(f.name, f); } }} />
                 </label>
               )}
             </div>

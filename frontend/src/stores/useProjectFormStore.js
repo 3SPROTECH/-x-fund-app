@@ -362,6 +362,9 @@ const useProjectFormStore = create((set, get) => ({
   // Project photos (File objects, in-memory only)
   photos: [],
 
+  // Document files (File objects, in-memory only, keyed by filename)
+  documentFiles: {},
+
   // Multi-asset system
   assets: [createEmptyAsset()],
   selectedAssetIndex: null,
@@ -446,6 +449,13 @@ const useProjectFormStore = create((set, get) => ({
   removePhoto: (index) =>
     set((s) => ({
       photos: s.photos.filter((_, i) => i !== index),
+      isDirty: true,
+    })),
+
+  // ── Document file management ───────────────────────────────────
+  addDocumentFile: (fileName, file) =>
+    set((s) => ({
+      documentFiles: { ...s.documentFiles, [fileName]: file },
       isDirty: true,
     })),
 
@@ -775,6 +785,7 @@ const useProjectFormStore = create((set, get) => ({
     set({
       ...draftData,
       photos: [], // File objects cannot be restored from draft
+      documentFiles: {}, // File objects cannot be restored from draft
       draftId,
       isDirty: false,
       flaggedFields: {},
@@ -865,6 +876,7 @@ const useProjectFormStore = create((set, get) => ({
       globalStepIndex: 0,
       presentation: { ...INITIAL_PRESENTATION },
       photos: [],
+      documentFiles: {},
       location: { ...INITIAL_LOCATION },
       projectOwner: { ...INITIAL_PROJECT_OWNER },
       financialStructure: { ...INITIAL_FINANCIAL_STRUCTURE },

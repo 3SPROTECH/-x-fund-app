@@ -1,7 +1,7 @@
 import { Check, Info, Paperclip, AlertCircle } from 'lucide-react';
 import useProjectFormStore from '../../../stores/useProjectFormStore';
 
-function DocumentRow({ doc, onUpload, onToggleComment, onUpdateComment }) {
+function DocumentRow({ doc, onUpload, onToggleComment, onUpdateComment, addDocumentFile }) {
   const statusConfig = {
     empty: { icon: <AlertCircle size={14} />, label: 'À fournir', className: '' },
     uploaded: { icon: <Check size={14} />, label: 'Document chargé', className: 'uploaded' },
@@ -23,7 +23,11 @@ function DocumentRow({ doc, onUpload, onToggleComment, onUpdateComment }) {
             <Paperclip size={14} />
             <span>Upload</span>
             <input type="file" onChange={(e) => {
-              if (e.target.files?.[0]) onUpload(doc.type, e.target.files[0].name);
+              const f = e.target.files?.[0];
+              if (f) {
+                onUpload(doc.type, f.name);
+                addDocumentFile?.(f.name, f);
+              }
             }} />
           </label>
           <button type="button" className="pf-action-btn-text" onClick={() => onToggleComment(doc.type)}>

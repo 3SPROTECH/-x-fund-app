@@ -11,7 +11,7 @@ export default function DropZone({ onFileSelect, fileName, placeholder = 'Glisse
   const handleChange = (e) => {
     const file = e.target.files?.[0];
     if (file && onFileSelect) {
-      onFileSelect(file.name);
+      onFileSelect(file.name, file);
     }
     e.target.value = '';
   };
@@ -30,7 +30,7 @@ export default function DropZone({ onFileSelect, fileName, placeholder = 'Glisse
     setDragover(false);
     const file = e.dataTransfer.files?.[0];
     if (file && onFileSelect) {
-      onFileSelect(file.name);
+      onFileSelect(file.name, file);
     }
   };
 

@@ -7,7 +7,7 @@ import useProjectFormStore, { MACRO_STEPS, STEP_CONFIG, createEmptyLot } from '.
 import { projectDraftsApi } from '../../api/projectDrafts';
 import { companiesApi } from '../../api/companies';
 import { investmentProjectsApi, platformConfigApi } from '../../api/investments';
-import { projectPhotosApi } from '../../api/images';
+import { projectPhotosApi, projectDocumentsApi } from '../../api/images';
 import { generatePdfReport } from '../../utils/reportGenerator';
 
 import StepPresentation from './steps/StepPresentation';
@@ -424,6 +424,15 @@ export default function ProjectSubmissionForm({ initialDraftId = null, initialPr
         } catch {
           // Non-blocking: project is created, photos upload failed
           toast.error('Le projet a été soumis mais certaines photos n\'ont pas pu être uploadées.');
+        }
+      }
+
+      const docFiles = Object.values(store.documentFiles);
+      if (createdProjectId && docFiles.length > 0) {
+        try {
+          await projectDocumentsApi.uploadDocuments(createdProjectId, docFiles);
+        } catch {
+          toast.error('Le projet a été soumis mais certains documents n\'ont pas pu être uploadés.');
         }
       }
 

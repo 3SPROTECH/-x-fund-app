@@ -23,6 +23,7 @@ class InvestmentProject < ApplicationRecord
   has_one_attached :note_operation
   has_many_attached :photos
   has_many_attached :additional_documents
+  has_many_attached :project_documents
   has_one_attached :price_grid
   has_one_attached :block_buyer_loi
   has_one_attached :sale_agreement

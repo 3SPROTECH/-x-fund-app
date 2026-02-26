@@ -6,6 +6,7 @@ export default function ContributionStep() {
   const projections = useProjectFormStore((s) => s.projections);
   const updateProjections = useProjectFormStore((s) => s.updateProjections);
   const getProjectionTotals = useProjectFormStore((s) => s.getProjectionTotals);
+  const addDocumentFile = useProjectFormStore((s) => s.addDocumentFile);
 
   const totals = getProjectionTotals();
   const showWarning = totals.warningRatio > 0 && totals.warningRatio < 1;
@@ -51,7 +52,10 @@ export default function ContributionStep() {
 
       <h3 className="pf-section-title">Preuve des fonds propres</h3>
       <DropZone
-        onFileSelect={(fileName) => updateProjections('proofFileName', fileName)}
+        onFileSelect={(fileName, file) => {
+          updateProjections('proofFileName', fileName);
+          if (file) addDocumentFile(fileName, file);
+        }}
         fileName={projections.proofFileName}
         placeholder="Déposez votre document ici ou cliquez pour sélectionner un fichier."
       />

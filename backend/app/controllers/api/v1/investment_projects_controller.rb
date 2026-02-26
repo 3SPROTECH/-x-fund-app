@@ -1,7 +1,7 @@
 module Api
   module V1
     class InvestmentProjectsController < ApplicationController
-      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image, :upload_photos, :delete_photo, :analyst_report, :signature_status]
+      before_action :set_investment_project, only: [:show, :update, :destroy, :upload_images, :delete_image, :upload_photos, :delete_photo, :upload_documents, :analyst_report, :signature_status]
 
       def index
         projects = policy_scope(InvestmentProject)
@@ -187,6 +187,22 @@ module Api
         end
       end
 
+      def upload_documents
+        authorize @investment_project
+
+        if params[:documents].present?
+          params[:documents].each do |doc|
+            @investment_project.project_documents.attach(doc)
+          end
+          render json: {
+            message: "Documents ajoutes avec succes",
+            data: InvestmentProjectSerializer.new(@investment_project).serializable_hash[:data]
+          }, status: :ok
+        else
+          render json: { error: "Aucun document fourni" }, status: :unprocessable_entity
+        end
+      end
+
       def delete_photo
         authorize @investment_project
 
@@ -260,6 +276,7 @@ module Api
                     properties: [:owner, { photos_attachments: :blob }])
           .with_attached_additional_documents
           .with_attached_photos
+          .with_attached_project_documents
           .find(params[:id])
       end
 

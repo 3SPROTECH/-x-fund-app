@@ -47,3 +47,15 @@ export const projectImagesApi = {
     return client.delete(`/investment_projects/${projectId}/delete_image/${imageId}`);
   },
 };
+
+export const projectDocumentsApi = {
+  uploadDocuments(projectId, documents) {
+    const formData = new FormData();
+    documents.forEach((doc) => {
+      formData.append('documents[]', doc);
+    });
+    return client.post(`/investment_projects/${projectId}/upload_documents`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+};
