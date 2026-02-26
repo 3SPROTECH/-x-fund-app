@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { FileText, Building, ClipboardList, Star, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
 import StepRichText from './steps/StepRichText';
-import StepAnalyseActif from './steps/StepAnalyseActif';
+import StepSwotField from './steps/StepSwotField';
 import StepResume from './steps/StepResume';
 import StepScoring from './steps/StepScoring';
 
@@ -68,9 +68,48 @@ const STEPS = [
     icon: Building,
     micro: [
       {
-        title: "Analyse de l'actif immobilier",
-        desc: "Analysez l'actif, sa valorisation, son emplacement et les risques associes.",
-        Component: StepAnalyseActif,
+        title: "Forces de l'actif",
+        desc: "Identifiez et détaillez les atouts majeurs de l'actif. Chaque point doit mettre en lumière un avantage concret : qualité de l'emplacement, état du bien, rendement locatif, etc.",
+        Component: StepSwotField,
+        field: 'forces',
+        props: {
+          addLabel: 'Ajouter une force',
+          titlePlaceholder: 'Ex: Emplacement premium en centre-ville',
+          descPlaceholder: 'Détaillez en quoi cet élément constitue un atout pour le projet...',
+        },
+      },
+      {
+        title: "Faiblesses de l'actif",
+        desc: "Relevez les points de vigilance et les faiblesses identifiées. Soyez précis sur les risques internes : travaux nécessaires, contraintes techniques, défauts structurels, etc.",
+        Component: StepSwotField,
+        field: 'faiblesses',
+        props: {
+          addLabel: 'Ajouter une faiblesse',
+          titlePlaceholder: 'Ex: Travaux de toiture nécessaires',
+          descPlaceholder: 'Détaillez en quoi cet élément représente un risque ou une faiblesse...',
+        },
+      },
+      {
+        title: "Opportunités de l'actif",
+        desc: "Identifiez les facteurs externes favorables au projet. Projets d'infrastructure à proximité, dynamisme du marché local, évolutions réglementaires positives, etc.",
+        Component: StepSwotField,
+        field: 'opportunites',
+        props: {
+          addLabel: 'Ajouter une opportunité',
+          titlePlaceholder: 'Ex: Projet de tramway à proximité',
+          descPlaceholder: "Décrivez comment cette opportunité peut bénéficier au projet...",
+        },
+      },
+      {
+        title: "Menaces de l'actif",
+        desc: "Signalez les risques externes pouvant impacter le projet. Évolution défavorable du marché, concurrence accrue, changements réglementaires, aléas environnementaux, etc.",
+        Component: StepSwotField,
+        field: 'menaces',
+        props: {
+          addLabel: 'Ajouter une menace',
+          titlePlaceholder: 'Ex: Saturation du marché locatif local',
+          descPlaceholder: 'Décrivez comment cette menace pourrait impacter le projet...',
+        },
       },
     ],
   },
@@ -151,7 +190,7 @@ export default function AnalysisStepper({ project }) {
   // Build props for the current step component
   const stepProps = { project };
   if (micro.field) {
-    stepProps.value = formData[micro.field] ?? '';
+    stepProps.value = formData[micro.field];
     stepProps.onChange = handleFieldChange(micro.field);
   }
   if (micro.props) {
