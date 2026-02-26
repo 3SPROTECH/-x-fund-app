@@ -37,10 +37,15 @@ export default function useAnalysisDraft(projectId) {
           setDraftId(draft.id);
           setLastSavedAt(draft.last_saved_at);
           const fd = draft.form_data || {};
+          const macroIdx = fd._macroIndex ?? draft.current_step ?? 0;
+          const microIdx = fd._microIndex ?? 0;
+          // Initialize refs so flush-save on unmount has correct data
+          formDataRef.current = fd;
+          stepRef.current = { macroIndex: macroIdx, microIndex: microIdx };
           setInitialData({
             formData: fd,
-            macroIndex: fd._macroIndex ?? draft.current_step ?? 0,
-            microIndex: fd._microIndex ?? 0,
+            macroIndex: macroIdx,
+            microIndex: microIdx,
           });
         }
       } catch {
@@ -94,10 +99,33 @@ export default function useAnalysisDraft(projectId) {
     timerRef.current = setTimeout(save, AUTOSAVE_DELAY);
   }, [save]);
 
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => clearTimeout(timerRef.current);
+  // Update step position refs (used before explicit saves on navigation)
+  const updateStep = useCallback((macroIndex, microIndex) => {
+    stepRef.current = { macroIndex, microIndex };
+    isDirtyRef.current = true;
   }, []);
+
+  // Flush pending save on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeout(timerRef.current);
+      if (isDirtyRef.current && projectId) {
+        const payload = {
+          form_data: {
+            ...formDataRef.current,
+            _macroIndex: stepRef.current.macroIndex,
+            _microIndex: stepRef.current.microIndex,
+          },
+          current_step: stepRef.current.macroIndex,
+        };
+        if (draftIdRef.current) {
+          analysteApi.updateDraft(projectId, payload).catch(() => {});
+        } else {
+          analysteApi.saveDraft(projectId, payload).catch(() => {});
+        }
+      }
+    };
+  }, [projectId]);
 
   // Delete draft (after report generation)
   const deleteDraft = useCallback(async () => {
@@ -116,6 +144,7 @@ export default function useAnalysisDraft(projectId) {
     lastSavedAt,
     saving,
     markDirty,
+    updateStep,
     saveDraft: save,
     deleteDraft,
   };

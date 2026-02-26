@@ -345,9 +345,46 @@
 
 /* Step header */
 .an-stepper-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   padding: 1.25rem 1.5rem 0.75rem;
   border-bottom: 1px solid var(--border-light);
   flex-shrink: 0;
+}
+
+.an-stepper-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.an-stepper-header-score {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.an-header-grade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.an-header-grade.green { background: var(--success); }
+.an-header-grade.orange { background: var(--warning); }
+.an-header-grade.red { background: var(--danger); }
+
+.an-header-score-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .an-stepper-header h3 {

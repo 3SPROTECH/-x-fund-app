@@ -152,6 +152,14 @@ const STEPS = [
   },
 ];
 
+function getGradeColor(grade) {
+  if (!grade) return '';
+  const letter = grade.charAt(0);
+  if (letter === 'A') return 'green';
+  if (letter === 'B') return 'orange';
+  return 'red';
+}
+
 export default function AnalysisStepper({ project }) {
   const projectId = project?.id || project?.data?.id;
 
@@ -161,6 +169,7 @@ export default function AnalysisStepper({ project }) {
     lastSavedAt,
     saving,
     markDirty,
+    updateStep,
     saveDraft,
   } = useAnalysisDraft(projectId);
 
@@ -204,29 +213,37 @@ export default function AnalysisStepper({ project }) {
   );
 
   const handlePrev = () => {
-    saveDraft();
+    let newMacro = macroIndex;
+    let newMicro = microIndex;
     if (microIndex > 0) {
-      setMicroIndex((i) => i - 1);
+      newMicro = microIndex - 1;
     } else if (macroIndex > 0) {
-      const prevMacro = STEPS[macroIndex - 1];
-      setMacroIndex((i) => i - 1);
-      setMicroIndex(prevMacro.micro.length - 1);
+      newMacro = macroIndex - 1;
+      newMicro = STEPS[newMacro].micro.length - 1;
     }
+    updateStep(newMacro, newMicro);
+    saveDraft();
+    setMacroIndex(newMacro);
+    setMicroIndex(newMicro);
   };
 
   const handleNext = () => {
     if (stepRef.current?.validate && !stepRef.current.validate()) {
       return;
     }
-    saveDraft();
+    let newMacro = macroIndex;
+    let newMicro = microIndex;
     if (microIndex < macro.micro.length - 1) {
-      setMicroIndex((i) => i + 1);
+      newMicro = microIndex + 1;
     } else if (macroIndex < STEPS.length - 1) {
-      // Completed the last micro step of this macro — mark it done
       setCompletedMacros((prev) => new Set(prev).add(macroIndex));
-      setMacroIndex((i) => i + 1);
-      setMicroIndex(0);
+      newMacro = macroIndex + 1;
+      newMicro = 0;
     }
+    updateStep(newMacro, newMicro);
+    saveDraft();
+    setMacroIndex(newMacro);
+    setMicroIndex(newMicro);
   };
 
   const canNavigateToMacro = (idx) => {
@@ -240,6 +257,7 @@ export default function AnalysisStepper({ project }) {
 
   const handleMacroClick = (idx) => {
     if (!canNavigateToMacro(idx)) return;
+    updateStep(idx, 0);
     saveDraft();
     setMacroIndex(idx);
     setMicroIndex(0);
@@ -318,8 +336,20 @@ export default function AnalysisStepper({ project }) {
 
       {/* Step header */}
       <div className="an-stepper-header">
-        <h3>{micro.title}</h3>
-        <p>{micro.desc}</p>
+        <div className="an-stepper-header-text">
+          <h3>{micro.title}</h3>
+          <p>{micro.desc}</p>
+        </div>
+        {macroIndex === STEPS.length - 1 && formData.scoring?.finalScore != null && (
+          <div className="an-stepper-header-score">
+            <span className={`an-header-grade ${getGradeColor(formData.scoring.grade)}`}>
+              {formData.scoring.grade}
+            </span>
+            <span className="an-header-score-value">
+              {formData.scoring.finalScore.toFixed(1)}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Step content */}
