@@ -934,10 +934,9 @@
 }
 
 .an-docviewer-zoom-controls {
-  position: absolute;
+  position: sticky;
   bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
+  align-self: center;
   display: flex;
   align-items: center;
   gap: 0.375rem;
