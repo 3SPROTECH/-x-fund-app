@@ -167,6 +167,7 @@ export default function AnalysisStepper({ project }) {
   const [macroIndex, setMacroIndex] = useState(0);
   const [microIndex, setMicroIndex] = useState(0);
   const [formData, setFormData] = useState({});
+  const [completedMacros, setCompletedMacros] = useState(new Set());
   const stepRef = useRef();
 
   // Restore draft data once loaded
@@ -175,6 +176,10 @@ export default function AnalysisStepper({ project }) {
       setFormData(initialData.formData);
       setMacroIndex(initialData.macroIndex);
       setMicroIndex(initialData.microIndex);
+      // Mark all macros before the restored position as completed
+      const restored = new Set();
+      for (let i = 0; i < (initialData.macroIndex ?? 0); i++) restored.add(i);
+      setCompletedMacros(restored);
     }
   }, [initialData]);
 
@@ -217,12 +222,24 @@ export default function AnalysisStepper({ project }) {
     if (microIndex < macro.micro.length - 1) {
       setMicroIndex((i) => i + 1);
     } else if (macroIndex < STEPS.length - 1) {
+      // Completed the last micro step of this macro — mark it done
+      setCompletedMacros((prev) => new Set(prev).add(macroIndex));
       setMacroIndex((i) => i + 1);
       setMicroIndex(0);
     }
   };
 
+  const canNavigateToMacro = (idx) => {
+    if (idx === macroIndex) return false; // already there
+    if (completedMacros.has(idx)) return true; // already completed
+    // Allow navigating to the next macro if the current one is being completed
+    // (i.e. all prior macros are done and this is the immediate next)
+    if (idx === macroIndex + 1 && microIndex === macro.micro.length - 1) return true;
+    return false;
+  };
+
   const handleMacroClick = (idx) => {
+    if (!canNavigateToMacro(idx)) return;
     saveDraft();
     setMacroIndex(idx);
     setMicroIndex(0);
@@ -253,12 +270,13 @@ export default function AnalysisStepper({ project }) {
         {STEPS.map((s, idx) => {
           const Icon = s.icon;
           const isActive = idx === macroIndex;
-          const isCompleted = idx < macroIndex;
+          const isCompleted = completedMacros.has(idx) && !isActive;
+          const isLocked = !isActive && !completedMacros.has(idx);
 
           return (
             <button
               key={idx}
-              className={`an-stepper-step${isActive ? ' active' : ''}${isCompleted ? ' completed' : ''}`}
+              className={`an-stepper-step${isActive ? ' active' : ''}${isCompleted ? ' completed' : ''}${isLocked ? ' locked' : ''}`}
               onClick={() => handleMacroClick(idx)}
             >
               <span className="an-stepper-step-icon">

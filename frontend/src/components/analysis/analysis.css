@@ -272,7 +272,17 @@
 }
 
 .an-stepper-step.completed {
-  color: var(--success);
+  color: var(--text);
+}
+
+.an-stepper-step.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.an-stepper-step.locked:hover {
+  background: none;
+  color: var(--text-muted);
 }
 
 .an-stepper-step-icon {
@@ -293,7 +303,7 @@
 }
 
 .an-stepper-step.completed .an-stepper-step-icon {
-  background: var(--success);
+  background: var(--text);
   color: #fff;
 }
 
