@@ -2520,3 +2520,408 @@
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.8125rem;
 }
+
+/* ==================== SUMMARY STEP (Recapitulatif) ==================== */
+
+.an-sum {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Section title */
+.an-sum-section-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* --- Score Hero --- */
+.an-sum-score-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.an-sum-score-hero.green {
+  background: rgba(16, 185, 129, 0.04);
+  border-color: var(--success);
+}
+
+.an-sum-score-hero.orange {
+  background: rgba(245, 158, 11, 0.04);
+  border-color: var(--warning);
+}
+
+.an-sum-score-hero.red {
+  background: rgba(239, 68, 68, 0.04);
+  border-color: var(--danger);
+}
+
+.an-sum-score-grade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.an-sum-score-grade.green { background: var(--success); }
+.an-sum-score-grade.orange { background: var(--warning); }
+.an-sum-score-grade.red { background: var(--danger); }
+
+.an-sum-score-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.an-sum-score-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.an-sum-score-label {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.an-sum-score-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: -0.75rem;
+}
+
+.an-sum-score-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.an-sum-score-fill.green { background: var(--success); }
+.an-sum-score-fill.orange { background: var(--warning); }
+.an-sum-score-fill.red { background: var(--danger); }
+
+/* --- Highlights grid --- */
+.an-sum-hl-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.625rem;
+}
+
+@media (max-width: 640px) {
+  .an-sum-hl-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.an-sum-hl-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.an-sum-hl-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(218, 165, 32, 0.08);
+  color: var(--gold-color);
+  flex-shrink: 0;
+}
+
+.an-sum-hl-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.an-sum-hl-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.an-sum-hl-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* --- SWOT 2x2 Grid --- */
+.an-sum-swot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+@media (max-width: 640px) {
+  .an-sum-swot-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.an-sum-swot-quadrant {
+  padding: 0.875rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  background: var(--bg);
+  border-top: 3px solid var(--border);
+}
+
+.an-sum-swot-quadrant.forces { border-top-color: var(--success); }
+.an-sum-swot-quadrant.faiblesses { border-top-color: var(--danger); }
+.an-sum-swot-quadrant.opportunites { border-top-color: var(--info, #3b82f6); }
+.an-sum-swot-quadrant.menaces { border-top-color: var(--warning); }
+
+.an-sum-swot-quadrant-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.625rem;
+}
+
+.an-sum-swot-quadrant.forces .an-sum-swot-quadrant-title { color: var(--success); }
+.an-sum-swot-quadrant.faiblesses .an-sum-swot-quadrant-title { color: var(--danger); }
+.an-sum-swot-quadrant.opportunites .an-sum-swot-quadrant-title { color: var(--info, #3b82f6); }
+.an-sum-swot-quadrant.menaces .an-sum-swot-quadrant-title { color: var(--warning); }
+
+.an-sum-swot-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.an-sum-swot-item {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.an-sum-swot-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.an-sum-swot-item-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.an-sum-swot-item-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.an-sum-swot-empty {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+/* --- Elements Cles --- */
+.an-sum-kl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.an-sum-kl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.an-sum-kl-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: var(--gold-color);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.an-sum-kl-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.an-sum-kl-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.an-sum-kl-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* --- Presentation (collapsible) --- */
+.an-sum-pres-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.an-sum-pres-item {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.an-sum-pres-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  user-select: none;
+}
+
+.an-sum-pres-header:hover {
+  background: var(--bg-card);
+}
+
+.an-sum-pres-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.an-sum-pres-empty {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.an-sum-pres-chevron {
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.an-sum-pres-chevron.open {
+  transform: rotate(180deg);
+}
+
+.an-sum-pres-body {
+  padding: 0 0.875rem 0.875rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.an-sum-pres-body p {
+  margin-bottom: 0.5rem;
+}
+
+.an-sum-pres-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* --- Scoring Detail --- */
+.an-sum-sc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.an-sum-sc-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+}
+
+.an-sum-sc-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--text-secondary);
+  font-size: 0.625rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.an-sum-sc-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.an-sum-sc-coeff {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--gold-color);
+  background: rgba(218, 165, 32, 0.08);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.an-sum-sc-grade-val {
+  min-width: 32px;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--gold-color);
+  flex-shrink: 0;
+}
+
+.an-sum-sc-grade-val.empty {
+  color: var(--text-muted);
+  font-weight: 400;
+}

@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FileText, Building, ClipboardList, Star, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { FileText, Building, ClipboardList, Star, ClipboardCheck, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
 import StepRichText from './steps/StepRichText';
 import StepSwotField from './steps/StepSwotField';
 import StepHighlights from './steps/StepHighlights';
 import StepNumberedList from './steps/StepNumberedList';
 import StepScoring from './steps/StepScoring';
+import StepSummary from './steps/StepSummary';
 import useAnalysisDraft from '../../hooks/useAnalysisDraft';
 
 const STEPS = [
@@ -150,6 +151,19 @@ const STEPS = [
       },
     ],
   },
+  {
+    label: 'Recapitulatif',
+    icon: ClipboardCheck,
+    micro: [
+      {
+        title: "Recapitulatif de l'analyse",
+        desc: "Relisez l'ensemble de votre analyse avant de la soumettre.",
+        Component: StepSummary,
+        field: null,
+        passFormData: true,
+      },
+    ],
+  },
 ];
 
 function getGradeColor(grade) {
@@ -272,6 +286,9 @@ export default function AnalysisStepper({ project }) {
   if (micro.props) {
     Object.assign(stepProps, micro.props);
   }
+  if (micro.passFormData) {
+    stepProps.formData = formData;
+  }
 
   if (loadingDraft) {
     return (
@@ -340,7 +357,7 @@ export default function AnalysisStepper({ project }) {
           <h3>{micro.title}</h3>
           <p>{micro.desc}</p>
         </div>
-        {macroIndex === STEPS.length - 1 && formData.scoring?.finalScore != null && (
+        {macroIndex >= STEPS.length - 2 && formData.scoring?.finalScore != null && (
           <div className="an-stepper-header-score">
             <span className={`an-header-grade ${getGradeColor(formData.scoring.grade)}`}>
               {formData.scoring.grade}

@@ -1,7 +1,7 @@
 import { useState, useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { Calculator, MessageSquare, ChevronDown } from 'lucide-react';
 
-const CRITERIA = [
+export const CRITERIA = [
   { name: 'Couverture de la garantie', coeff: 1.5, desc: 'Ratio entre la garantie et le montant emprunté — plus il est élevé, plus le capital est protégé.' },
   { name: 'Type de garantie', coeff: 1, desc: 'Nature juridique de la sûreté (hypothèque, fiducie, caution…) et son niveau de protection effectif.' },
   { name: "Niveau d'apport", coeff: 1, desc: "Part des fonds propres injectés par le porteur, reflet de son engagement financier dans l'opération." },
@@ -14,7 +14,7 @@ const CRITERIA = [
   { name: "Durée de l'emprunt", coeff: 1, desc: "Horizon de remboursement — une durée courte limite l'exposition aux aléas de marché." },
 ];
 
-const GRADE_SCALE = [
+export const GRADE_SCALE = [
   { grade: 'A+', min: 91, max: 100, label: 'Excellent — Projet très sécurisé avec de solides garanties', color: 'green' },
   { grade: 'A', min: 81, max: 90, label: 'Très bon — Projet solide avec un risque modéré', color: 'green' },
   { grade: 'A-', min: 71, max: 80, label: 'Bon — Projet intéressant avec points de vigilance mineurs', color: 'green' },
@@ -25,7 +25,7 @@ const GRADE_SCALE = [
   { grade: 'C', min: 0, max: 30, label: 'Risque critique — Projet très spéculatif', color: 'red' },
 ];
 
-function getGradeInfo(score) {
+export function getGradeInfo(score) {
   for (const g of GRADE_SCALE) {
     if (score >= g.min) return g;
   }
