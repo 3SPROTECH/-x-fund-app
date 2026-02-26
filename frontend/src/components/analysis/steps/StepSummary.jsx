@@ -11,11 +11,11 @@ const PRESENTATION_FIELDS = [
   { field: 'garanties', label: 'Suretes et Garanties' },
 ];
 
-const SWOT_QUADRANTS = [
-  { field: 'forces', label: 'Forces', className: 'forces' },
-  { field: 'faiblesses', label: 'Faiblesses', className: 'faiblesses' },
-  { field: 'opportunites', label: 'Opportunites', className: 'opportunites' },
-  { field: 'menaces', label: 'Menaces', className: 'menaces' },
+const ANALYSIS_QUADRANTS = [
+  { field: 'forces', label: 'Forces' },
+  { field: 'faiblesses', label: 'Faiblesses' },
+  { field: 'opportunites', label: 'Opportunites' },
+  { field: 'menaces', label: 'Menaces' },
 ];
 
 function isHtmlEmpty(html) {
@@ -97,16 +97,19 @@ const StepSummary = forwardRef(function StepSummary({ formData = {} }, ref) {
         </div>
       )}
 
-      {/* SWOT Grid */}
+      {/* Analyse de l'actif */}
       <div className="an-sum-section">
-        <div className="an-sum-section-title">Analyse SWOT</div>
-        <div className="an-sum-swot-grid">
-          {SWOT_QUADRANTS.map((q) => {
+        <div className="an-sum-section-title">Analyse de l&apos;actif</div>
+        <div className="an-sum-swot-list">
+          {ANALYSIS_QUADRANTS.map((q) => {
             const items = Array.isArray(formData[q.field]) ? formData[q.field] : [];
             return (
-              <div key={q.field} className={`an-sum-swot-quadrant ${q.className}`}>
-                <div className="an-sum-swot-quadrant-title">{q.label}</div>
-                {items.length > 0 ? (
+              <div key={q.field} className="an-sum-swot-group">
+                <div className="an-sum-swot-group-header">
+                  <span className="an-sum-swot-label">{q.label}</span>
+                  <span className="an-sum-swot-count">{items.length}</span>
+                </div>
+                {items.length > 0 && (
                   <div className="an-sum-swot-items">
                     {items.map((item, i) => (
                       <div key={i} className="an-sum-swot-item">
@@ -117,7 +120,8 @@ const StepSummary = forwardRef(function StepSummary({ formData = {} }, ref) {
                       </div>
                     ))}
                   </div>
-                ) : (
+                )}
+                {items.length === 0 && (
                   <div className="an-sum-swot-empty">Aucun element renseigne</div>
                 )}
               </div>
