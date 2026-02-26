@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { authApi } from '../../api/auth';
 import toast from 'react-hot-toast';
 import { Mail } from 'lucide-react';
+import xfundLogo from '../../assets/XFUND LOGO.png';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -26,7 +27,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">X-Fund</h1>
+        <div className="auth-logo-header"><img src={xfundLogo} alt="X-Fund" className="auth-logo-img" /></div>
         <p className="auth-subtitle">Réinitialiser votre mot de passe</p>
         {sent ? (
           <div style={{ textAlign: 'center' }}>
