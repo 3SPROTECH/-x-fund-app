@@ -1,4 +1,6 @@
-import { Image } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Image, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
+import { getImageUrl } from '../../../api/client';
 
 const PROPERTY_TYPES = {
   appartement: 'Appartement', maison: 'Maison', immeuble: 'Immeuble',
@@ -90,24 +92,68 @@ function FicheProjet({ snapshot, attrs }) {
   );
 }
 
+function PhotoModal({ photos, index, onClose, onPrev, onNext }) {
+  const photo = photos[index];
+  if (!photo) return null;
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') onClose();
+    if (e.key === 'ArrowLeft') onPrev();
+    if (e.key === 'ArrowRight') onNext();
+  }, [onClose, onPrev, onNext]);
+
+  return (
+    <div className="an-photo-modal" onClick={onClose} onKeyDown={handleKeyDown} tabIndex={0} ref={(el) => el?.focus()}>
+      <div className="an-photo-modal-inner" onClick={(e) => e.stopPropagation()}>
+        <button className="an-photo-modal-close" onClick={onClose}><X size={20} /></button>
+        {photos.length > 1 && (
+          <>
+            <button className="an-photo-modal-nav an-photo-modal-prev" onClick={onPrev}><ChevronLeft size={24} /></button>
+            <button className="an-photo-modal-nav an-photo-modal-next" onClick={onNext}><ChevronRight size={24} /></button>
+          </>
+        )}
+        <img src={getImageUrl(photo.url)} alt={photo.filename || `Photo ${index + 1}`} className="an-photo-modal-img" />
+        <div className="an-photo-modal-footer">
+          <span>{photo.filename || `Photo ${index + 1}`}</span>
+          {photos.length > 1 && <span>{index + 1} / {photos.length}</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Photos({ attrs }) {
   const photos = attrs.photos || [];
   const propertyPhotos = attrs.property_photos || [];
   const allPhotos = photos.length > 0 ? photos : propertyPhotos;
+  const [modalIndex, setModalIndex] = useState(null);
 
   if (allPhotos.length === 0) {
     return <div className="an-empty">Aucune photo n'a ete ajoutee a ce projet.</div>;
   }
 
+  const openModal = (idx) => setModalIndex(idx);
+  const closeModal = () => setModalIndex(null);
+  const prevPhoto = () => setModalIndex((i) => (i > 0 ? i - 1 : allPhotos.length - 1));
+  const nextPhoto = () => setModalIndex((i) => (i < allPhotos.length - 1 ? i + 1 : 0));
+
   return (
-    <div className="an-section">
-      <div className="an-section-title">Photos du projet ({allPhotos.length})</div>
-      <div className="an-placeholder">
-        <div className="an-placeholder-icon"><Image size={22} /></div>
-        <h4>{allPhotos.length} photo{allPhotos.length > 1 ? 's' : ''} disponible{allPhotos.length > 1 ? 's' : ''}</h4>
-        <p>Le visualiseur de photos sera disponible dans une prochaine mise a jour.</p>
+    <>
+      <div className="an-section">
+        <div className="an-section-title">Photos du projet ({allPhotos.length})</div>
+        <div className="an-photo-grid">
+          {allPhotos.map((photo, idx) => (
+            <button key={photo.id || idx} className="an-photo-thumb" onClick={() => openModal(idx)}>
+              <img src={getImageUrl(photo.url)} alt={photo.filename || `Photo ${idx + 1}`} loading="lazy" />
+              <div className="an-photo-thumb-overlay"><ZoomIn size={18} /></div>
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
+      {modalIndex !== null && (
+        <PhotoModal photos={allPhotos} index={modalIndex} onClose={closeModal} onPrev={prevPhoto} onNext={nextPhoto} />
+      )}
+    </>
   );
 }
 
