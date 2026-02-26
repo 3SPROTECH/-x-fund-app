@@ -6,7 +6,7 @@ import IconPicker from '../IconPicker';
 const TITLE_MAX = 30;
 const DESC_MAX = 100;
 const MIN_ITEMS = 4;
-const MAX_ITEMS = 6;
+const MAX_ITEMS = 10;
 
 const StepHighlights = forwardRef(function StepHighlights(
   { value, onChange },
@@ -126,7 +126,7 @@ const StepHighlights = forwardRef(function StepHighlights(
 
       {items.length < MAX_ITEMS && (
         <button type="button" className="an-swot-add" onClick={add}>
-          <Plus size={14} /> Ajouter une caractéristique ({items.length}/{MAX_ITEMS})
+          <Plus size={14} /> Ajouter une caractéristique
         </button>
       )}
 

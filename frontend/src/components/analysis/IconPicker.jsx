@@ -7,12 +7,14 @@ const PREFIXES = 'lucide,mdi,tabler,ph,solar';
 const LIMIT = 48;
 
 const SUGGESTIONS = [
-  { label: 'Immobilier', query: 'building house home' },
-  { label: 'Finance', query: 'money bank chart' },
-  { label: 'Localisation', query: 'map pin location' },
-  { label: 'Sécurité', query: 'shield lock protect' },
-  { label: 'Utilisateurs', query: 'user people team' },
-  { label: 'Temps', query: 'clock time calendar' },
+  { label: 'Immobilier', query: 'building' },
+  { label: 'Finance', query: 'money' },
+  { label: 'Graphiques', query: 'chart' },
+  { label: 'Localisation', query: 'location' },
+  { label: 'Sécurité', query: 'shield' },
+  { label: 'Utilisateurs', query: 'user' },
+  { label: 'Temps', query: 'clock' },
+  { label: 'Nature', query: 'tree' },
 ];
 
 export default function IconPicker({ value, onSelect, triggerRect, onClose }) {
@@ -66,12 +68,26 @@ export default function IconPicker({ value, onSelect, triggerRect, onClose }) {
     const val = e.target.value;
     setQuery(val);
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(val), 300);
+    if (val.trim()) {
+      setLoading(true);
+      debounceRef.current = setTimeout(() => search(val), 300);
+    } else {
+      setResults([]);
+      setLoading(false);
+    }
   };
 
-  const handleSuggestion = (term) => {
-    setQuery(term);
-    search(term);
+  const handleSuggestion = (s) => {
+    setQuery(s.label);
+    setLoading(true);
+    search(s.query);
+  };
+
+  const handleClear = () => {
+    setQuery('');
+    setResults([]);
+    setLoading(false);
+    searchRef.current?.focus();
   };
 
   // Position: below trigger, flip up if near bottom
@@ -96,14 +112,10 @@ export default function IconPicker({ value, onSelect, triggerRect, onClose }) {
               type="text"
               value={query}
               onChange={handleInput}
-              placeholder="Rechercher une icône..."
+              placeholder="Ex: building, chart, shield..."
             />
             {query && (
-              <button
-                type="button"
-                className="an-ip-clear"
-                onClick={() => { setQuery(''); setResults([]); }}
-              >
+              <button type="button" className="an-ip-clear" onClick={handleClear}>
                 <X size={12} />
               </button>
             )}
@@ -115,14 +127,14 @@ export default function IconPicker({ value, onSelect, triggerRect, onClose }) {
           {/* Suggestions when no query */}
           {!query && results.length === 0 && !loading && (
             <div className="an-ip-suggestions">
-              <p className="an-ip-hint">Recherchez par mot-clé ou parcourez par catégorie :</p>
+              <p className="an-ip-hint">Parcourez par catégorie :</p>
               <div className="an-ip-chips">
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s.label}
                     type="button"
                     className="an-ip-chip"
-                    onClick={() => handleSuggestion(s.query)}
+                    onClick={() => handleSuggestion(s)}
                   >
                     {s.label}
                   </button>
