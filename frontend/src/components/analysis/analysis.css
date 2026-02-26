@@ -1829,3 +1829,364 @@
   color: #fff;
   opacity: 1;
 }
+
+/* ==================== SCORING STEP ==================== */
+
+.an-sc-progress {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
+}
+
+.an-sc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.an-sc-card {
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--bg);
+  transition: border-color 0.15s ease;
+}
+
+.an-sc-card.graded {
+  border-color: var(--border);
+}
+
+.an-sc-card.error {
+  border-color: var(--danger);
+}
+
+.an-sc-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.an-sc-card-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.an-sc-card.graded .an-sc-card-num {
+  background: var(--gold-color);
+  color: #fff;
+}
+
+.an-sc-card-label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.an-sc-card-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.an-sc-card-desc {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.an-sc-coeff {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--gold-color);
+  background: rgba(218, 165, 32, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Slider row */
+.an-sc-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.an-sc-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    to right,
+    var(--gold-color) 0%,
+    var(--gold-color) var(--pct, 0%),
+    var(--border) var(--pct, 0%),
+    var(--border) 100%
+  );
+  outline: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.an-sc-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--gold-color);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s ease;
+}
+
+.an-sc-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.an-sc-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--gold-color);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.an-sc-slider-value {
+  min-width: 36px;
+  text-align: center;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--gold-color);
+  flex-shrink: 0;
+}
+
+.an-sc-slider-value.empty {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Tick marks */
+.an-sc-ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 9px;
+  margin-top: 2px;
+  margin-right: calc(36px + 0.75rem);
+}
+
+.an-sc-tick {
+  font-size: 0.5625rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+  width: 0;
+  text-align: center;
+}
+
+/* Comment toggle */
+.an-sc-card-footer {
+  margin-top: 0.5rem;
+}
+
+.an-sc-comment-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: 0.6875rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.an-sc-comment-toggle:hover {
+  color: var(--text-secondary);
+}
+
+.an-sc-chevron {
+  transition: transform 0.15s ease;
+}
+
+.an-sc-comment-toggle.open .an-sc-chevron {
+  transform: rotate(180deg);
+}
+
+/* Comment textarea */
+.an-sc-comment {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 8px 10px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text);
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color 0.15s ease;
+}
+
+.an-sc-comment:focus {
+  outline: none;
+  border-color: var(--gold-color);
+}
+
+.an-sc-comment::placeholder {
+  color: var(--text-muted);
+}
+
+/* Validation error */
+.an-sc-error {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--danger);
+  text-align: center;
+}
+
+/* Calculate button */
+.an-sc-calculate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  margin-top: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.an-sc-calculate:hover {
+  background: var(--primary-hover);
+}
+
+/* Result card */
+.an-sc-result {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.an-sc-result.green {
+  background: rgba(16, 185, 129, 0.04);
+  border-color: var(--success);
+}
+
+.an-sc-result.orange {
+  background: rgba(245, 158, 11, 0.04);
+  border-color: var(--warning);
+}
+
+.an-sc-result.red {
+  background: rgba(239, 68, 68, 0.04);
+  border-color: var(--danger);
+}
+
+.an-sc-result-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.an-sc-result-grade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.an-sc-result-grade.green {
+  background: var(--success);
+}
+
+.an-sc-result-grade.orange {
+  background: var(--warning);
+}
+
+.an-sc-result-grade.red {
+  background: var(--danger);
+}
+
+.an-sc-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.an-sc-result-score {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.an-sc-result-label {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Result progress bar */
+.an-sc-result-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.an-sc-result-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.an-sc-result-fill.green {
+  background: var(--success);
+}
+
+.an-sc-result-fill.orange {
+  background: var(--warning);
+}
+
+.an-sc-result-fill.red {
+  background: var(--danger);
+}

@@ -145,6 +145,7 @@ const STEPS = [
         title: 'Scoring et decision',
         desc: 'Attribuez les scores et prenez votre decision finale.',
         Component: StepScoring,
+        field: 'scoring',
       },
     ],
   },
