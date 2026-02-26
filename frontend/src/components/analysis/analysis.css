@@ -1706,3 +1706,126 @@
   font-size: 0.8125rem;
   color: var(--text-muted);
 }
+
+/* ==================== NUMBERED LIST (StepNumberedList) ==================== */
+.an-nl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.an-nl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color 0.15s ease;
+}
+
+.an-nl-item:hover {
+  border-color: var(--border-light, var(--border));
+}
+
+.an-nl-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: var(--gold-color);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+}
+
+.an-nl-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.an-nl-title {
+  width: 100%;
+  border: none;
+  background: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  padding: 0;
+  margin-bottom: 0.375rem;
+  outline: none;
+}
+
+.an-nl-title::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.an-nl-title.error {
+  color: var(--danger);
+}
+
+.an-nl-title.error::placeholder {
+  color: var(--danger);
+  opacity: 0.6;
+}
+
+.an-nl-desc {
+  width: 100%;
+  border: none;
+  background: none;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  padding: 0;
+  outline: none;
+  resize: none;
+  line-height: 1.5;
+  font-family: inherit;
+}
+
+.an-nl-desc::placeholder {
+  color: var(--text-muted);
+}
+
+.an-nl-desc.error {
+  color: var(--danger);
+}
+
+.an-nl-desc.error::placeholder {
+  color: var(--danger);
+  opacity: 0.6;
+}
+
+.an-nl-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
+  margin-top: 2px;
+}
+
+.an-nl-item:hover .an-nl-remove {
+  opacity: 1;
+}
+
+.an-nl-remove:hover {
+  background: var(--danger);
+  color: #fff;
+  opacity: 1;
+}

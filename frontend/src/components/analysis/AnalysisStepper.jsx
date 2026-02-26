@@ -4,6 +4,7 @@ import { FileText, Building, ClipboardList, Star, ArrowLeft, ArrowRight, Check }
 import StepRichText from './steps/StepRichText';
 import StepSwotField from './steps/StepSwotField';
 import StepHighlights from './steps/StepHighlights';
+import StepNumberedList from './steps/StepNumberedList';
 import StepScoring from './steps/StepScoring';
 
 const STEPS = [
@@ -122,6 +123,17 @@ const STEPS = [
         desc: "Sélectionnez 4 à 6 caractéristiques majeures qui définissent l'attractivité immédiate du projet. Chaque bloc doit comporter un titre court (2-3 mots) et une description d'une ligne. Choisissez des icônes qui illustrent la stratégie.",
         Component: StepHighlights,
         field: 'highlights',
+      },
+      {
+        title: "Éléments Clés de l'Analyse",
+        desc: "Présentez une liste numérotée des conclusions de votre audit. Cette section doit équilibrer les facteurs de réassurance et les réalités du marché.",
+        Component: StepNumberedList,
+        field: 'elements_cles',
+        props: {
+          addLabel: 'Ajouter une conclusion',
+          titlePlaceholder: 'Ex: Rentabilité nette supérieure au marché',
+          descPlaceholder: 'Développez cette conclusion en détaillant les éléments factuels qui la soutiennent...',
+        },
       },
     ],
   },
