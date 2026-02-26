@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { FileText, CheckCircle, AlertCircle, MessageSquare } from 'lucide-react';
+import { FileText, CheckCircle, AlertCircle, AlertTriangle, MessageSquare } from 'lucide-react';
 
 const STATUS_CONFIG = {
-  uploaded: { icon: CheckCircle, label: 'Charge', className: 'uploaded' },
-  commented: { icon: MessageSquare, label: 'Commente', className: '' },
+  uploaded: { icon: CheckCircle, label: 'Chargé', className: 'uploaded' },
+  warning: { icon: AlertTriangle, label: 'Non fourni par le porteur', className: 'warning' },
+  commented: { icon: MessageSquare, label: 'Commenté', className: '' },
   empty: { icon: AlertCircle, label: 'Non fourni', className: '' },
 };
 
@@ -29,7 +30,7 @@ function DocList({ docs, title, onOpenDocument }) {
     return (
       <div className="an-section">
         <div className="an-section-title">{title}</div>
-        <div className="an-empty">Aucun document dans cette categorie.</div>
+        <div className="an-empty">Aucun document dans cette catégorie.</div>
       </div>
     );
   }
@@ -38,7 +39,9 @@ function DocList({ docs, title, onOpenDocument }) {
     <div className="an-section">
       <div className="an-section-title">{title} ({docs.length})</div>
       {docs.map((doc) => {
-        const config = STATUS_CONFIG[doc.status] || STATUS_CONFIG.empty;
+        const effectiveStatus = doc.status === 'uploaded' ? 'uploaded' : 'warning';
+        const config = STATUS_CONFIG[effectiveStatus];
+        const StatusIcon = config.icon;
         const isClickable = doc.status === 'uploaded' && doc.fileName;
 
         return (
@@ -47,8 +50,8 @@ function DocList({ docs, title, onOpenDocument }) {
             key={doc.type}
             onClick={isClickable ? () => onOpenDocument?.({ label: doc.label, fileName: doc.fileName }) : undefined}
           >
-            <div className={`an-doc-icon${doc.status === 'uploaded' ? ' uploaded' : ''}`}>
-              {doc.status === 'uploaded' ? <CheckCircle size={16} /> : <FileText size={16} />}
+            <div className={`an-doc-icon${config.className ? ` ${config.className}` : ''}`}>
+              <StatusIcon size={16} />
             </div>
             <div className="an-doc-info">
               <div className="an-doc-name">
@@ -72,25 +75,80 @@ function DocList({ docs, title, onOpenDocument }) {
   );
 }
 
-function Justificatifs({ assets, selectedAsset, setSelectedAsset, onOpenDocument }) {
+function buildCostDocs(asset) {
+  return (asset?.costs?.items || []).map(item => ({
+    type: `cost_${item.id}`,
+    label: `Justificatif — ${item.label || 'Poste de dépense'}`,
+    required: false,
+    status: item.hasJustificatif && item.justificatifName ? 'uploaded' : 'warning',
+    fileName: item.justificatifName || '',
+  }));
+}
+
+function buildLotDocs(asset) {
+  return (asset?.lots || []).flatMap((lot, idx) => {
+    const docs = [];
+    if (lot.preCommercialized === 'oui') {
+      docs.push({
+        type: `lot_promesse_${lot.id}`,
+        label: `Lot ${idx + 1} — Promesse de vente`,
+        required: false,
+        status: lot.promesseFileName ? 'uploaded' : 'warning',
+        fileName: lot.promesseFileName || '',
+      });
+    }
+    if (lot.rented === 'oui') {
+      docs.push({
+        type: `lot_bail_${lot.id}`,
+        label: `Lot ${idx + 1} — Bail`,
+        required: false,
+        status: lot.bailFileName ? 'uploaded' : 'warning',
+        fileName: lot.bailFileName || '',
+      });
+    }
+    return docs;
+  });
+}
+
+function buildProofDoc(projections) {
+  return [{
+    type: 'proof_of_funds',
+    label: 'Preuve des fonds propres',
+    required: false,
+    status: projections?.proofFileName ? 'uploaded' : 'warning',
+    fileName: projections?.proofFileName || '',
+  }];
+}
+
+function Justificatifs({ assets, selectedAsset, setSelectedAsset, projections, onOpenDocument }) {
   if (assets.length === 0) {
-    return <div className="an-empty">Aucun actif renseigne.</div>;
+    return <div className="an-empty">Aucun actif renseigné.</div>;
   }
 
   const asset = assets[selectedAsset] || assets[0];
-  const docs = asset.documents || [];
+  const verificationDocs = asset.documents || [];
+  const costDocs = buildCostDocs(asset);
+  const lotDocs = buildLotDocs(asset);
+  const proofDocs = buildProofDoc(projections);
 
   return (
     <>
       <AssetSelector assets={assets} selected={selectedAsset} onSelect={setSelectedAsset} />
-      <DocList docs={docs} title="Documents justificatifs" onOpenDocument={onOpenDocument} />
+      <DocList docs={verificationDocs} title="Documents de vérification" onOpenDocument={onOpenDocument} />
+      {costDocs.length > 0 && (
+        <DocList docs={costDocs} title="Justificatifs de dépenses" onOpenDocument={onOpenDocument} />
+      )}
+      {lotDocs.length > 0 && (
+        <DocList docs={lotDocs} title="Documents des lots" onOpenDocument={onOpenDocument} />
+      )}
+      <DocList docs={proofDocs} title="Preuve de fonds" onOpenDocument={onOpenDocument} />
     </>
   );
 }
 
 function PreuvesGaranties({ assets, selectedAsset, setSelectedAsset, onOpenDocument }) {
   if (assets.length === 0) {
-    return <div className="an-empty">Aucun actif renseigne.</div>;
+    return <div className="an-empty">Aucun actif renseigné.</div>;
   }
 
   const asset = assets[selectedAsset] || assets[0];
@@ -108,11 +166,12 @@ export default function TabDocuments({ subTab, project, onOpenDocument }) {
   const attrs = project?.attributes || project || {};
   const snapshot = attrs.form_snapshot || {};
   const assets = snapshot.assets || [];
+  const projections = snapshot.projections || {};
   const [selectedAsset, setSelectedAsset] = useState(0);
 
   switch (subTab) {
-    case 0: return <Justificatifs assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} onOpenDocument={onOpenDocument} />;
+    case 0: return <Justificatifs assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} projections={projections} onOpenDocument={onOpenDocument} />;
     case 1: return <PreuvesGaranties assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} onOpenDocument={onOpenDocument} />;
-    default: return <Justificatifs assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} onOpenDocument={onOpenDocument} />;
+    default: return <Justificatifs assets={assets} selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset} projections={projections} onOpenDocument={onOpenDocument} />;
   }
 }

@@ -44,10 +44,17 @@ function LotCard({ lot, index, onUpdate, onRemove }) {
               <input type="text" value={lot.promesseRef} onChange={(e) => onUpdate(lot.id, 'promesseRef', e.target.value)} placeholder="Référence du document" />
             </div>
             <div className="pf-form-group">
-              <label className="pf-file-upload-btn">
-                <Paperclip size={14} /> Fichier promesse de vente
-                <input type="file" />
-              </label>
+              {lot.promesseFileName ? (
+                <div className="pf-file-upload-btn" style={{ borderStyle: 'solid', borderColor: '#86efac', background: '#f0fdf4', color: '#15803d' }}>
+                  <Paperclip size={14} />
+                  <span style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>{lot.promesseFileName}</span>
+                </div>
+              ) : (
+                <label className="pf-file-upload-btn">
+                  <Paperclip size={14} /> Fichier promesse de vente
+                  <input type="file" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpdate(lot.id, 'promesseFileName', f.name); }} />
+                </label>
+              )}
             </div>
           </div>
         )}
@@ -59,10 +66,17 @@ function LotCard({ lot, index, onUpdate, onRemove }) {
               <input type="text" value={lot.bailRef} onChange={(e) => onUpdate(lot.id, 'bailRef', e.target.value)} placeholder="Référence du bail" />
             </div>
             <div className="pf-form-group">
-              <label className="pf-file-upload-btn">
-                <Paperclip size={14} /> Fichier bail
-                <input type="file" />
-              </label>
+              {lot.bailFileName ? (
+                <div className="pf-file-upload-btn" style={{ borderStyle: 'solid', borderColor: '#86efac', background: '#f0fdf4', color: '#15803d' }}>
+                  <Paperclip size={14} />
+                  <span style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>{lot.bailFileName}</span>
+                </div>
+              ) : (
+                <label className="pf-file-upload-btn">
+                  <Paperclip size={14} /> Fichier bail
+                  <input type="file" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpdate(lot.id, 'bailFileName', f.name); }} />
+                </label>
+              )}
             </div>
           </div>
         )}

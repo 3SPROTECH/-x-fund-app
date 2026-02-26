@@ -648,6 +648,11 @@
   color: var(--success);
 }
 
+.an-doc-icon.warning {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
 .an-doc-info {
   flex: 1;
   min-width: 0;

@@ -185,7 +185,9 @@ export function createEmptyLot() {
     prix: 0,
     prixM2: 0,
     promesseRef: '',
+    promesseFileName: '',
     bailRef: '',
+    bailFileName: '',
   };
 }
 
