@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { FileText, Building, ClipboardList, Star, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
-import StepPresentation from './steps/StepPresentation';
+import StepRichText from './steps/StepRichText';
 import StepAnalyseActif from './steps/StepAnalyseActif';
 import StepResume from './steps/StepResume';
 import StepScoring from './steps/StepScoring';
@@ -12,9 +12,54 @@ const STEPS = [
     icon: FileText,
     micro: [
       {
-        title: 'Presentation du projet',
-        desc: 'Evaluez la qualite et la coherence de la presentation du dossier.',
-        Component: StepPresentation,
+        title: "Opportunité & Stratégie d'Investissement",
+        desc: "Résumez l’essence du projet : la nature de l’opération (marchand de biens, promotion), la stratégie de création de valeur (division, rénovation) et l’état d’avancement administratif (permis, diagnostics).",
+        Component: StepRichText,
+        field: 'investissement',
+        props: {
+          fieldLabel: "Description de l'investissement",
+          placeholder: "Redigez votre description de l'investissement...",
+        },
+      },
+      {
+        title: 'Présentation du Porteur de Projet',
+        desc: "Présentez l'émetteur de l'offre. Cette section doit détailler l'identité juridique de la société, la structure de son actionnariat et, surtout, le 'track-record' (l'historique) des dirigeants.",
+        Component: StepRichText,
+        field: 'porteur_du_projet',
+        props: {
+          fieldLabel: 'Analyse du porteur du projet',
+          placeholder: 'Redigez votre analyse du porteur du projet...',
+        },
+      },
+      {
+        title: 'Localisation et Analyse du Marché',
+        desc: "Détaillez l'emplacement précis du bien et le contexte économique local. L'objectif est de justifier la liquidité du projet : pourquoi y a-t-il une demande pour ce type de bien à cet endroit précis ? Mentionnez les points d'intérêt, les tendances du marché et les avis de valeur.",
+        Component: StepRichText,
+        field: 'localisation',
+        props: {
+          fieldLabel: 'Analyse de la localisation',
+          placeholder: 'Redigez votre analyse de la localisation...',
+        },
+      },
+      {
+        title: 'Montage Financier et Rentabilité',
+        desc: "Présentez l'équilibre financier de l'opération. Détaillez d'une part les 'Emplois' (coûts d'acquisition, travaux, frais) et d'autre part les 'Ressources' (apport personnel, levée de fonds). Concluez sur la marge prévisionnelle et les hypothèses de revente pour démontrer la rentabilité du projet.",
+        Component: StepRichText,
+        field: 'structure_financiere',
+        props: {
+          fieldLabel: 'Analyse de la structure financiere',
+          placeholder: 'Redigez votre analyse de la structure financiere...',
+        },
+      },
+      {
+        title: "Sûretés et Garanties de l'Investissement",
+        desc: "Détaillez l'ensemble des mécanismes de protection activés pour cette opération. Précisez les garanties réelles (hypothèque), les garanties personnelles (caution) et les mécanismes de contrôle (séquestre, open banking).",
+        Component: StepRichText,
+        field: 'garanties',
+        props: {
+          fieldLabel: 'Analyse des garanties',
+          placeholder: 'Redigez votre analyse des garanties...',
+        },
       },
     ],
   },
@@ -56,6 +101,8 @@ const STEPS = [
 export default function AnalysisStepper({ project }) {
   const [macroIndex, setMacroIndex] = useState(0);
   const [microIndex, setMicroIndex] = useState(0);
+  const [formData, setFormData] = useState({});
+  const stepRef = useRef();
 
   const macro = STEPS[macroIndex];
   const micro = macro.micro[microIndex];
@@ -65,6 +112,13 @@ export default function AnalysisStepper({ project }) {
   const isLastGlobal =
     macroIndex === STEPS.length - 1 &&
     microIndex === macro.micro.length - 1;
+
+  const handleFieldChange = useCallback(
+    (fieldName) => (value) => {
+      setFormData((prev) => ({ ...prev, [fieldName]: value }));
+    },
+    [],
+  );
 
   const handlePrev = () => {
     if (microIndex > 0) {
@@ -77,6 +131,10 @@ export default function AnalysisStepper({ project }) {
   };
 
   const handleNext = () => {
+    if (stepRef.current?.validate && !stepRef.current.validate()) {
+      return;
+    }
+
     if (microIndex < macro.micro.length - 1) {
       setMicroIndex((i) => i + 1);
     } else if (macroIndex < STEPS.length - 1) {
@@ -89,6 +147,16 @@ export default function AnalysisStepper({ project }) {
     setMacroIndex(idx);
     setMicroIndex(0);
   };
+
+  // Build props for the current step component
+  const stepProps = { project };
+  if (micro.field) {
+    stepProps.value = formData[micro.field] ?? '';
+    stepProps.onChange = handleFieldChange(micro.field);
+  }
+  if (micro.props) {
+    Object.assign(stepProps, micro.props);
+  }
 
   return (
     <div className="an-stepper">
@@ -139,7 +207,11 @@ export default function AnalysisStepper({ project }) {
 
       {/* Step content */}
       <div className="an-stepper-content">
-        <StepComponent project={project} />
+        <StepComponent
+          key={micro.field || `${macroIndex}-${microIndex}`}
+          ref={stepRef}
+          {...stepProps}
+        />
       </div>
 
       {/* Footer navigation */}

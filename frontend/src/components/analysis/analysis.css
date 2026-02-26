@@ -334,6 +334,8 @@
   flex: 1;
   overflow-y: auto;
   padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Step footer */
@@ -1232,4 +1234,26 @@
 .an-step-field-label .required {
   color: var(--danger);
   margin-left: 2px;
+}
+
+/* Full-height step layout — editor fills available space */
+.an-step-fullheight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.an-step-field-grow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.an-step-field-error {
+  font-size: 0.75rem;
+  color: var(--danger);
+  margin-top: 2px;
+  flex-shrink: 0;
 }

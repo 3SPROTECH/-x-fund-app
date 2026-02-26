@@ -135,3 +135,30 @@
 .rte-content .tiptap u {
   text-decoration: underline;
 }
+
+/* ======= Full-height mode ======= */
+.rte-wrapper.rte-fullheight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.rte-wrapper.rte-fullheight .rte-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.rte-wrapper.rte-fullheight .rte-content .tiptap {
+  min-height: 100%;
+}
+
+/* ======= Error state ======= */
+.rte-wrapper.rte-error {
+  border-color: var(--danger);
+}
+
+.rte-wrapper.rte-error:focus-within {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
