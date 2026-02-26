@@ -182,6 +182,7 @@ module Api
           )
 
           @project.info_requests.where(status: :submitted).update_all(status: :reviewed)
+          @project.analysis_drafts.destroy_all
           NotificationService.notify_admins!(actor: current_user, notifiable: @project, type: "analyst_opinion_submitted", title: "Rapport analyste genere", body: "L'analyste #{current_user.full_name} a genere un rapport et pre-approuve le projet « #{@project.title} ».")
           NotificationService.notify_project_owner!(@project, actor: current_user, type: "project_approved", title: "Projet pre-approuve", body: "Votre projet « #{@project.title} » a ete pre-approuve suite a l'analyse.")
 

@@ -222,6 +222,27 @@
   display: none;
 }
 
+.an-stepper-save-status {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: right;
+  min-height: 1.25rem;
+}
+
+.an-save-saving { opacity: 0.7; }
+
+.an-save-saved { color: var(--success, #10b981); }
+
+.an-stepper-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
 .an-stepper-step {
   display: inline-flex;
   align-items: center;

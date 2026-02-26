@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_25_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_26_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_25_000001) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "analysis_drafts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "current_step", default: 0, null: false
+    t.jsonb "form_data", default: {}, null: false
+    t.bigint "investment_project_id", null: false
+    t.datetime "last_saved_at"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["investment_project_id"], name: "index_analysis_drafts_on_investment_project_id"
+    t.index ["user_id", "investment_project_id"], name: "idx_analysis_drafts_on_user_and_project", unique: true
+    t.index ["user_id"], name: "index_analysis_drafts_on_user_id"
   end
 
   create_table "analyst_reports", force: :cascade do |t|
@@ -598,6 +611,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_25_000001) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "analysis_drafts", "investment_projects"
+  add_foreign_key "analysis_drafts", "users"
   add_foreign_key "analyst_reports", "investment_projects"
   add_foreign_key "analyst_reports", "users", column: "analyst_id"
   add_foreign_key "asset_guarantees", "investment_projects"

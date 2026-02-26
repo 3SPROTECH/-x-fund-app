@@ -150,6 +150,7 @@ Rails.application.routes.draw do
             get :report
             get 'info_requests/:info_request_id/file/:field_index', action: :download_response_file, as: :download_response_file
           end
+          resource :analysis_draft, only: [:show, :create, :update, :destroy], controller: "analysis_drafts"
         end
 
         # KYC verification by analyst

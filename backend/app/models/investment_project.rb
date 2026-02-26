@@ -13,6 +13,7 @@ class InvestmentProject < ApplicationRecord
   has_many :mvp_reports, dependent: :destroy
   has_many :info_requests, dependent: :destroy
   has_many :analyst_reports, dependent: :destroy
+  has_many :analysis_drafts, dependent: :destroy
   has_many :project_delays, dependent: :destroy
   has_many :chat_messages, dependent: :destroy
   has_many :asset_guarantees, dependent: :destroy

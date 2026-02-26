@@ -18,6 +18,7 @@ class User < ApplicationRecord
   has_many :performed_audit_logs, class_name: "AuditLog", foreign_key: :user_id, dependent: :nullify
   has_many :notifications, dependent: :destroy
   has_many :project_drafts, dependent: :destroy
+  has_many :analysis_drafts, dependent: :destroy
   has_many :sent_chat_messages, class_name: "ChatMessage", foreign_key: :sender_id, dependent: :destroy
 
   has_one_attached :kyc_identity_document

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { FileText, Building, ClipboardList, Star, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
 import StepRichText from './steps/StepRichText';
@@ -6,6 +6,7 @@ import StepSwotField from './steps/StepSwotField';
 import StepHighlights from './steps/StepHighlights';
 import StepNumberedList from './steps/StepNumberedList';
 import StepScoring from './steps/StepScoring';
+import useAnalysisDraft from '../../hooks/useAnalysisDraft';
 
 const STEPS = [
   {
@@ -14,7 +15,7 @@ const STEPS = [
     micro: [
       {
         title: "Opportunité & Stratégie d'Investissement",
-        desc: "Résumez l’essence du projet : la nature de l’opération (marchand de biens, promotion), la stratégie de création de valeur (division, rénovation) et l’état d’avancement administratif (permis, diagnostics).",
+        desc: "Résumez l'essence du projet : la nature de l'opération (marchand de biens, promotion), la stratégie de création de valeur (division, rénovation) et l'état d'avancement administratif (permis, diagnostics).",
         Component: StepRichText,
         field: 'investissement',
         props: {
@@ -152,10 +153,30 @@ const STEPS = [
 ];
 
 export default function AnalysisStepper({ project }) {
+  const projectId = project?.id || project?.data?.id;
+
+  const {
+    loadingDraft,
+    initialData,
+    lastSavedAt,
+    saving,
+    markDirty,
+    saveDraft,
+  } = useAnalysisDraft(projectId);
+
   const [macroIndex, setMacroIndex] = useState(0);
   const [microIndex, setMicroIndex] = useState(0);
   const [formData, setFormData] = useState({});
   const stepRef = useRef();
+
+  // Restore draft data once loaded
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData.formData);
+      setMacroIndex(initialData.macroIndex);
+      setMicroIndex(initialData.microIndex);
+    }
+  }, [initialData]);
 
   const macro = STEPS[macroIndex];
   const micro = macro.micro[microIndex];
@@ -168,12 +189,17 @@ export default function AnalysisStepper({ project }) {
 
   const handleFieldChange = useCallback(
     (fieldName) => (value) => {
-      setFormData((prev) => ({ ...prev, [fieldName]: value }));
+      setFormData((prev) => {
+        const next = { ...prev, [fieldName]: value };
+        markDirty(next, macroIndex, microIndex);
+        return next;
+      });
     },
-    [],
+    [macroIndex, microIndex, markDirty],
   );
 
   const handlePrev = () => {
+    saveDraft();
     if (microIndex > 0) {
       setMicroIndex((i) => i - 1);
     } else if (macroIndex > 0) {
@@ -187,7 +213,7 @@ export default function AnalysisStepper({ project }) {
     if (stepRef.current?.validate && !stepRef.current.validate()) {
       return;
     }
-
+    saveDraft();
     if (microIndex < macro.micro.length - 1) {
       setMicroIndex((i) => i + 1);
     } else if (macroIndex < STEPS.length - 1) {
@@ -197,6 +223,7 @@ export default function AnalysisStepper({ project }) {
   };
 
   const handleMacroClick = (idx) => {
+    saveDraft();
     setMacroIndex(idx);
     setMicroIndex(0);
   };
@@ -209,6 +236,14 @@ export default function AnalysisStepper({ project }) {
   }
   if (micro.props) {
     Object.assign(stepProps, micro.props);
+  }
+
+  if (loadingDraft) {
+    return (
+      <div className="an-stepper">
+        <div className="an-stepper-loading">Chargement du brouillon...</div>
+      </div>
+    );
   }
 
   return (
@@ -233,6 +268,17 @@ export default function AnalysisStepper({ project }) {
             </button>
           );
         })}
+      </div>
+
+      {/* Save status */}
+      <div className="an-stepper-save-status">
+        {saving ? (
+          <span className="an-save-saving">Sauvegarde...</span>
+        ) : lastSavedAt ? (
+          <span className="an-save-saved">
+            Sauvegarde auto. {new Date(lastSavedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        ) : null}
       </div>
 
       {/* Micro step progress bar */}

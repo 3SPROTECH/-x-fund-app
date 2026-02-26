@@ -33,6 +33,23 @@ export const analysteApi = {
     return client.get(`/analyste/projects/${id}/report`);
   },
 
+  // Analysis drafts
+  getDraft(projectId) {
+    return client.get(`/analyste/projects/${projectId}/analysis_draft`);
+  },
+
+  saveDraft(projectId, data) {
+    return client.post(`/analyste/projects/${projectId}/analysis_draft`, { analysis_draft: data });
+  },
+
+  updateDraft(projectId, data) {
+    return client.patch(`/analyste/projects/${projectId}/analysis_draft`, { analysis_draft: data });
+  },
+
+  deleteDraft(projectId) {
+    return client.delete(`/analyste/projects/${projectId}/analysis_draft`);
+  },
+
   // KYC management
   getKycList(params = {}) {
     return client.get('/analyste/kyc', { params });
