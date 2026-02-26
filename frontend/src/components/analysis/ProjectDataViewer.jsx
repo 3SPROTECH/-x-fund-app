@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Eye, User, DollarSign, Building, FileText, MessageSquarePlus } from 'lucide-react';
+import { getImageUrl } from '../../api/client';
 
 import TabOverview from './tabs/TabOverview';
 import TabPorteur from './tabs/TabPorteur';
@@ -91,7 +92,8 @@ export default function ProjectDataViewer({ project, infoRequests, onRefresh }) 
   }, [project]);
 
   const handleOpenDocument = (doc) => {
-    const url = doc.url || fileUrlMap[doc.fileName] || null;
+    const rawUrl = doc.url || fileUrlMap[doc.fileName] || null;
+    const url = rawUrl ? getImageUrl(rawUrl) : null;
     setActiveDocument({ ...doc, url });
   };
 

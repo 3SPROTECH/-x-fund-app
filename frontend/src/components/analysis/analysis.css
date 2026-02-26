@@ -856,10 +856,61 @@
   overflow: hidden;
 }
 
-.an-docviewer-iframe {
+.an-docviewer-pdf-container {
+  position: relative;
   width: 100%;
   height: 100%;
-  border: none;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--bg);
+}
+
+.an-docviewer-pdf-page {
+  padding: 1rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.an-docviewer-pdf-page canvas {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
+}
+
+.an-docviewer-pdf-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.an-docviewer-page-nav {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 48px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.an-docviewer-controls-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 0.25rem;
+}
+
+@keyframes an-spin {
+  to { transform: rotate(360deg); }
+}
+.an-spin {
+  animation: an-spin 1s linear infinite;
 }
 
 .an-docviewer-image-container {
