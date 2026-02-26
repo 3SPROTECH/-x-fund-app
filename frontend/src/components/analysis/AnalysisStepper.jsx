@@ -3,7 +3,7 @@ import { FileText, Building, ClipboardList, Star, ArrowLeft, ArrowRight, Check }
 
 import StepRichText from './steps/StepRichText';
 import StepSwotField from './steps/StepSwotField';
-import StepResume from './steps/StepResume';
+import StepHighlights from './steps/StepHighlights';
 import StepScoring from './steps/StepScoring';
 
 const STEPS = [
@@ -118,9 +118,10 @@ const STEPS = [
     icon: ClipboardList,
     micro: [
       {
-        title: 'Resume et synthese',
-        desc: 'Redigez la synthese de votre analyse avec les points cles.',
-        Component: StepResume,
+        title: 'Points Clés du Projet',
+        desc: "Sélectionnez 4 à 6 caractéristiques majeures qui définissent l'attractivité immédiate du projet. Chaque bloc doit comporter un titre court (2-3 mots) et une description d'une ligne. Choisissez des icônes qui illustrent la stratégie.",
+        Component: StepHighlights,
+        field: 'highlights',
       },
     ],
   },
