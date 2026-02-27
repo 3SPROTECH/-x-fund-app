@@ -382,14 +382,48 @@
 .apr-tl-date { font-size: 11.5px; color: var(--apr-text-tertiary); margin-top: 1px; }
 
 /* ═══ DOCUMENTS ═══ */
+.apr-doc-subtabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--apr-border); padding: 0 20px;
+}
+.apr-doc-subtab {
+  padding: 10px 16px; font-size: 12.5px; font-weight: 500; cursor: pointer;
+  color: var(--apr-text-tertiary); background: none; border: none;
+  border-bottom: 2px solid transparent; transition: all .15s;
+}
+.apr-doc-subtab:hover { color: var(--apr-text-secondary); }
+.apr-doc-subtab.active { color: var(--apr-text-primary); border-bottom-color: var(--apr-text-primary); }
+
+.apr-doc-asset-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.apr-doc-asset-tab {
+  padding: 5px 12px; font-size: 12px; border-radius: 6px; cursor: pointer;
+  background: var(--apr-surface-secondary); border: 1px solid var(--apr-border);
+  color: var(--apr-text-secondary); font-weight: 500; transition: all .15s;
+}
+.apr-doc-asset-tab:hover { border-color: var(--apr-text-tertiary); }
+.apr-doc-asset-tab.active { background: var(--apr-text-primary); color: #fff; border-color: var(--apr-text-primary); }
+
+.apr-doc-section { margin-bottom: 18px; }
+.apr-doc-section:last-child { margin-bottom: 0; }
+.apr-doc-section-title {
+  font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--apr-text-tertiary); margin-bottom: 8px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--apr-border);
+}
+
 .apr-doc { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--apr-border); }
 .apr-doc:last-child { border-bottom: none; }
+.apr-doc-clickable { cursor: pointer; border-radius: 6px; padding: 10px 8px; margin: 0 -8px; }
+.apr-doc-clickable:hover { background: var(--apr-surface-secondary); }
+
 .apr-doc-ico {
   width: 34px; height: 34px; border-radius: 8px;
   background: var(--apr-surface-secondary); border: 1px solid var(--apr-border);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   color: var(--apr-text-tertiary);
 }
+.apr-doc-ico-uploaded { color: var(--apr-green); background: rgba(76, 175, 80, 0.08); border-color: rgba(76, 175, 80, 0.2); }
+.apr-doc-ico-warning { color: var(--apr-orange); background: rgba(255, 152, 0, 0.08); border-color: rgba(255, 152, 0, 0.2); }
+
 .apr-doc-info { flex: 1; }
 .apr-doc-name { font-size: 13px; font-weight: 500; }
 .apr-doc-meta { font-size: 11.5px; color: var(--apr-text-tertiary); }

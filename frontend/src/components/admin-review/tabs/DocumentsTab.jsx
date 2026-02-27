@@ -1,62 +1,193 @@
-import { FileText, Download } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { FileText, CheckCircle, AlertTriangle, Shield } from 'lucide-react';
 import { getImageUrl } from '../../../api/client';
+import DocumentViewer from '../../analysis/DocumentViewer';
+import '../../analysis/analysis.css';
 
-function formatFileSize(bytes) {
-  if (!bytes) return '';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+/* ── Document builders (same logic as analyst TabDocuments) ── */
+
+function buildVerificationDocs(asset) {
+  return (asset?.documents || []).map((doc, i) => ({
+    type: `verif_${i}`,
+    label: doc.label || `Document de verification ${i + 1}`,
+    status: doc.status === 'uploaded' ? 'uploaded' : doc.fileName ? 'uploaded' : 'warning',
+    fileName: doc.fileName || '',
+    required: doc.required || false,
+  }));
 }
 
-function collectDocuments(project) {
-  const a = project?.attributes || project || {};
-  const snapshot = a.form_snapshot || {};
-  const docs = [];
+function buildCostDocs(asset) {
+  return (asset?.costs?.items || []).map(item => ({
+    type: `cost_${item.id}`,
+    label: `Justificatif — ${item.label || 'Poste de depense'}`,
+    status: item.hasJustificatif && item.justificatifName ? 'uploaded' : 'warning',
+    fileName: item.justificatifName || '',
+    required: false,
+  }));
+}
 
-  // Documents from attachments
-  if (a.documents && Array.isArray(a.documents)) {
-    a.documents.forEach((doc) => {
+function buildLotDocs(asset) {
+  return (asset?.lots || []).flatMap((lot, idx) => {
+    const docs = [];
+    if (lot.preCommercialized === 'oui') {
       docs.push({
-        name: doc.filename || doc.name || 'Document',
-        url: doc.url,
-        size: doc.byte_size || doc.size,
-        date: doc.created_at,
-        type: doc.content_type || 'application/pdf',
-      });
-    });
-  }
-
-  // Documents from proof files in assets
-  const assets = snapshot.assets || [];
-  assets.forEach((asset) => {
-    if (asset.costs?.items) {
-      asset.costs.items.forEach((item) => {
-        if (item.hasJustificatif && item.justificatifName) {
-          docs.push({
-            name: item.justificatifName,
-            url: item.justificatifUrl,
-            type: 'application/pdf',
-          });
-        }
+        type: `lot_promesse_${lot.id}`,
+        label: `Lot ${idx + 1} — Promesse de vente`,
+        status: lot.promesseFileName ? 'uploaded' : 'warning',
+        fileName: lot.promesseFileName || '',
+        required: false,
       });
     }
+    if (lot.rented === 'oui') {
+      docs.push({
+        type: `lot_bail_${lot.id}`,
+        label: `Lot ${idx + 1} — Bail`,
+        status: lot.bailFileName ? 'uploaded' : 'warning',
+        fileName: lot.bailFileName || '',
+        required: false,
+      });
+    }
+    return docs;
   });
-
-  // Proof of equity
-  const proj = snapshot.projections || {};
-  if (proj.proofFileName) {
-    docs.push({
-      name: proj.proofFileName,
-      url: proj.proofFileUrl,
-      type: 'application/pdf',
-    });
-  }
-
-  return docs;
 }
 
+function buildProofDoc(projections) {
+  return [{
+    type: 'proof_of_funds',
+    label: 'Preuve des fonds propres',
+    status: projections?.proofFileName ? 'uploaded' : 'warning',
+    fileName: projections?.proofFileName || '',
+    required: false,
+  }];
+}
+
+function buildProjectDocs(attrs) {
+  return (attrs.project_documents || []).map((doc, i) => ({
+    type: `proj_doc_${doc.id || i}`,
+    label: doc.filename || `Document projet ${i + 1}`,
+    status: 'uploaded',
+    fileName: doc.filename || '',
+    required: false,
+  }));
+}
+
+/* ── Sub-components ── */
+
+function AssetSelector({ assets, selected, onSelect }) {
+  if (assets.length <= 1) return null;
+  return (
+    <div className="apr-doc-asset-tabs">
+      {assets.map((asset, idx) => (
+        <button
+          key={asset.id || idx}
+          className={`apr-doc-asset-tab${idx === selected ? ' active' : ''}`}
+          onClick={() => onSelect(idx)}
+        >
+          {asset.label || `Actif ${idx + 1}`}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function DocSection({ title, docs, onOpenDocument }) {
+  if (!docs || docs.length === 0) return null;
+
+  return (
+    <div className="apr-doc-section">
+      <div className="apr-doc-section-title">{title} ({docs.length})</div>
+      {docs.map((doc) => {
+        const isUploaded = doc.status === 'uploaded' && doc.fileName;
+        const StatusIcon = isUploaded ? CheckCircle : AlertTriangle;
+        const statusClass = isUploaded ? 'uploaded' : 'warning';
+        const statusLabel = isUploaded ? 'Charge' : 'Non fourni';
+
+        return (
+          <div
+            className={`apr-doc${isUploaded ? ' apr-doc-clickable' : ''}`}
+            key={doc.type}
+            onClick={isUploaded ? () => onOpenDocument({ label: doc.label, fileName: doc.fileName }) : undefined}
+          >
+            <div className={`apr-doc-ico apr-doc-ico-${statusClass}`}>
+              <StatusIcon size={14} />
+            </div>
+            <div className="apr-doc-info">
+              <div className="apr-doc-name">
+                {doc.label}
+                {doc.required && <span style={{ color: 'var(--apr-red, #e53935)', marginLeft: 4 }}>*</span>}
+              </div>
+              <div className="apr-doc-meta">
+                {statusLabel}
+                {doc.fileName && ` — ${doc.fileName}`}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── Main Component ── */
+
 export default function DocumentsTab({ project }) {
-  const docs = collectDocuments(project);
+  const attrs = project?.attributes || project || {};
+  const snapshot = attrs.form_snapshot || {};
+  const assets = snapshot.assets || [];
+  const projections = snapshot.projections || {};
+  const [subTab, setSubTab] = useState(0);
+  const [selectedAsset, setSelectedAsset] = useState(0);
+  const [activeDocument, setActiveDocument] = useState(null);
+
+  // Build filename→url lookup from API-served attachments
+  const fileUrlMap = useMemo(() => {
+    const map = {};
+    const sources = [
+      ...(attrs.photos || []),
+      ...(attrs.images || []),
+      ...(attrs.property_photos || []),
+      ...(attrs.documents || []),
+      ...(attrs.project_documents || []),
+    ];
+    for (const file of sources) {
+      if (file.filename && file.url) {
+        map[file.filename] = file.url;
+      }
+    }
+    return map;
+  }, [project]);
+
+  const handleOpenDocument = (doc) => {
+    const rawUrl = doc.url || fileUrlMap[doc.fileName] || null;
+    const url = rawUrl ? getImageUrl(rawUrl) : null;
+    setActiveDocument({ ...doc, url });
+  };
+
+  // If viewing a document, show the previewer
+  if (activeDocument) {
+    return (
+      <div className="apr-panel active">
+        <DocumentViewer
+          document={activeDocument}
+          onBack={() => setActiveDocument(null)}
+        />
+      </div>
+    );
+  }
+
+  // Build document lists for current asset
+  const asset = assets[selectedAsset] || assets[0];
+  const verificationDocs = asset ? buildVerificationDocs(asset) : [];
+  const costDocs = asset ? buildCostDocs(asset) : [];
+  const lotDocs = asset ? buildLotDocs(asset) : [];
+  const proofDocs = buildProofDoc(projections);
+  const guaranteeDocs = asset?.guaranteeDocs || [];
+  const projectDocs = buildProjectDocs(attrs);
+
+  const SUB_TABS = [
+    { label: 'Justificatifs' },
+    { label: 'Preuves garanties' },
+  ];
 
   return (
     <div className="apr-panel active">
@@ -66,40 +197,54 @@ export default function DocumentsTab({ project }) {
             <div className="apr-card-icon"><FileText size={14} /></div>
             <span className="apr-card-t">Documents du projet</span>
           </div>
-          <span style={{ fontSize: 12, color: 'var(--apr-text-tertiary)' }}>{docs.length} fichier{docs.length !== 1 ? 's' : ''}</span>
         </div>
+
+        {/* Sub-tabs */}
+        <div className="apr-doc-subtabs">
+          {SUB_TABS.map((t, i) => (
+            <button
+              key={i}
+              className={`apr-doc-subtab${subTab === i ? ' active' : ''}`}
+              onClick={() => setSubTab(i)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         <div className="apr-card-b">
-          {docs.length > 0 ? docs.map((doc, i) => (
-            <div className="apr-doc" key={i}>
-              <div className="apr-doc-ico">
-                <FileText size={14} />
-              </div>
-              <div className="apr-doc-info">
-                <div className="apr-doc-name">{doc.name}</div>
-                <div className="apr-doc-meta">
-                  {[
-                    doc.type?.includes('pdf') ? 'PDF' : doc.type?.split('/')[1]?.toUpperCase(),
-                    formatFileSize(doc.size),
-                    doc.date ? new Date(doc.date).toLocaleDateString('fr-FR') : null,
-                  ].filter(Boolean).join(' · ')}
-                </div>
-              </div>
-              {doc.url && (
-                <a
-                  href={getImageUrl ? getImageUrl(doc.url) : doc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="apr-doc-dl"
-                >
-                  Telecharger
-                </a>
-              )}
-            </div>
-          )) : (
+          {assets.length === 0 && subTab !== 1 ? (
             <div className="apr-empty">
               <FileText size={28} style={{ opacity: 0.25, marginBottom: 6 }} /><br />
-              Aucun document disponible pour ce projet.
+              Aucun actif renseigne pour ce projet.
             </div>
+          ) : subTab === 0 ? (
+            <>
+              <AssetSelector assets={assets} selected={selectedAsset} onSelect={setSelectedAsset} />
+              <DocSection title="Documents de verification" docs={verificationDocs} onOpenDocument={handleOpenDocument} />
+              {costDocs.length > 0 && (
+                <DocSection title="Justificatifs de depenses" docs={costDocs} onOpenDocument={handleOpenDocument} />
+              )}
+              {lotDocs.length > 0 && (
+                <DocSection title="Documents des lots" docs={lotDocs} onOpenDocument={handleOpenDocument} />
+              )}
+              <DocSection title="Preuve de fonds" docs={proofDocs} onOpenDocument={handleOpenDocument} />
+              {projectDocs.length > 0 && (
+                <DocSection title="Documents du projet" docs={projectDocs} onOpenDocument={handleOpenDocument} />
+              )}
+            </>
+          ) : (
+            <>
+              <AssetSelector assets={assets} selected={selectedAsset} onSelect={setSelectedAsset} />
+              {guaranteeDocs.length > 0 ? (
+                <DocSection title="Preuves de garanties" docs={guaranteeDocs} onOpenDocument={handleOpenDocument} />
+              ) : (
+                <div className="apr-empty">
+                  <Shield size={28} style={{ opacity: 0.25, marginBottom: 6 }} /><br />
+                  Aucune preuve de garantie pour cet actif.
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
