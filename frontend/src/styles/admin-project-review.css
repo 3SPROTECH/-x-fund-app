@@ -557,6 +557,250 @@
   .apr-signing-progress { flex-direction: column; }
 }
 
+/* ═══ STRUCTURING PAGE ═══ */
+.apr-structuring-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--apr-border);
+}
+.apr-structuring-header h1 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+.apr-structuring-header-sub {
+  font-size: 13px;
+  color: var(--apr-text-tertiary);
+  margin-top: 4px;
+}
+.apr-structuring-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--apr-text-tertiary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px 6px 4px;
+  border-radius: var(--apr-radius-sm, 6px);
+  transition: all 0.15s;
+}
+.apr-structuring-back:hover {
+  color: var(--apr-text-primary);
+  background: var(--apr-surface-secondary);
+}
+
+.apr-structuring-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.apr-structuring-col-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--apr-text-tertiary);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Source tag — platform */
+.apr-source-platform {
+  background: #E5F5F0;
+  color: #1D7F4E;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.apr-source-owner {
+  background: var(--apr-accent-warm-bg);
+  color: var(--apr-accent-warm);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Owner data row (read-only) */
+.apr-owner-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--apr-border);
+  font-size: 13px;
+}
+.apr-owner-row:last-child { border-bottom: none; }
+.apr-owner-label { color: var(--apr-text-secondary); }
+.apr-owner-value { font-weight: 600; font-family: var(--apr-font-mono, 'SF Mono', monospace); color: var(--apr-text-primary); }
+.apr-owner-value.muted { color: var(--apr-text-hint); font-weight: 400; }
+.apr-owner-justification {
+  padding: 10px 0;
+  font-size: 12.5px;
+  color: var(--apr-text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Editable input fields */
+.apr-field-group { margin-bottom: 14px; }
+.apr-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--apr-text-secondary);
+  margin-bottom: 5px;
+}
+.apr-field-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--apr-border);
+  border-radius: var(--apr-radius-sm, 6px);
+  font-size: 13px;
+  font-family: var(--apr-font-mono, 'SF Mono', monospace);
+  background: var(--apr-white);
+  color: var(--apr-text-primary);
+  transition: border-color 0.15s;
+}
+.apr-field-input:focus {
+  outline: none;
+  border-color: var(--apr-accent-warm);
+  box-shadow: 0 0 0 2px rgba(124, 92, 44, 0.1);
+}
+.apr-field-input[type="date"] { font-family: inherit; }
+.apr-field-input:read-only {
+  background: var(--apr-surface-secondary);
+  color: var(--apr-text-tertiary);
+  cursor: default;
+}
+.apr-field-suffix {
+  font-size: 11px;
+  color: var(--apr-text-tertiary);
+  margin-top: 3px;
+}
+.apr-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.apr-field-computed {
+  font-size: 20px;
+  font-weight: 600;
+  font-family: var(--apr-font-mono, 'SF Mono', monospace);
+  color: var(--apr-text-primary);
+  padding: 4px 0;
+}
+
+/* Simulation panel */
+.apr-simulation-panel {
+  background: var(--apr-surface-secondary);
+  border: 1px solid var(--apr-border);
+  border-radius: var(--apr-radius-lg, 12px);
+  padding: 20px 24px;
+  margin-bottom: 28px;
+}
+.apr-simulation-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--apr-text-primary);
+  margin-bottom: 16px;
+}
+.apr-simulation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.apr-sim-item {
+  padding: 14px 16px;
+  background: var(--apr-white);
+  border: 1px solid var(--apr-border);
+  border-radius: var(--apr-radius-md, 8px);
+}
+.apr-sim-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--apr-text-tertiary);
+  margin-bottom: 6px;
+}
+.apr-sim-value {
+  font-size: 20px;
+  font-weight: 600;
+  font-family: var(--apr-font-mono, 'SF Mono', monospace);
+  color: var(--apr-text-primary);
+}
+.apr-sim-value.green { color: var(--apr-green); }
+.apr-sim-value.orange { color: var(--apr-orange); }
+.apr-sim-value.red { color: var(--apr-red); }
+.apr-sim-sub {
+  font-size: 11px;
+  color: var(--apr-text-tertiary);
+  margin-top: 2px;
+}
+
+/* Sticky action bar */
+.apr-structuring-actions {
+  position: sticky;
+  bottom: 0;
+  background: var(--apr-white);
+  border-top: 1px solid var(--apr-border);
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+  margin: 0 -36px -80px;
+}
+.apr-structuring-actions-right {
+  display: flex;
+  gap: 10px;
+}
+
+/* Warning */
+.apr-structuring-warning {
+  background: var(--apr-orange-bg);
+  border: 1px solid var(--apr-orange-border);
+  border-radius: var(--apr-radius-md, 8px);
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: var(--apr-orange);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 1100px) {
+  .apr-structuring-grid { grid-template-columns: 1fr; }
+  .apr-simulation-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .apr-simulation-grid { grid-template-columns: 1fr; }
+  .apr-structuring-actions { flex-direction: column; gap: 10px; }
+  .apr-structuring-actions-right { width: 100%; }
+}
+
 /* ═══ ANIMATION ═══ */
 .apr-anim { animation: aprFadeUp 0.3s ease both; }
 .apr-d1 { animation-delay: 0.05s; }

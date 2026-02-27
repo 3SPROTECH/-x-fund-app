@@ -28,6 +28,7 @@ import AdminCreateProjectPage from './pages/admin/AdminCreateProjectPage';
 import AdminEditProjectPage from './pages/admin/AdminEditProjectPage';
 import AdminDividendDetailPage from './pages/admin/AdminDividendDetailPage';
 import AdminAgentRequestsPage from './pages/admin/AdminAgentRequestsPage';
+import AdminProjectStructuringPage from './pages/admin/AdminProjectStructuringPage';
 
 // Investor pages
 import InvestorDashboardPage from './pages/investor/InvestorDashboardPage';
@@ -173,6 +174,10 @@ export default function App() {
             <Route
               path="/admin/projects/:id/edit"
               element={<ProtectedRoute roles={['administrateur']}><AdminEditProjectPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/admin/projects/:id/structuring"
+              element={<ProtectedRoute roles={['administrateur']}><AdminProjectStructuringPage /></ProtectedRoute>}
             />
             <Route
               path="/admin/projects/:projectId/dividends/:dividendId"

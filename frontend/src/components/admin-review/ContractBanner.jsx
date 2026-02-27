@@ -1,18 +1,46 @@
-import { FileText, RefreshCw, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { FileText, RefreshCw, Send, CheckCircle, AlertCircle, Settings } from 'lucide-react';
 
 export default function ContractBanner({ project, onGenerateContract, onShowContract, onCheckSignature, checkingSignature }) {
+  const navigate = useNavigate();
   const a = project?.attributes || project || {};
+  const projectId = project?.id || a.id;
 
-  // Contract generation banner (approved, no yousign)
+  // Approved, no yousign yet — structuring or contract generation
   if (a.status === 'approved' && !a.yousign_status) {
+    const termsValidated = Boolean(a.funding_start_date && a.funding_end_date);
+
+    if (!termsValidated) {
+      // Step 1: Terms not yet defined
+      return (
+        <div className="apr-contract-banner apr-anim apr-d1">
+          <div className="apr-contract-banner-top">
+            <div>
+              <h3>Structuration financiere</h3>
+              <p>Le projet est approuve. Definissez les termes financiers de la proposition avant de generer le contrat.</p>
+            </div>
+            <div className="apr-contract-actions">
+              <button className="apr-btn apr-btn-approve" onClick={() => navigate(`/admin/projects/${projectId}/structuring`)}>
+                <Settings size={14} /> Definir les termes
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Step 2: Terms defined, ready for contract
     return (
       <div className="apr-contract-banner apr-anim apr-d1">
         <div className="apr-contract-banner-top">
           <div>
-            <h3>Contrat d'investissement</h3>
-            <p>Le projet est approuve. Generez le contrat, signez-le, puis il sera envoye au porteur.</p>
+            <h3>Contrat d&apos;investissement</h3>
+            <p>Les termes sont definis. Generez le contrat, signez-le, puis il sera envoye au porteur.</p>
           </div>
           <div className="apr-contract-actions">
+            <button className="apr-btn apr-btn-secondary" onClick={() => navigate(`/admin/projects/${projectId}/structuring`)}>
+              <Settings size={14} /> Modifier les termes
+            </button>
             <button className="apr-btn apr-btn-approve" onClick={onGenerateContract}>
               <FileText size={14} /> Generer le contrat
             </button>
