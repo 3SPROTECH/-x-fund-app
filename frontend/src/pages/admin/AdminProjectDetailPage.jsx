@@ -12,6 +12,7 @@ import ContractViewerModal from '../../components/ContractViewerModal';
 
 import HeroSection from '../../components/admin-review/HeroSection';
 import DecisionBanner from '../../components/admin-review/DecisionBanner';
+import RedoModal from '../../components/admin-review/RedoModal';
 import ContractBanner from '../../components/admin-review/ContractBanner';
 import KpiStrip from '../../components/admin-review/KpiStrip';
 import OverviewTab from '../../components/admin-review/tabs/OverviewTab';
@@ -42,6 +43,8 @@ export default function AdminProjectDetailPage() {
   const [reportLoading, setReportLoading] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showContract, setShowContract] = useState(false);
+  const [showRedo, setShowRedo] = useState(false);
+  const [redoSubmitting, setRedoSubmitting] = useState(false);
   const [checkingSignature, setCheckingSignature] = useState(false);
 
   // ─── Data Loading ───
@@ -141,16 +144,17 @@ export default function AdminProjectDetailPage() {
     }
   };
 
-  const handleRequestRedo = async () => {
-    const comment = window.prompt("Raison de la demande de reprise d'analyse :");
-    if (comment === null) return;
-    if (!comment.trim()) { toast.error('Veuillez fournir une raison'); return; }
+  const handleRequestRedo = async (comment) => {
+    setRedoSubmitting(true);
     try {
       await adminApi.requestRedo(id, comment);
       toast.success("Demande de reprise d'analyse envoyee");
+      setShowRedo(false);
       loadAll();
     } catch (err) {
       toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la demande');
+    } finally {
+      setRedoSubmitting(false);
     }
   };
 
@@ -240,7 +244,7 @@ export default function AdminProjectDetailPage() {
         <DecisionBanner
           onApprove={handleApprove}
           onReject={handleReject}
-          onRedo={handleRequestRedo}
+          onRedo={() => setShowRedo(true)}
         />
       )}
 
@@ -295,6 +299,14 @@ export default function AdminProjectDetailPage() {
           onClose={() => setShowContract(false)}
           onSendToOwner={handleSendContract}
           showSendButton={a.status === 'approved'}
+        />
+      )}
+
+      {showRedo && (
+        <RedoModal
+          onConfirm={handleRequestRedo}
+          onClose={() => setShowRedo(false)}
+          submitting={redoSubmitting}
         />
       )}
     </div>
