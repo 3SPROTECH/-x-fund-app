@@ -92,9 +92,13 @@ export default function AnalysteProjectsPage() {
                       <td data-label="Porteur">{a.owner_name || '—'}</td>
                       <td data-label="Ville">{a.property_city || '—'}</td>
                       <td data-label="Statut">
-                        <span className={`badge ${PROJECT_STATUS_BADGES[a.status] || ''}`}>
-                          {PROJECT_STATUS_LABELS[a.status] || a.status}
-                        </span>
+                        {a.status === 'pending_analysis' && a.review_comment && a.has_analyst_report ? (
+                          <span className="badge badge-warning">Reprise demandee</span>
+                        ) : (
+                          <span className={`badge ${PROJECT_STATUS_BADGES[a.status] || ''}`}>
+                            {PROJECT_STATUS_LABELS[a.status] || a.status}
+                          </span>
+                        )}
                       </td>
                       <td data-label="Avis">
                         <span className={`badge ${ANALYST_OPINION_BADGES[a.analyst_opinion] || ''}`}>

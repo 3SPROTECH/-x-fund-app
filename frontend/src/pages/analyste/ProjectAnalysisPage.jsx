@@ -23,6 +23,7 @@ export default function ProjectAnalysisPage() {
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [infoRequests, setInfoRequests] = useState([]);
+  const [redoHistory, setRedoHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reportAnalysis, setReportAnalysis] = useState(null);
   const [reportReady, setReportReady] = useState(false);
@@ -38,6 +39,7 @@ export default function ProjectAnalysisPage() {
       const p = res.data.data;
       setProject(p);
       setInfoRequests(res.data.info_requests || []);
+      setRedoHistory(res.data.redo_history || []);
     } catch {
       toast.error('Erreur lors du chargement du projet');
       navigate('/analyste/projects');
@@ -89,9 +91,13 @@ export default function ProjectAnalysisPage() {
         </button>
         <span className="an-header-title">{a.title}</span>
         <div className="an-header-badges">
-          <span className={`badge ${PROJECT_STATUS_BADGES[a.status] || ''}`}>
-            {PROJECT_STATUS_LABELS[a.status] || a.status}
-          </span>
+          {isRedoMode ? (
+            <span className="badge badge-warning">Reprise demandee</span>
+          ) : (
+            <span className={`badge ${PROJECT_STATUS_BADGES[a.status] || ''}`}>
+              {PROJECT_STATUS_LABELS[a.status] || a.status}
+            </span>
+          )}
           <span className={`badge ${ANALYST_OPINION_BADGES[a.analyst_opinion] || ''}`}>
             {ANALYST_OPINION_LABELS[a.analyst_opinion] || 'En attente'}
           </span>
@@ -111,6 +117,7 @@ export default function ProjectAnalysisPage() {
           <AnalysisStepper
             project={project}
             redoComment={isRedoMode ? a.review_comment : null}
+            redoHistory={isRedoMode ? redoHistory : []}
             previousAnalysisData={isRedoMode ? reportAnalysis : null}
           />
         )}

@@ -7,6 +7,7 @@ module Api
 
         def index
           projects = InvestmentProject.where(analyst_id: current_user.id)
+                                      .where(status: [:pending_analysis, :info_requested, :info_resubmitted, :analysis_submitted])
           projects = projects.where(analyst_opinion: params[:opinion]) if params[:opinion].present?
           if params[:search].present?
             q = "%#{params[:search]}%"
@@ -21,11 +22,16 @@ module Api
         end
 
         def show
+          redo_logs = AuditLog.where(auditable: @project, action: "request_redo")
+                              .order(created_at: :desc)
+                              .map { |log| { comment: log.changes_data["comment"], admin_name: log.user&.full_name, created_at: log.created_at } }
+
           render json: {
             data: InvestmentProjectSerializer.new(@project, params: { include_snapshot: true }).serializable_hash[:data],
             info_requests: @project.info_requests.order(created_at: :desc).map { |ir|
               InfoRequestSerializer.new(ir).serializable_hash[:data]
-            }
+            },
+            redo_history: redo_logs
           }
         end
 
@@ -160,6 +166,7 @@ module Api
 
         def analyst_stats
           projects = InvestmentProject.where(analyst_id: current_user.id)
+                                      .where(status: [:pending_analysis, :info_requested, :info_resubmitted, :analysis_submitted])
           {
             total: projects.count,
             pending: projects.where(analyst_opinion: :opinion_pending).count,

@@ -9,6 +9,7 @@ import StepHighlights from './steps/StepHighlights';
 import StepNumberedList from './steps/StepNumberedList';
 import StepScoring from './steps/StepScoring';
 import StepSummary from './steps/StepSummary';
+import RedoHistoryView from './RedoHistoryView';
 import useAnalysisDraft from '../../hooks/useAnalysisDraft';
 import { analysteApi } from '../../api/analyste';
 import { generateTestData, PROFILE_OPTIONS } from './testData';
@@ -178,9 +179,10 @@ function getGradeColor(grade) {
   return 'red';
 }
 
-export default function AnalysisStepper({ project, redoComment, previousAnalysisData }) {
+export default function AnalysisStepper({ project, redoComment, redoHistory = [], previousAnalysisData }) {
   const projectId = project?.id || project?.data?.id;
   const navigate = useNavigate();
+  const [showRedoHistory, setShowRedoHistory] = useState(false);
 
   const {
     loadingDraft,
@@ -352,6 +354,17 @@ export default function AnalysisStepper({ project, redoComment, previousAnalysis
     );
   }
 
+  if (showRedoHistory) {
+    return (
+      <div className="an-stepper">
+        <RedoHistoryView
+          history={redoHistory.length > 0 ? redoHistory : [{ comment: redoComment, admin_name: 'Administrateur', created_at: null }]}
+          onBack={() => setShowRedoHistory(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="an-stepper">
       {/* Macro step navigation */}
@@ -382,9 +395,11 @@ export default function AnalysisStepper({ project, redoComment, previousAnalysis
         <div className="an-redo-banner">
           <div className="an-redo-banner-title">
             <RefreshCw size={14} />
-            Reprise d&apos;analyse demandee par l&apos;administrateur
+            Reprise d&apos;analyse demandee
           </div>
-          <div className="an-redo-banner-comment">{redoComment}</div>
+          <button className="an-redo-banner-btn" onClick={() => setShowRedoHistory(true)}>
+            Voir les commentaires ({redoHistory.length || 1})
+          </button>
         </div>
       )}
 
