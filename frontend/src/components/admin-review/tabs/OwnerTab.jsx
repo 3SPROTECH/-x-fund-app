@@ -18,7 +18,8 @@ function getInitials(name) {
 export default function OwnerTab({ project }) {
   const a = project?.attributes || project || {};
   const snapshot = a.form_snapshot || {};
-  const owner = snapshot.projectOwner || snapshot.porteur || {};
+  const rawOwner = snapshot.projectOwner || snapshot.porteur || {};
+  const owner = { ...rawOwner, certifications: Array.isArray(rawOwner.certifications) ? rawOwner.certifications : rawOwner.certifications ? [rawOwner.certifications] : [] };
   const pres = snapshot.presentation || {};
 
   const companyName = owner.companyName || a.owner_name || a.title || 'N/A';
@@ -105,7 +106,7 @@ export default function OwnerTab({ project }) {
                 <p className="apr-narr-text">{owner.teamDescription}</p>
               </div>
             )}
-            {owner.certifications && owner.certifications.length > 0 && (
+            {owner.certifications.length > 0 && (
               <div className="apr-narr">
                 <div className="apr-narr-label">Certifications</div>
                 <div className="apr-chips" style={{ marginTop: 4 }}>
