@@ -1,7 +1,8 @@
+import { createPortal } from 'react-dom';
 import { Send, X } from 'lucide-react';
 
 export default function ConfirmSubmitModal({ onConfirm, onClose, submitting }) {
-  return (
+  return createPortal(
     <div className="an-modal-overlay" onClick={onClose}>
       <div className="an-modal" onClick={(e) => e.stopPropagation()}>
         <div className="an-modal-header">
@@ -28,6 +29,7 @@ export default function ConfirmSubmitModal({ onConfirm, onClose, submitting }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

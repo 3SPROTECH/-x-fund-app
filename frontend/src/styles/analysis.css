@@ -3098,7 +3098,7 @@
 .an-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 2000;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(3px);
   display: flex;

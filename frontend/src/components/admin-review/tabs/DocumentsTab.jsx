@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { FileText, CheckCircle, AlertTriangle, Shield } from 'lucide-react';
 import { getImageUrl } from '../../../api/client';
 import DocumentViewer from '../../analysis/DocumentViewer';
-import '../../analysis/analysis.css';
+import '../../../styles/analysis.css';
 
 /* ── Document builders (same logic as analyst TabDocuments) ── */
 

@@ -14,7 +14,7 @@ import {
 import ProjectDataViewer from '../../components/analysis/ProjectDataViewer';
 import AnalysisStepper from '../../components/analysis/AnalysisStepper';
 import ReadOnlyAnalysisView from '../../components/analysis/ReadOnlyAnalysisView';
-import '../../components/analysis/analysis.css';
+import '../../styles/analysis.css';
 
 const EDITABLE_STATUSES = ['pending_analysis', 'info_requested', 'info_resubmitted'];
 
