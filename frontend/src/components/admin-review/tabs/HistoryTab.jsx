@@ -6,17 +6,18 @@ function buildTimeline(project) {
   const a = project?.attributes || project || {};
   const events = [];
 
-  // Helper to add an event with a date for sorting
+  // Helper to add an event with a date for sorting; order is used as tiebreaker
+  let seq = 0;
   const add = (label, date, state = 'done', detail = null) => {
-    if (date) events.push({ label, date, state, detail });
+    if (date) events.push({ label, date, state, detail, order: seq++ });
   };
 
   // 1. Project created
   add('Projet soumis par le porteur', a.created_at);
 
-  // 2. Analyst assigned
-  if (a.analyst_name) {
-    add(`Analyste assigne — ${a.analyst_name}`, a.analyst_assigned_at || a.created_at);
+  // 2. Analyst assigned (only if we have a real assignment timestamp)
+  if (a.analyst_name && a.analyst_assigned_at) {
+    add(`Analyste assigne — ${a.analyst_name}`, a.analyst_assigned_at);
   }
 
   // 3. Analysis submitted (analyst reviewed)
@@ -47,8 +48,8 @@ function buildTimeline(project) {
     add('Debut de la collecte', a.funding_start_date);
   }
 
-  // Sort chronologically (most recent first)
-  events.sort((x, y) => new Date(y.date) - new Date(x.date));
+  // Sort chronologically (most recent first); use insertion order as tiebreaker
+  events.sort((x, y) => new Date(y.date) - new Date(x.date) || y.order - x.order);
 
   // Mark the first event (most recent) as active
   if (events.length > 0) {
