@@ -52,9 +52,8 @@ export default function AnalysteProjectsPage() {
           { key: 'opinion', label: 'Avis', value: filters.opinion, options: [
             { value: '', label: 'Tous les avis' },
             { value: 'opinion_pending', label: 'En attente' },
-            { value: 'opinion_approved', label: 'Valide' },
+            { value: 'opinion_submitted', label: 'Soumise' },
             { value: 'opinion_info_requested', label: 'Infos demandees' },
-            { value: 'opinion_rejected', label: 'Refuse' },
           ]},
         ]}
         onFilterChange={(key, value) => { setFilters({ ...filters, [key]: value }); setPage(1); }}

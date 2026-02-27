@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FileText, Building, ClipboardList, Star, ClipboardCheck, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { FileText, Building, ClipboardList, Star, ClipboardCheck, ArrowLeft, ArrowRight, Check, Send } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 import StepRichText from './steps/StepRichText';
 import StepSwotField from './steps/StepSwotField';
@@ -8,6 +10,7 @@ import StepNumberedList from './steps/StepNumberedList';
 import StepScoring from './steps/StepScoring';
 import StepSummary from './steps/StepSummary';
 import useAnalysisDraft from '../../hooks/useAnalysisDraft';
+import { analysteApi } from '../../api/analyste';
 
 const STEPS = [
   {
@@ -15,8 +18,8 @@ const STEPS = [
     icon: FileText,
     micro: [
       {
-        title: "Opportunité & Stratégie d'Investissement",
-        desc: "Résumez l'essence du projet : la nature de l'opération (marchand de biens, promotion), la stratégie de création de valeur (division, rénovation) et l'état d'avancement administratif (permis, diagnostics).",
+        title: "Opportunite & Strategie d'Investissement",
+        desc: "Resumez l'essence du projet : la nature de l'operation (marchand de biens, promotion), la strategie de creation de valeur (division, renovation) et l'etat d'avancement administratif (permis, diagnostics).",
         Component: StepRichText,
         field: 'investissement',
         props: {
@@ -25,8 +28,8 @@ const STEPS = [
         },
       },
       {
-        title: 'Présentation du Porteur de Projet',
-        desc: "Présentez l'émetteur de l'offre. Cette section doit détailler l'identité juridique de la société, la structure de son actionnariat et, surtout, le 'track-record' (l'historique) des dirigeants.",
+        title: 'Presentation du Porteur de Projet',
+        desc: "Presentez l'emetteur de l'offre. Cette section doit detailler l'identite juridique de la societe, la structure de son actionnariat et, surtout, le 'track-record' (l'historique) des dirigeants.",
         Component: StepRichText,
         field: 'porteur_du_projet',
         props: {
@@ -35,8 +38,8 @@ const STEPS = [
         },
       },
       {
-        title: 'Localisation et Analyse du Marché',
-        desc: "Détaillez l'emplacement précis du bien et le contexte économique local. L'objectif est de justifier la liquidité du projet : pourquoi y a-t-il une demande pour ce type de bien à cet endroit précis ? Mentionnez les points d'intérêt, les tendances du marché et les avis de valeur.",
+        title: 'Localisation et Analyse du Marche',
+        desc: "Detaillez l'emplacement precis du bien et le contexte economique local. L'objectif est de justifier la liquidite du projet : pourquoi y a-t-il une demande pour ce type de bien a cet endroit precis ? Mentionnez les points d'interet, les tendances du marche et les avis de valeur.",
         Component: StepRichText,
         field: 'localisation',
         props: {
@@ -45,8 +48,8 @@ const STEPS = [
         },
       },
       {
-        title: 'Montage Financier et Rentabilité',
-        desc: "Présentez l'équilibre financier de l'opération. Détaillez d'une part les 'Emplois' (coûts d'acquisition, travaux, frais) et d'autre part les 'Ressources' (apport personnel, levée de fonds). Concluez sur la marge prévisionnelle et les hypothèses de revente pour démontrer la rentabilité du projet.",
+        title: 'Montage Financier et Rentabilite',
+        desc: "Presentez l'equilibre financier de l'operation. Detaillez d'une part les 'Emplois' (couts d'acquisition, travaux, frais) et d'autre part les 'Ressources' (apport personnel, levee de fonds). Concluez sur la marge previsionnelle et les hypotheses de revente pour demontrer la rentabilite du projet.",
         Component: StepRichText,
         field: 'structure_financiere',
         props: {
@@ -55,8 +58,8 @@ const STEPS = [
         },
       },
       {
-        title: "Sûretés et Garanties de l'Investissement",
-        desc: "Détaillez l'ensemble des mécanismes de protection activés pour cette opération. Précisez les garanties réelles (hypothèque), les garanties personnelles (caution) et les mécanismes de contrôle (séquestre, open banking).",
+        title: "Suretes et Garanties de l'Investissement",
+        desc: "Detaillez l'ensemble des mecanismes de protection actives pour cette operation. Precisez les garanties reelles (hypotheque), les garanties personnelles (caution) et les mecanismes de controle (sequestre, open banking).",
         Component: StepRichText,
         field: 'garanties',
         props: {
@@ -72,46 +75,46 @@ const STEPS = [
     micro: [
       {
         title: "Forces de l'actif",
-        desc: "Identifiez et détaillez les atouts majeurs de l'actif. Chaque point doit mettre en lumière un avantage concret : qualité de l'emplacement, état du bien, rendement locatif, etc.",
+        desc: "Identifiez et detaillez les atouts majeurs de l'actif. Chaque point doit mettre en lumiere un avantage concret : qualite de l'emplacement, etat du bien, rendement locatif, etc.",
         Component: StepSwotField,
         field: 'forces',
         props: {
           addLabel: 'Ajouter une force',
           titlePlaceholder: 'Ex: Emplacement premium en centre-ville',
-          descPlaceholder: 'Détaillez en quoi cet élément constitue un atout pour le projet...',
+          descPlaceholder: "Detaillez en quoi cet element constitue un atout pour le projet...",
         },
       },
       {
         title: "Faiblesses de l'actif",
-        desc: "Relevez les points de vigilance et les faiblesses identifiées. Soyez précis sur les risques internes : travaux nécessaires, contraintes techniques, défauts structurels, etc.",
+        desc: "Relevez les points de vigilance et les faiblesses identifiees. Soyez precis sur les risques internes : travaux necessaires, contraintes techniques, defauts structurels, etc.",
         Component: StepSwotField,
         field: 'faiblesses',
         props: {
           addLabel: 'Ajouter une faiblesse',
-          titlePlaceholder: 'Ex: Travaux de toiture nécessaires',
-          descPlaceholder: 'Détaillez en quoi cet élément représente un risque ou une faiblesse...',
+          titlePlaceholder: 'Ex: Travaux de toiture necessaires',
+          descPlaceholder: "Detaillez en quoi cet element represente un risque ou une faiblesse...",
         },
       },
       {
-        title: "Opportunités de l'actif",
-        desc: "Identifiez les facteurs externes favorables au projet. Projets d'infrastructure à proximité, dynamisme du marché local, évolutions réglementaires positives, etc.",
+        title: "Opportunites de l'actif",
+        desc: "Identifiez les facteurs externes favorables au projet. Projets d'infrastructure a proximite, dynamisme du marche local, evolutions reglementaires positives, etc.",
         Component: StepSwotField,
         field: 'opportunites',
         props: {
-          addLabel: 'Ajouter une opportunité',
-          titlePlaceholder: 'Ex: Projet de tramway à proximité',
-          descPlaceholder: "Décrivez comment cette opportunité peut bénéficier au projet...",
+          addLabel: 'Ajouter une opportunite',
+          titlePlaceholder: 'Ex: Projet de tramway a proximite',
+          descPlaceholder: "Decrivez comment cette opportunite peut beneficier au projet...",
         },
       },
       {
         title: "Menaces de l'actif",
-        desc: "Signalez les risques externes pouvant impacter le projet. Évolution défavorable du marché, concurrence accrue, changements réglementaires, aléas environnementaux, etc.",
+        desc: "Signalez les risques externes pouvant impacter le projet. Evolution defavorable du marche, concurrence accrue, changements reglementaires, aleas environnementaux, etc.",
         Component: StepSwotField,
         field: 'menaces',
         props: {
           addLabel: 'Ajouter une menace',
-          titlePlaceholder: 'Ex: Saturation du marché locatif local',
-          descPlaceholder: 'Décrivez comment cette menace pourrait impacter le projet...',
+          titlePlaceholder: 'Ex: Saturation du marche locatif local',
+          descPlaceholder: 'Decrivez comment cette menace pourrait impacter le projet...',
         },
       },
     ],
@@ -121,20 +124,20 @@ const STEPS = [
     icon: ClipboardList,
     micro: [
       {
-        title: 'Points Clés du Projet',
-        desc: "Sélectionnez 4 à 6 caractéristiques majeures qui définissent l'attractivité immédiate du projet. Chaque bloc doit comporter un titre court (2-3 mots) et une description d'une ligne. Choisissez des icônes qui illustrent la stratégie.",
+        title: 'Points Cles du Projet',
+        desc: "Selectionnez 4 a 6 caracteristiques majeures qui definissent l'attractivite immediate du projet. Chaque bloc doit comporter un titre court (2-3 mots) et une description d'une ligne. Choisissez des icones qui illustrent la strategie.",
         Component: StepHighlights,
         field: 'highlights',
       },
       {
-        title: "Éléments Clés de l'Analyse",
-        desc: "Présentez une liste numérotée des conclusions de votre audit. Cette section doit équilibrer les facteurs de réassurance et les réalités du marché.",
+        title: "Elements Cles de l'Analyse",
+        desc: "Presentez une liste numerotee des conclusions de votre audit. Cette section doit equilibrer les facteurs de reassurance et les realites du marche.",
         Component: StepNumberedList,
         field: 'elements_cles',
         props: {
           addLabel: 'Ajouter une conclusion',
-          titlePlaceholder: 'Ex: Rentabilité nette supérieure au marché',
-          descPlaceholder: 'Développez cette conclusion en détaillant les éléments factuels qui la soutiennent...',
+          titlePlaceholder: 'Ex: Rentabilite nette superieure au marche',
+          descPlaceholder: 'Developpez cette conclusion en detaillant les elements factuels qui la soutiennent...',
         },
       },
     ],
@@ -176,6 +179,7 @@ function getGradeColor(grade) {
 
 export default function AnalysisStepper({ project }) {
   const projectId = project?.id || project?.data?.id;
+  const navigate = useNavigate();
 
   const {
     loadingDraft,
@@ -191,6 +195,7 @@ export default function AnalysisStepper({ project }) {
   const [microIndex, setMicroIndex] = useState(0);
   const [formData, setFormData] = useState({});
   const [completedMacros, setCompletedMacros] = useState(new Set());
+  const [submitting, setSubmitting] = useState(false);
   const stepRef = useRef();
 
   // Restore draft data once loaded
@@ -258,6 +263,28 @@ export default function AnalysisStepper({ project }) {
     saveDraft();
     setMacroIndex(newMacro);
     setMicroIndex(newMicro);
+  };
+
+  const handleSubmitAnalysis = async () => {
+    if (!window.confirm("Voulez-vous soumettre votre analyse ? Cette action est definitive.")) return;
+
+    setSubmitting(true);
+    try {
+      const scoring = formData.scoring || {};
+      await analysteApi.submitAnalysis(projectId, {
+        analysis_data: formData,
+        comment: formData.analyst_comment || '',
+        legal_check: scoring.criteria?.[2]?.grade > 0,
+        financial_check: scoring.criteria?.[1]?.grade > 0,
+        risk_check: scoring.criteria?.[4]?.grade > 0,
+      });
+      toast.success('Analyse soumise avec succes');
+      navigate('/analyste/projects');
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || "Erreur lors de la soumission de l'analyse");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const canNavigateToMacro = (idx) => {
@@ -387,13 +414,24 @@ export default function AnalysisStepper({ project }) {
         >
           <ArrowLeft size={14} /> Precedent
         </button>
-        <button
-          className="an-stepper-btn primary"
-          onClick={handleNext}
-          disabled={isLastGlobal}
-        >
-          Suivant <ArrowRight size={14} />
-        </button>
+        {isLastGlobal ? (
+          <button
+            className="an-stepper-btn submit"
+            onClick={handleSubmitAnalysis}
+            disabled={submitting}
+          >
+            {submitting ? 'Soumission...' : (
+              <><Send size={14} /> Soumettre l&apos;analyse</>
+            )}
+          </button>
+        ) : (
+          <button
+            className="an-stepper-btn primary"
+            onClick={handleNext}
+          >
+            Suivant <ArrowRight size={14} />
+          </button>
+        )}
       </div>
     </div>
   );

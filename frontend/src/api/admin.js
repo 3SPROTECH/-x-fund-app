@@ -80,6 +80,10 @@ export const adminApi = {
     return client.patch(`/admin/investment_projects/${id}/request_info`, { comment });
   },
 
+  requestRedo(id, comment) {
+    return client.patch(`/admin/investment_projects/${id}/request_redo`, { comment });
+  },
+
   advanceStatus(id, status, comment = '') {
     return client.patch(`/admin/investment_projects/${id}/advance_status`, { status, comment });
   },

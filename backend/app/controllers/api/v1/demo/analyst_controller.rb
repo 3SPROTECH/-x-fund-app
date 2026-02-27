@@ -9,7 +9,7 @@ module Api
         def index
           projects = InvestmentProject
             .includes(:owner, :properties, :info_requests)
-            .where(status: [:pending_analysis, :info_requested, :info_resubmitted, :analyst_approved, :rejected])
+            .where(status: [:pending_analysis, :info_requested, :info_resubmitted, :analysis_submitted, :rejected])
 
           projects = projects.where(status: params[:status]) if params[:status].present?
 
@@ -21,12 +21,12 @@ module Api
           projects = projects.order(updated_at: :desc)
 
           # Summary metrics
-          all_review = InvestmentProject.where(status: [:pending_analysis, :info_requested, :info_resubmitted, :analyst_approved, :rejected])
+          all_review = InvestmentProject.where(status: [:pending_analysis, :info_requested, :info_resubmitted, :analysis_submitted, :rejected])
           metrics = {
             pending_analysis: all_review.where(status: :pending_analysis).count,
             info_requested: all_review.where(status: :info_requested).count,
             info_resubmitted: all_review.where(status: :info_resubmitted).count,
-            analyst_approved: all_review.where(status: :analyst_approved).count,
+            analysis_submitted: all_review.where(status: :analysis_submitted).count,
             rejected: all_review.where(status: :rejected).count,
             total: all_review.count
           }
@@ -80,7 +80,7 @@ module Api
         # PATCH /api/v1/demo/analyst/projects/:id/approve
         def approve
           @project.update!(
-            status: :analyst_approved,
+            status: :analysis_submitted,
             reviewed_by_id: current_user.id,
             reviewed_at: Time.current,
             review_comment: params[:comment]

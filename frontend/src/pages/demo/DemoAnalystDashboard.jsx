@@ -17,8 +17,7 @@ const METRIC_CARDS = [
     { key: 'pending_analysis', label: 'En attente', icon: Clock, color: '#f0ad4e' },
     { key: 'info_requested', label: 'Info demandée', icon: AlertTriangle, color: '#e67e22' },
     { key: 'info_resubmitted', label: 'Info resoumise', icon: RefreshCw, color: '#3498db' },
-    { key: 'analyst_approved', label: 'Pré-approuvés', icon: CheckCircle, color: '#27ae60' },
-    { key: 'rejected', label: 'Rejetés', icon: XCircle, color: '#e74c3c' },
+    { key: 'analysis_submitted', label: 'Analyse soumise', icon: CheckCircle, color: '#27ae60' },
 ];
 
 export default function DemoAnalystDashboard() {
@@ -161,8 +160,7 @@ export default function DemoAnalystDashboard() {
                     <option value="pending_analysis">En attente</option>
                     <option value="info_requested">Info demandée</option>
                     <option value="info_resubmitted">Info resoumise</option>
-                    <option value="analyst_approved">Pré-approuvés</option>
-                    <option value="rejected">Rejetés</option>
+                    <option value="analysis_submitted">Analyse soumise</option>
                 </select>
             </div>
 

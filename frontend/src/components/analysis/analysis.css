@@ -449,6 +449,17 @@
   background: var(--primary-hover);
 }
 
+.an-stepper-btn.submit {
+  background: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+  font-weight: 600;
+}
+
+.an-stepper-btn.submit:hover {
+  background: #15803d;
+}
+
 .an-stepper-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

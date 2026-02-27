@@ -7520,7 +7520,7 @@ textarea.error:focus {
   border: 1px solid var(--border);
 }
 
-.analyste-review-banner.analyste-review-opinion_approved {
+.analyste-review-banner.analyste-review-opinion_submitted {
   background: var(--success-light);
   border-color: var(--success);
   color: var(--success);

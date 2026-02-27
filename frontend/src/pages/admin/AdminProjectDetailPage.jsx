@@ -105,6 +105,19 @@ export default function AdminProjectDetailPage() {
     }
   };
 
+  const handleRequestRedo = async () => {
+    const comment = window.prompt("Raison de la demande de reprise d'analyse :");
+    if (comment === null) return;
+    if (!comment.trim()) { toast.error('Veuillez fournir une raison'); return; }
+    try {
+      await adminApi.requestRedo(id, comment);
+      toast.success("Demande de reprise d'analyse envoyee");
+      loadAll();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la demande');
+    }
+  };
+
   const handleSendContract = async (pdfBase64) => {
     try {
       const res = await adminApi.sendContract(id, pdfBase64);
@@ -244,13 +257,13 @@ export default function AdminProjectDetailPage() {
         </div>
       )}
 
-      {/* Admin Decision Banner for pre-approved projects */}
-      {a.status === 'analyst_approved' && (
+      {/* Admin Decision Banner for submitted analysis */}
+      {a.status === 'analysis_submitted' && (
         <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '2px solid var(--gold-color, #DAA520)' }}>
           <div>
             <h3 style={{ margin: 0 }}>Decision requise</h3>
             <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
-              Ce projet a ete pre-approuve par l'analyste. Veuillez examiner le rapport et prendre une decision.
+              L'analyste a soumis son analyse pour ce projet. Veuillez examiner le rapport et prendre une decision.
             </p>
           </div>
           <div style={{ display: 'flex', gap: '.5rem', flexShrink: 0 }}>
@@ -264,6 +277,9 @@ export default function AdminProjectDetailPage() {
             </button>
             <button className="btn btn-danger" onClick={handleReject}>
               <XCircle size={16} /> Rejeter
+            </button>
+            <button className="btn btn-warning" onClick={handleRequestRedo}>
+              <RefreshCw size={16} /> Reprendre
             </button>
           </div>
         </div>

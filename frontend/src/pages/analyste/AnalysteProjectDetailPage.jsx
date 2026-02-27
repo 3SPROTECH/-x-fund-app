@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { analysteApi } from '../../api/analyste';
 import {
-  ArrowLeft, CheckCircle, AlertCircle, XCircle, FileText, DollarSign, Shield,
-  Building, User, Calendar, TrendingUp, Scale, AlertTriangle, MessageSquare, Upload,
+  ArrowLeft, CheckCircle, AlertCircle, DollarSign, Shield,
+  Building, Calendar, Scale, MessageSquare, Upload,
   FileBarChart,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -18,19 +18,10 @@ export default function AnalysteProjectDetailPage() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Analysis form state
-  const [legalCheck, setLegalCheck] = useState(false);
-  const [financialCheck, setFinancialCheck] = useState(false);
-  const [riskCheck, setRiskCheck] = useState(false);
-  const [comment, setComment] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [modalAction, setModalAction] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [showInfoForm, setShowInfoForm] = useState(false);
   const [infoRequests, setInfoRequests] = useState([]);
   const [reportData, setReportData] = useState(null);
   const [showReport, setShowReport] = useState(false);
-  const [generatingReport, setGeneratingReport] = useState(false);
 
   useEffect(() => { loadProject(); }, [id]);
 
@@ -39,78 +30,13 @@ export default function AnalysteProjectDetailPage() {
     try {
       const res = await analysteApi.getProject(id);
       const p = res.data.data;
-      const a = p.attributes || p;
       setProject(p);
-      setLegalCheck(a.analyst_legal_check || false);
-      setFinancialCheck(a.analyst_financial_check || false);
-      setRiskCheck(a.analyst_risk_check || false);
-      setComment(a.analyst_comment || '');
       setInfoRequests(res.data.info_requests || []);
     } catch {
       toast.error('Erreur lors du chargement du projet');
       navigate('/analyste/projects');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const openSubmitModal = (action) => {
-    setModalAction(action);
-    setShowModal(true);
-  };
-
-  const handleSubmitOpinion = async () => {
-    if (!comment.trim()) {
-      toast.error('Le commentaire est obligatoire');
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const data = {
-        comment,
-        legal_check: legalCheck,
-        financial_check: financialCheck,
-        risk_check: riskCheck,
-      };
-      if (modalAction === 'opinion_rejected') {
-        await analysteApi.rejectProject(id, data);
-      }
-      const labels = {
-        opinion_rejected: 'Projet refuse',
-      };
-      toast.success(labels[modalAction] || 'Avis soumis');
-      setShowModal(false);
-      loadProject();
-    } catch (err) {
-      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la soumission');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleGenerateReport = async () => {
-    if (!comment.trim()) {
-      toast.error('Le commentaire est obligatoire pour generer le rapport');
-      return;
-    }
-    setGeneratingReport(true);
-    try {
-      const data = {
-        comment,
-        legal_check: legalCheck,
-        financial_check: financialCheck,
-        risk_check: riskCheck,
-      };
-      const res = await analysteApi.generateReport(id, data);
-      const report = res.data.report;
-      setReportData(report);
-      setShowReport(true);
-      toast.success('Rapport genere et projet pre-approuve');
-      loadProject();
-    } catch (err) {
-      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la generation du rapport');
-    } finally {
-      setGeneratingReport(false);
     }
   };
 
@@ -314,163 +240,49 @@ export default function AnalysteProjectDetailPage() {
           )}
         </div>
 
-        {/* Right: Analysis Form */}
+        {/* Right: Analysis Status & Actions */}
         <div className="two-col-side">
           <div className="card">
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '1.5rem' }}>
-              <Scale size={18} /> Formulaire d'analyse
+              <Scale size={18} /> Statut de l'analyse
             </h3>
 
             {alreadyReviewed && (
               <div className={`analyste-review-banner analyste-review-${a.analyst_opinion}`}>
-                <strong>Avis deja soumis :</strong> {ANALYST_OPINION_LABELS[a.analyst_opinion]}
+                <strong>Analyse :</strong> {ANALYST_OPINION_LABELS[a.analyst_opinion] || a.analyst_opinion}
                 {a.analyst_reviewed_at && (
                   <span> le {new Date(a.analyst_reviewed_at).toLocaleDateString('fr-FR')}</span>
                 )}
               </div>
             )}
 
-            {/* Legal Check */}
-            <div className="analyste-check-section">
-              <label className="analyste-check-label">
-                <input
-                  type="checkbox"
-                  checked={legalCheck}
-                  onChange={(e) => setLegalCheck(e.target.checked)}
-                  disabled={alreadyReviewed}
-                />
-                <FileText size={16} />
-                <span>Verification juridique du dossier</span>
-              </label>
-              <p className="analyste-check-desc">
-                Verifier la conformite des documents juridiques : statuts, PV, contrats, permis, etc.
-              </p>
-            </div>
+            {a.analyst_comment && (
+              <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#f8f9fa', borderRadius: '6px', fontSize: '.9rem' }}>
+                <strong>Commentaire :</strong>
+                <p style={{ margin: '.25rem 0 0', whiteSpace: 'pre-wrap' }}>{a.analyst_comment}</p>
+              </div>
+            )}
 
-            {/* Financial Check */}
-            <div className="analyste-check-section">
-              <label className="analyste-check-label">
-                <input
-                  type="checkbox"
-                  checked={financialCheck}
-                  onChange={(e) => setFinancialCheck(e.target.checked)}
-                  disabled={alreadyReviewed}
-                />
-                <TrendingUp size={16} />
-                <span>Analyse financiere du projet et du porteur</span>
-              </label>
-              <p className="analyste-check-desc">
-                Evaluer la viabilite financiere : rendements, couts, marges, solvabilite du porteur.
-              </p>
-            </div>
-
-            {/* Risk Check */}
-            <div className="analyste-check-section">
-              <label className="analyste-check-label">
-                <input
-                  type="checkbox"
-                  checked={riskCheck}
-                  onChange={(e) => setRiskCheck(e.target.checked)}
-                  disabled={alreadyReviewed}
-                />
-                <AlertTriangle size={16} />
-                <span>Analyse des risques lies au projet immobilier</span>
-              </label>
-              <p className="analyste-check-desc">
-                Identifier et evaluer les risques : marche, construction, reglementaire, sortie.
-              </p>
-            </div>
-
-            {/* Comment */}
-            <div className="form-group" style={{ marginTop: '1.5rem' }}>
-              <label>Commentaire detaille</label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Redigez votre analyse detaillee ici..."
-                rows={6}
-                disabled={alreadyReviewed}
-              />
-            </div>
-
-            {/* Actions */}
-            {!alreadyReviewed && (
-              <div className="analyste-actions">
-                <button
-                  className="btn btn-success"
-                  onClick={handleGenerateReport}
-                  disabled={generatingReport}
-                >
-                  <FileBarChart size={16} /> {generatingReport ? 'Generation...' : 'Generer le rapport d\'analyse'}
-                </button>
+            <div className="analyste-actions" style={{ marginTop: '1.5rem' }}>
+              {!alreadyReviewed && (
                 <button
                   className="btn btn-warning"
                   onClick={() => setShowInfoForm(true)}
+                  style={{ width: '100%' }}
                 >
                   <AlertCircle size={16} /> Demander des complements
                 </button>
-                <button
-                  className="btn btn-danger"
-                  onClick={() => openSubmitModal('opinion_rejected')}
-                >
-                  <XCircle size={16} /> Refuser le projet
-                </button>
-              </div>
-            )}
+              )}
 
-            {/* View existing report */}
-            {a.has_analyst_report && (
-              <div style={{ marginTop: alreadyReviewed ? 0 : '0.75rem' }}>
+              {a.has_analyst_report && (
                 <button className="btn btn-primary" onClick={handleViewReport} style={{ width: '100%' }}>
                   <FileBarChart size={16} /> Voir le rapport d'analyse
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Confirmation Modal (for reject only now) */}
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>
-              {modalAction === 'opinion_rejected' && 'Confirmer le refus'}
-            </h3>
-            <p className="text-muted" style={{ marginBottom: '1rem' }}>
-              {modalAction === 'opinion_rejected' && 'Vous etes sur le point de refuser ce projet. Votre avis sera transmis a l\'administrateur.'}
-            </p>
-
-            <div className="detail-grid" style={{ marginBottom: '1rem' }}>
-              <div className="detail-row"><span>Juridique</span><span>{legalCheck ? 'Conforme' : 'Non conforme'}</span></div>
-              <div className="detail-row"><span>Financier</span><span>{financialCheck ? 'Conforme' : 'Non conforme'}</span></div>
-              <div className="detail-row"><span>Risques</span><span>{riskCheck ? 'Conforme' : 'Non conforme'}</span></div>
-            </div>
-
-            <div className="form-group">
-              <label>Commentaire (obligatoire)</label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Votre commentaire..."
-                rows={4}
-              />
-            </div>
-            <div className="modal-actions">
-              <button className="btn" onClick={() => setShowModal(false)} disabled={submitting}>
-                Annuler
-              </button>
-              <button
-                className={`btn ${modalAction === 'opinion_approved' ? 'btn-success' : 'btn-danger'}`}
-                onClick={handleSubmitOpinion}
-                disabled={submitting}
-              >
-                {submitting ? 'Envoi...' : 'Confirmer'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Info Request Form Modal */}
       {showInfoForm && (

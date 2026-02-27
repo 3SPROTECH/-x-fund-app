@@ -3,7 +3,7 @@ module Api
     module Admin
       class InvestmentProjectsController < ApplicationController
         before_action :require_admin!
-        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :advance_status, :assign_analyst, :report, :send_contract, :check_signature_status]
+        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :request_redo, :advance_status, :assign_analyst, :report, :send_contract, :check_signature_status]
 
         def index
           projects = InvestmentProject
@@ -124,6 +124,40 @@ module Api
           NotificationService.notify_project_owner!(@project, actor: current_user, type: "info_requested", title: "Complements demandes", body: "Des complements d'information sont demandes pour votre projet « #{@project.title} ».#{params[:comment].present? ? " Commentaire : #{params[:comment]}" : ''}")
           render json: {
             message: "Complements d'information demandes.",
+            data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
+          }
+        end
+
+        # PATCH /api/v1/admin/investment_projects/:id/request_redo
+        def request_redo
+          if params[:comment].blank?
+            return render json: { errors: ["Le commentaire est obligatoire pour une demande de reprise."] }, status: :unprocessable_entity
+          end
+
+          @project.update!(
+            status: :pending_analysis,
+            analyst_opinion: :opinion_pending,
+            analyst_comment: nil,
+            analyst_legal_check: false,
+            analyst_financial_check: false,
+            analyst_risk_check: false,
+            analyst_reviewed_at: nil,
+            reviewed_by_id: current_user.id,
+            reviewed_at: Time.current,
+            review_comment: params[:comment]
+          )
+
+          log_admin_action("request_redo", @project, { comment: params[:comment] })
+          NotificationService.notify_project_analyst!(
+            @project,
+            actor: current_user,
+            type: "analysis_redo_requested",
+            title: "Reprise d'analyse demandee",
+            body: "L'administrateur a demande une reprise de l'analyse pour le projet « #{@project.title} ». Motif : #{params[:comment]}"
+          )
+
+          render json: {
+            message: "Demande de reprise d'analyse envoyee.",
             data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
           }
         end

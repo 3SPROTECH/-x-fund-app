@@ -24,12 +24,8 @@ class InvestmentProjectSerializer
              :yousign_status, :yousign_sent_at, :yousign_admin_signer_id,
              :created_at, :updated_at
 
-  attribute :status do |project, params|
-    if params && params[:hide_analyst_approved] && project.analyst_approved?
-      "pending_analysis"
-    else
-      project.status
-    end
+  attribute :status do |project|
+    project.status
   end
 
   attribute :funding_progress_percent do |project|

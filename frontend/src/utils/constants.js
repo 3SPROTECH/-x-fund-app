@@ -14,15 +14,13 @@ export const ROLE_LABELS = {
 // ─── Analyst opinion statuses ───
 export const ANALYST_OPINION_LABELS = {
   opinion_pending: 'En attente',
-  opinion_approved: 'Validé',
-  opinion_info_requested: 'Infos demandées',
-  opinion_rejected: 'Refusé',
+  opinion_submitted: 'Soumise',
+  opinion_info_requested: 'Infos demandees',
 };
 export const ANALYST_OPINION_BADGES = {
   opinion_pending: 'badge-warning',
-  opinion_approved: 'badge-success',
+  opinion_submitted: 'badge-success',
   opinion_info_requested: 'badge-info',
-  opinion_rejected: 'badge-danger',
 };
 
 // ─── Project statuses ───
@@ -31,9 +29,9 @@ export const PROJECT_STATUS_LABELS = {
   pending_analysis: 'En Analyse',
   info_requested: 'Compléments requis',
   info_resubmitted: 'Compléments soumis',
-  rejected: 'Refusé',
-  analyst_approved: 'Pré-approuvé',
-  approved: 'Approuvé',
+  rejected: 'Refuse',
+  analysis_submitted: 'Analyse soumise',
+  approved: 'Approuve',
   legal_structuring: 'Montage Juridique',
   signing: 'En Signature',
   funding_active: 'En Collecte',
@@ -48,7 +46,7 @@ export const PROJECT_STATUS_BADGES = {
   info_requested: 'badge-warning',
   info_resubmitted: 'badge-info',
   rejected: 'badge-danger',
-  analyst_approved: 'badge-success',
+  analysis_submitted: 'badge-info',
   approved: 'badge-success',
   legal_structuring: 'badge-info',
   signing: 'badge-info',

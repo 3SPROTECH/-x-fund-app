@@ -142,11 +142,8 @@ Rails.application.routes.draw do
       namespace :analyste do
         resources :projects, only: [:index, :show], controller: "projects" do
           member do
-            patch :submit_opinion
             post :request_info
-            patch :approve
-            patch :reject
-            post :generate_report
+            post :submit_analysis
             get :report
             get 'info_requests/:info_request_id/file/:field_index', action: :download_response_file, as: :download_response_file
           end
@@ -188,6 +185,7 @@ Rails.application.routes.draw do
             patch :approve
             patch :reject
             patch :request_info
+            patch :request_redo
             patch :advance_status
             patch :assign_analyst
             get :report

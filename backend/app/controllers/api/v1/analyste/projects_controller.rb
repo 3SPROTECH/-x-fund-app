@@ -3,7 +3,7 @@ module Api
     module Analyste
       class ProjectsController < ApplicationController
         before_action :require_analyste!
-        before_action :set_project, only: [:show, :submit_opinion, :request_info, :approve, :reject, :generate_report, :report, :download_response_file]
+        before_action :set_project, only: [:show, :request_info, :submit_analysis, :report, :download_response_file]
 
         def index
           projects = InvestmentProject.where(analyst_id: current_user.id)
@@ -29,34 +29,6 @@ module Api
           }
         end
 
-        def submit_opinion
-          opinion = params[:opinion]
-          unless InvestmentProject.analyst_opinions.key?(opinion)
-            return render json: { errors: ["Avis invalide: #{opinion}"] }, status: :unprocessable_entity
-          end
-
-          if opinion != "opinion_pending" && params[:comment].blank?
-            return render json: { errors: ["Le commentaire est obligatoire"] }, status: :unprocessable_entity
-          end
-
-          @project.update!(
-            analyst_opinion: opinion,
-            analyst_comment: params[:comment],
-            analyst_legal_check: params[:legal_check] || false,
-            analyst_financial_check: params[:financial_check] || false,
-            analyst_risk_check: params[:risk_check] || false,
-            analyst_reviewed_at: Time.current
-          )
-
-          NotificationService.notify_admins!(actor: current_user, notifiable: @project, type: "analyst_opinion_submitted", title: "Avis analyste soumis", body: "L'analyste #{current_user.full_name} a soumis un avis sur le projet « #{@project.title} ».")
-          NotificationService.notify_project_owner!(@project, actor: current_user, type: "analyst_opinion_submitted", title: "Avis analyste soumis", body: "L'analyste a soumis un avis sur votre projet « #{@project.title} ».")
-
-          render json: {
-            message: "Avis soumis avec succes.",
-            data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
-          }
-        end
-
         # POST /api/v1/analyste/projects/:id/request_info
         def request_info
           fields = params[:fields]
@@ -75,15 +47,12 @@ module Api
               status: :info_requested,
               analyst_opinion: :opinion_info_requested,
               analyst_comment: params[:comment],
-              analyst_reviewed_at: Time.current,
-              reviewed_by_id: current_user.id,
-              reviewed_at: Time.current,
-              review_comment: params[:comment]
+              analyst_reviewed_at: Time.current
             )
             NotificationService.notify_project_owner!(@project, actor: current_user, type: "analyst_info_requested", title: "Complements demandes", body: "L'analyste a demande des complements d'information pour votre projet « #{@project.title} ».")
 
             render json: {
-              message: "Demande de compléments envoyée.",
+              message: "Demande de complements envoyee.",
               data: InfoRequestSerializer.new(info_request).serializable_hash[:data]
             }, status: :created
           else
@@ -91,74 +60,30 @@ module Api
           end
         end
 
-        # PATCH /api/v1/analyste/projects/:id/approve
-        def approve
-          @project.update!(
-            status: :analyst_approved,
-            analyst_opinion: :opinion_approved,
-            analyst_comment: params[:comment].presence || @project.analyst_comment,
-            analyst_legal_check: params[:legal_check].nil? ? @project.analyst_legal_check : params[:legal_check],
-            analyst_financial_check: params[:financial_check].nil? ? @project.analyst_financial_check : params[:financial_check],
-            analyst_risk_check: params[:risk_check].nil? ? @project.analyst_risk_check : params[:risk_check],
-            analyst_reviewed_at: Time.current,
-            reviewed_by_id: current_user.id,
-            reviewed_at: Time.current,
-            review_comment: params[:comment]
-          )
-
-          # Mark any submitted info requests as reviewed
-          @project.info_requests.where(status: :submitted).update_all(status: :reviewed)
-          NotificationService.notify_admins!(actor: current_user, notifiable: @project, type: "analyst_opinion_submitted", title: "Projet pre-approuve", body: "L'analyste #{current_user.full_name} a pre-approuve le projet « #{@project.title} ».")
-          NotificationService.notify_project_owner!(@project, actor: current_user, type: "project_approved", title: "Projet pre-approuve", body: "Votre projet « #{@project.title} » a ete pre-approuve par l'analyste.")
-
-          render json: {
-            message: "Projet pré-approuvé par l'analyste.",
-            data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
-          }
-        end
-
-        # PATCH /api/v1/analyste/projects/:id/reject
-        def reject
-          if params[:comment].blank?
-            return render json: { errors: ["Le commentaire est obligatoire pour un refus."] }, status: :unprocessable_entity
+        # POST /api/v1/analyste/projects/:id/submit_analysis
+        def submit_analysis
+          unless @project.pending_analysis? || @project.info_resubmitted?
+            return render json: { errors: ["Le projet n'est pas en attente d'analyse."] }, status: :unprocessable_entity
           end
 
-          @project.update!(
-            status: :rejected,
-            analyst_opinion: :opinion_rejected,
-            analyst_comment: params[:comment],
-            analyst_legal_check: params[:legal_check].nil? ? @project.analyst_legal_check : params[:legal_check],
-            analyst_financial_check: params[:financial_check].nil? ? @project.analyst_financial_check : params[:financial_check],
-            analyst_risk_check: params[:risk_check].nil? ? @project.analyst_risk_check : params[:risk_check],
-            analyst_reviewed_at: Time.current,
-            reviewed_by_id: current_user.id,
-            reviewed_at: Time.current,
-            review_comment: params[:comment]
-          )
+          analysis_data = params[:analysis_data]
+          unless analysis_data.present?
+            return render json: { errors: ["Les donnees d'analyse sont requises."] }, status: :unprocessable_entity
+          end
 
-          NotificationService.notify_admins!(actor: current_user, notifiable: @project, type: "analyst_opinion_submitted", title: "Projet rejete par analyste", body: "L'analyste #{current_user.full_name} a rejete le projet « #{@project.title} ».")
-          NotificationService.notify_project_owner!(@project, actor: current_user, type: "project_rejected", title: "Projet rejete", body: "Votre projet « #{@project.title} » a ete rejete par l'analyste.#{params[:comment].present? ? " Motif : #{params[:comment]}" : ''}")
-
-          render json: {
-            message: "Projet rejeté.",
-            data: InvestmentProjectSerializer.new(@project).serializable_hash[:data]
-          }
-        end
-
-        # POST /api/v1/analyste/projects/:id/generate_report
-        def generate_report
           checks = {
             legal_check: params[:legal_check] || false,
             financial_check: params[:financial_check] || false,
             risk_check: params[:risk_check] || false
           }
 
+          # Generate the analyst report
           generator = AnalystReportGenerator.new(@project, current_user, checks: checks)
           result = generator.generate
 
           report = @project.analyst_reports.create!(
             analyst: current_user,
-            report_data: result[:report_data],
+            report_data: result[:report_data].merge(analysis: analysis_data.to_unsafe_h),
             risk_score: result[:risk_score],
             success_score: result[:success_score],
             financial_metrics: result[:financial_metrics],
@@ -167,27 +92,30 @@ module Api
             comment: params[:comment]
           )
 
-          # Pre-approve the project
+          # Mark analysis as submitted — admin will decide on approval
           @project.update!(
-            status: :analyst_approved,
-            analyst_opinion: :opinion_approved,
-            analyst_comment: params[:comment].presence || @project.analyst_comment,
+            status: :analysis_submitted,
+            analyst_opinion: :opinion_submitted,
+            analyst_comment: params[:comment],
             analyst_legal_check: checks[:legal_check],
             analyst_financial_check: checks[:financial_check],
             analyst_risk_check: checks[:risk_check],
-            analyst_reviewed_at: Time.current,
-            reviewed_by_id: current_user.id,
-            reviewed_at: Time.current,
-            review_comment: params[:comment]
+            analyst_reviewed_at: Time.current
           )
 
           @project.info_requests.where(status: :submitted).update_all(status: :reviewed)
           @project.analysis_drafts.destroy_all
-          NotificationService.notify_admins!(actor: current_user, notifiable: @project, type: "analyst_opinion_submitted", title: "Rapport analyste genere", body: "L'analyste #{current_user.full_name} a genere un rapport et pre-approuve le projet « #{@project.title} ».")
-          NotificationService.notify_project_owner!(@project, actor: current_user, type: "project_approved", title: "Projet pre-approuve", body: "Votre projet « #{@project.title} » a ete pre-approuve suite a l'analyse.")
+
+          NotificationService.notify_admins!(
+            actor: current_user,
+            notifiable: @project,
+            type: "analysis_submitted",
+            title: "Analyse soumise",
+            body: "L'analyste #{current_user.full_name} a soumis son analyse pour le projet « #{@project.title} »."
+          )
 
           render json: {
-            message: "Rapport généré et projet pré-approuvé.",
+            message: "Analyse soumise avec succes.",
             data: InvestmentProjectSerializer.new(@project.reload).serializable_hash[:data],
             report: AnalystReportSerializer.new(report).serializable_hash[:data]
           }, status: :created
@@ -210,7 +138,7 @@ module Api
         def report
           report = @project.analyst_reports.order(created_at: :desc).first
           unless report
-            return render json: { error: "Aucun rapport trouvé." }, status: :not_found
+            return render json: { error: "Aucun rapport trouve." }, status: :not_found
           end
 
           render json: {
@@ -235,9 +163,8 @@ module Api
           {
             total: projects.count,
             pending: projects.where(analyst_opinion: :opinion_pending).count,
-            approved: projects.where(analyst_opinion: :opinion_approved).count,
-            info_requested: projects.where(analyst_opinion: :opinion_info_requested).count,
-            rejected: projects.where(analyst_opinion: :opinion_rejected).count
+            submitted: projects.where(analyst_opinion: :opinion_submitted).count,
+            info_requested: projects.where(analyst_opinion: :opinion_info_requested).count
           }
         end
       end
