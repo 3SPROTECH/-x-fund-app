@@ -143,7 +143,7 @@ export default function OverviewTab({ project, reportData }) {
               <div className="apr-card-b">
                 <ul className="apr-highlights-list">
                   {highlights.map((h, i) => (
-                    <li key={i}>{typeof h === 'string' ? h : h.text || h.title}</li>
+                    <li key={i}>{typeof h === 'string' ? h : h.title}</li>
                   ))}
                 </ul>
               </div>
@@ -163,7 +163,7 @@ export default function OverviewTab({ project, reportData }) {
               <div className="apr-card-b">
                 <div className="apr-chips">
                   {elementsCles.map((el, i) => (
-                    <span key={i} className="apr-chip">{typeof el === 'string' ? el : el.text || el.label}</span>
+                    <span key={i} className="apr-chip">{typeof el === 'string' ? el : el.title}</span>
                   ))}
                 </div>
               </div>

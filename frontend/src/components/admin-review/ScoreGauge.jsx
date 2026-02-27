@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { CRITERIA, getGradeInfo } from '../analysis/steps/StepScoring';
 
+const SCORE_COLOR_MAP = {
+  green: 'var(--apr-green)',
+  orange: 'var(--apr-orange)',
+  red: 'var(--apr-red)',
+};
+
 export default function ScoreGauge({ scoring }) {
   const arcRef = useRef(null);
   const score = scoring?.finalScore;
@@ -10,6 +16,7 @@ export default function ScoreGauge({ scoring }) {
   const circumference = 2 * Math.PI * 48; // ~301.6
   const percentage = score != null ? score / 100 : 0;
   const targetOffset = circumference * (1 - percentage);
+  const scoreColor = SCORE_COLOR_MAP[gradeInfo?.color] || 'var(--apr-text-primary)';
 
   useEffect(() => {
     const arc = arcRef.current;
@@ -34,14 +41,14 @@ export default function ScoreGauge({ scoring }) {
               <circle
                 ref={arcRef}
                 cx="55" cy="55" r="48" fill="none"
-                stroke="var(--apr-text-primary)" strokeWidth="7"
+                stroke={scoreColor} strokeWidth="7"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={circumference}
               />
             )}
           </svg>
-          <span className="apr-gauge-num">{score != null ? Math.round(score) : '—'}</span>
+          <span className="apr-gauge-num" style={{ color: scoreColor }}>{score != null ? Math.round(score) : '—'}</span>
         </div>
         <span className="apr-gauge-sub">Score final</span>
         {gradeInfo && (

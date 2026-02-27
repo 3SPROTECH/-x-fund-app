@@ -53,7 +53,11 @@ export default function KpiStrip({ project, reportData }) {
           <span className="apr-kpi-value-suffix">/100</span>
         </div>
         <div className="apr-kpi-sub">
-          {gradeInfo ? `Grade ${gradeInfo.grade}` : 'Non disponible'}
+          {gradeInfo ? (
+            <span style={{ color: gradeInfo.color === 'green' ? 'var(--apr-green)' : gradeInfo.color === 'red' ? 'var(--apr-red)' : 'var(--apr-orange)' }}>
+              Grade {gradeInfo.grade}
+            </span>
+          ) : 'Non disponible'}
           {scoring.finalScore != null && <span className="apr-source-tag apr-source-analyst">Analyste</span>}
         </div>
       </div>
