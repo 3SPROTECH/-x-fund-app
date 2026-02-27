@@ -10,6 +10,7 @@ import StepNumberedList from './steps/StepNumberedList';
 import StepScoring from './steps/StepScoring';
 import StepSummary from './steps/StepSummary';
 import RedoHistoryView from './RedoHistoryView';
+import ConfirmSubmitModal from './ConfirmSubmitModal';
 import useAnalysisDraft from '../../hooks/useAnalysisDraft';
 import { analysteApi } from '../../api/analyste';
 import { generateTestData, PROFILE_OPTIONS } from './testData';
@@ -199,6 +200,7 @@ export default function AnalysisStepper({ project, redoComment, redoHistory = []
   const [formData, setFormData] = useState({});
   const [completedMacros, setCompletedMacros] = useState(new Set());
   const [submitting, setSubmitting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const stepRef = useRef();
 
   // Restore draft data once loaded, or pre-populate from previous analysis on redo
@@ -283,8 +285,6 @@ export default function AnalysisStepper({ project, redoComment, redoHistory = []
   };
 
   const handleSubmitAnalysis = async () => {
-    if (!window.confirm("Voulez-vous soumettre votre analyse ? Cette action est definitive.")) return;
-
     setSubmitting(true);
     try {
       const scoring = formData.scoring || {};
@@ -478,12 +478,10 @@ export default function AnalysisStepper({ project, redoComment, redoHistory = []
         {isLastGlobal ? (
           <button
             className="an-stepper-btn submit"
-            onClick={handleSubmitAnalysis}
+            onClick={() => setShowConfirm(true)}
             disabled={submitting}
           >
-            {submitting ? 'Soumission...' : (
-              <><Send size={14} /> Soumettre l&apos;analyse</>
-            )}
+            <Send size={14} /> Soumettre l&apos;analyse
           </button>
         ) : (
           <button
@@ -494,6 +492,14 @@ export default function AnalysisStepper({ project, redoComment, redoHistory = []
           </button>
         )}
       </div>
+
+      {showConfirm && (
+        <ConfirmSubmitModal
+          onConfirm={() => { setShowConfirm(false); handleSubmitAnalysis(); }}
+          onClose={() => setShowConfirm(false)}
+          submitting={submitting}
+        />
+      )}
     </div>
   );
 }
