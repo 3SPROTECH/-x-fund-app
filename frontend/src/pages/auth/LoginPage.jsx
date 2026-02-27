@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { LogIn } from 'lucide-react';
+import xfundLogo from '../../assets/XFUND LOGO.png';
 
 export default function LoginPage() {
   const { signIn } = useAuth();
@@ -28,7 +29,7 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo-header">
-          <span className="logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+          <img src={xfundLogo} alt="X-Fund" className="auth-logo-img" />
         </div>
         <p className="auth-subtitle">Connectez-vous à votre espace investisseur</p>
         <form onSubmit={handleSubmit} className="auth-form">

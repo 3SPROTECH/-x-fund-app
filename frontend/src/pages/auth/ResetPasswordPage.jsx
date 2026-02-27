@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/auth';
 import toast from 'react-hot-toast';
+import xfundLogo from '../../assets/XFUND LOGO.png';
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -35,7 +36,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">X-Fund</h1>
+        <div className="auth-logo-header"><img src={xfundLogo} alt="X-Fund" className="auth-logo-img" /></div>
         <p className="auth-subtitle">Choisissez un nouveau mot de passe</p>
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">

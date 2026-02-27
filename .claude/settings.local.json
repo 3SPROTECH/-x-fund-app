@@ -15,7 +15,8 @@
       "Bash(rails db:migrate:*)",
       "Bash(git status:*)",
       "Bash(xargs:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

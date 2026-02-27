@@ -1,19 +1,83 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { adminApi } from '../../api/admin';
 import {
-  Users, ShieldCheck, Building, TrendingUp, Download,
-  DollarSign, Briefcase, Activity, Clock, CreditCard,
-  Wallet, CheckCircle,
+  Users, Building, TrendingUp, Download,
+  Briefcase, CreditCard, ScrollText, Clock,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { formatBalance as fmt, ACTION_LABELS } from '../../utils';
+import { formatBalance as fmt } from '../../utils';
 import { LoadingSpinner } from '../../components/ui';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, Tooltip, Legend);
+
+/* ── Mini sparkline chart used inside KPI cards ── */
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function MiniLineChart({ data, color = '#DAA520', height = 60 }) {
+  const chartRef = useRef(null);
+  const [gradient, setGradient] = useState(null);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    const ctx = chart.ctx;
+    const g = ctx.createLinearGradient(0, 0, 0, height);
+    g.addColorStop(0, hexToRgba(color, 0.25));
+    g.addColorStop(1, hexToRgba(color, 0));
+    setGradient(g);
+  }, [height, color]);
+
+  return (
+    <div style={{ height }}>
+      <Line
+        ref={chartRef}
+        data={{
+          labels: data.map((_, i) => i),
+          datasets: [{
+            data,
+            borderColor: color,
+            backgroundColor: gradient || hexToRgba(color, 0.1),
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: true,
+            tension: 0.4,
+          }],
+        }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          scales: { x: { display: false }, y: { display: false } },
+        }}
+      />
+    </div>
+  );
+}
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => { loadDashboard(); }, []);
 
@@ -54,198 +118,232 @@ export default function AdminDashboardPage() {
   const projects = data?.projects || {};
   const investments = data?.investments || {};
   const financial = data?.financial || {};
-  const recentActivity = data?.recent_activity || [];
+
+  const totalUsers = (users.investisseurs || 0) + (users.porteurs_de_projet || 0) + (users.administrateurs || 0);
+  const fundingPercent = financial.total_deposits_cents
+    ? Math.round((investments.total_amount_cents || 0) / financial.total_deposits_cents * 100)
+    : 0;
+
+  /* Chart data */
+  const userDoughnutData = {
+    labels: ['Investisseurs', 'Porteurs de projet', 'Administrateurs'],
+    datasets: [{
+      data: [users.investisseurs || 0, users.porteurs_de_projet || 0, users.administrateurs || 0],
+      backgroundColor: ['#DAA520', '#9CA3AF', '#374151'],
+      borderWidth: 0,
+      cutout: '70%',
+    }],
+  };
+
+  const fundingDoughnutData = {
+    datasets: [{
+      data: [fundingPercent, Math.max(0, 100 - fundingPercent)],
+      backgroundColor: ['#DAA520', '#E5E7EB'],
+      borderWidth: 0,
+      cutout: '78%',
+    }],
+  };
+
+  const projectStatuses = [
+    { label: 'Brouillon', value: projects.brouillon },
+    { label: 'Ouverts', value: projects.ouvert ?? 0 },
+    { label: 'Financés', value: projects.finance ?? 0 },
+    { label: 'Clôturés', value: projects.cloture ?? 0 },
+    { label: 'Approuvés', value: projects.approved ?? 0 },
+    { label: 'Rejetés', value: projects.rejected ?? 0 },
+  ];
+
+  const quickLinks = [
+    { icon: Users, label: 'Utilisateurs', path: '/admin/users' },
+    { icon: Building, label: 'Biens immobiliers', path: '/admin/properties' },
+    { icon: Briefcase, label: 'Projets', path: '/admin/projects' },
+    { icon: TrendingUp, label: 'Investissements', path: '/admin/investments' },
+    { icon: CreditCard, label: 'Transactions', path: '/admin/transactions' },
+    { icon: ScrollText, label: 'Audit Logs', path: '/admin/audit' },
+  ];
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Dashboard Administrateur</h1>
-          <p className="text-muted">Vue d'ensemble de la plateforme X-Fund</p>
-        </div>
+    <div className="adm-dash">
+      {/* ── Greeting header ── */}
+      <div className="adm-dash-header">
+        <h1 className="adm-dash-greeting">Bonjour, {user?.first_name} !</h1>
+        <p className="adm-dash-subtitle">Dashboard Administrateur</p>
       </div>
 
       {data ? (
         <>
-          {/* KPIs */}
-          <div className="stats-grid stats-grid-3">
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-info"><Building size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{properties.total ?? '—'}</span>
-                <span className="stat-label">Biens immobiliers</span>
+          {/* ── Row 1: 4 KPI cards ── */}
+          <div className="adm-dash-kpi-row">
+            {/* Portefeuille Actif */}
+            <div className="adm-dash-card">
+              <h3 className="adm-dash-card-title">Portefeuille Actif</h3>
+              <div className="adm-dash-portfolio-stats">
+                <div className="adm-dash-portfolio-stat">
+                  <span className="adm-dash-big-number">{properties.total ?? '—'}</span>
+                  <span className="adm-dash-stat-label">Biens</span>
+                </div>
+                <div className="adm-dash-portfolio-divider" />
+                <div className="adm-dash-portfolio-stat">
+                  <span className="adm-dash-big-number">{projects.total ?? '—'}</span>
+                  <span className="adm-dash-stat-label">Projets</span>
+                </div>
+              </div>
+              <MiniLineChart data={[2, 3, 2, 4, 3, 5]} height={35} color="#000000" />
+            </div>
+
+            {/* Capital Investi */}
+            <div className="adm-dash-card">
+              <h3 className="adm-dash-card-title">Capital Investi</h3>
+              <span className="adm-dash-big-number" style={{ color: '#10b981' }}>{fmt(investments.total_amount_cents)}</span>
+              <MiniLineChart data={[5000, 8000, 12000, 15000, 18000, 22700]} height={35} color="#000000" />
+              <p className="adm-dash-card-footnote">
+                Sur un total de dépôts de<br /><strong>{fmt(financial.total_deposits_cents)}</strong>
+              </p>
+            </div>
+
+            {/* Collecte de fonds */}
+            <div className="adm-dash-card adm-dash-card-center">
+              <h3 className="adm-dash-card-title">Collecte de fonds</h3>
+              <div className="adm-dash-doughnut-wrap">
+                <Doughnut
+                  data={fundingDoughnutData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                  }}
+                  plugins={[{
+                    id: 'fundingCenter',
+                    beforeDraw: (chart) => {
+                      const { ctx, width, height } = chart;
+                      ctx.save();
+                      ctx.font = 'bold 2rem Inter, sans-serif';
+                      ctx.fillStyle = '#1a1a2e';
+                      ctx.textAlign = 'center';
+                      ctx.textBaseline = 'middle';
+                      ctx.fillText(String(fundingPercent), width / 2, height / 2 - 8);
+                      ctx.font = '500 0.7rem Inter, sans-serif';
+                      ctx.fillStyle = '#8889a7';
+                      ctx.fillText('% of target', width / 2, height / 2 + 16);
+                      ctx.restore();
+                    },
+                  }]}
+                />
               </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-success"><TrendingUp size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{investments.total_count ?? '—'}</span>
-                <span className="stat-label">Investissements</span>
+
+            {/* Répartition des Utilisateurs */}
+            <div className="adm-dash-card adm-dash-card-center">
+              <h3 className="adm-dash-card-title">Répartition des Utilisateurs</h3>
+              <div className="adm-dash-doughnut-wrap">
+                <Doughnut
+                  data={userDoughnutData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: { backgroundColor: '#1a1a2e', padding: 10, cornerRadius: 8 },
+                    },
+                  }}
+                  plugins={[{
+                    id: 'userCenter',
+                    beforeDraw: (chart) => {
+                      const { ctx, width, height } = chart;
+                      ctx.save();
+                      ctx.font = 'bold 2rem Inter, sans-serif';
+                      ctx.fillStyle = '#1a1a2e';
+                      ctx.textAlign = 'center';
+                      ctx.textBaseline = 'middle';
+                      ctx.fillText(String(totalUsers), width / 2, height / 2);
+                      ctx.restore();
+                    },
+                  }]}
+                />
               </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-primary"><Briefcase size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{projects.total ?? '—'}</span>
-                <span className="stat-label">Projets totaux</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-success"><Activity size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{projects.funding_active ?? '—'}</span>
-                <span className="stat-label">En Collecte</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-success"><DollarSign size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{fmt(investments.total_amount_cents)}</span>
-                <span className="stat-label">Volume investi</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon stat-icon-primary"><CheckCircle size={20} /></div>
-              <div className="stat-content">
-                <span className="stat-value">{fmt(financial.total_deposits_cents)}</span>
-                <span className="stat-label">Total dépôts</span>
+              <div className="adm-dash-legend">
+                <span className="adm-dash-legend-item">
+                  <span className="adm-dash-legend-dot" style={{ background: '#DAA520' }} />
+                  Investisseurs
+                </span>
+                <span className="adm-dash-legend-item">
+                  <span className="adm-dash-legend-dot" style={{ background: '#9CA3AF' }} />
+                  Porteurs de projet
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Pending review alert */}
-          {(projects.pending_analysis ?? 0) > 0 && (
-            <div className="card" style={{ borderLeft: '4px solid var(--warning)', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
-                  <Clock size={20} style={{ color: 'var(--warning)' }} />
-                  <div>
-                    <strong>{projects.pending_analysis} projet(s) en attente d'analyse</strong>
-                    <p className="text-muted" style={{ marginTop: '.15rem' }}>Des projets soumis par les porteurs de projets nécessitent votre attention.</p>
-                  </div>
-                </div>
-                <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin/projects', { state: { filter: 'pending_analysis' } })}>
-                  Examiner
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Quick navigation + Recent activity */}
-          <div className="two-col">
-            <div>
-              {/* Quick navigation */}
-              <div className="card">
-                <div className="card-header">
-                  <h3>Accès rapide</h3>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '.75rem' }}>
-                  <button className="btn" onClick={() => navigate('/admin/users')} style={{ justifyContent: 'flex-start' }}>
-                    <Users size={16} /> Utilisateurs
-                  </button>
-                  <button className="btn" onClick={() => navigate('/admin/properties')} style={{ justifyContent: 'flex-start' }}>
-                    <Building size={16} /> Biens immobiliers
-                  </button>
-                  <button className="btn" onClick={() => navigate('/admin/projects')} style={{ justifyContent: 'flex-start' }}>
-                    <Briefcase size={16} /> Projets
-                  </button>
-                  <button className="btn" onClick={() => navigate('/admin/investments')} style={{ justifyContent: 'flex-start' }}>
-                    <TrendingUp size={16} /> Investissements
-                  </button>
-                  <button className="btn" onClick={() => navigate('/admin/transactions')} style={{ justifyContent: 'flex-start' }}>
-                    <CreditCard size={16} /> Transactions
-                  </button>
-                  <button className="btn" onClick={() => navigate('/admin/audit')} style={{ justifyContent: 'flex-start' }}>
-                    <Activity size={16} /> Audit Logs
-                  </button>
-                </div>
-              </div>
-
-              {/* User breakdown */}
-              <div className="card">
-                <div className="card-header">
-                  <h3>Répartition des utilisateurs</h3>
-                </div>
-                <div className="detail-grid">
-                  <div className="detail-row"><span>Investisseurs</span><span>{users.investisseurs ?? '—'}</span></div>
-                  <div className="detail-row"><span>Porteurs de projet</span><span>{users.porteurs_de_projet ?? '—'}</span></div>
-                  <div className="detail-row"><span>Administrateurs</span><span>{users.administrateurs ?? '—'}</span></div>
-                  <div className="detail-row"><span>KYC vérifiés</span><span className="text-success">{users.kyc_verified ?? '—'}</span></div>
-                  <div className="detail-row"><span>KYC en attente</span><span className="text-warning">{users.kyc_pending ?? '—'}</span></div>
-                </div>
-              </div>
+          {/* ── Bottom grid: Total Inv + Accès Rapide + Exports + Pipeline ── */}
+          <div className="adm-dash-bottom-grid">
+            {/* Total Investissements */}
+            <div className="adm-dash-card adm-dash-invest-card">
+              <h3 className="adm-dash-card-title">Total Investissements</h3>
+              <span className="adm-dash-big-number">{investments.total_count ?? '—'}</span>
+              <MiniLineChart data={[1, 3, 2, 5, 4, 7, 6, 9]} height={50} color="#000000" />
             </div>
 
-            <div>
-          
-              {/* Recent activity 
-              <div className="card">
-                <div className="card-header">
-                  <h3>Activité récente</h3>
-                  <Activity size={16} style={{ color: 'var(--text-muted)' }} />
-                </div>
-                {recentActivity.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
-                    {recentActivity.map((log) => (
-                      <div key={log.id} style={{ padding: '.6rem .75rem', background: 'var(--bg)', borderRadius: 'var(--radius-sm)', fontSize: '.85rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 550 }}>
-                            {ACTION_LABELS[log.action] || log.action} — {log.resource_type}
-                          </span>
-                          <span style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>
-                            {new Date(log.created_at).toLocaleDateString('fr-FR')}
-                          </span>
-                        </div>
-                        {log.user_name && (
-                          <span style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>par {log.user_name}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted">Aucune activité récente</p>
-                )}
-              </div>
-*/}
-              {/* Project breakdown */}
-              <div className="card">
-                <div className="card-header">
-                  <h3>Statut des projets</h3>
-                </div>
-                <div className="detail-grid">
-                  <div className="detail-row"><span>Brouillon</span><span>{projects.brouillon ?? '—'}</span></div>
-                  <div className="detail-row"><span>Ouverts</span><span className="text-primary">{projects.ouvert ?? '—'}</span></div>
-                  <div className="detail-row"><span>Financés</span><span className="text-success">{projects.finance ?? '—'}</span></div>
-                  <div className="detail-row"><span>Clôturés</span><span>{projects.cloture ?? '—'}</span></div>
-                  <div className="detail-row"><span>Approuvés</span><span className="text-success">{projects.approved ?? '—'}</span></div>
-                  <div className="detail-row"><span>Rejetés</span><span className="text-danger">{projects.rejected ?? '—'}</span></div>
-                </div>
-              </div>
-
-              {/* Exports */}
-              <div className="card">
-                <div className="card-header">
-                  <h3>Exports de données</h3>
-                  <Download size={18} style={{ color: 'var(--text-muted)' }} />
-                </div>
-                <div className="export-grid">
-                  {[
-                    { key: 'users', label: 'Utilisateurs', icon: Users },
-                    { key: 'investments', label: 'Investissements', icon: TrendingUp },
-                    { key: 'transactions', label: 'Transactions', icon: DollarSign },
-                  ].map(({ key, label, icon: Icon }) => (
-                    <div key={key} className="export-item">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
-                        <Icon size={16} style={{ color: 'var(--text-muted)' }} />
-                        <span className="export-label">{label}</span>
-                      </div>
-                      <div className="export-actions">
-                        <button className="btn btn-sm" onClick={() => handleExport(key, 'json')}>JSON</button>
-                        <button className="btn btn-sm" onClick={() => handleExport(key, 'csv')}>CSV</button>
-                      </div>
+            {/* Accès Rapide */}
+            <div className="adm-dash-card adm-dash-quick-card">
+              <h3 className="adm-dash-card-title">Accès Rapide</h3>
+              <div className="adm-dash-quick-links">
+                {quickLinks.map(({ icon: Icon, label, path }) => (
+                  <button key={path} className="adm-dash-quick-btn" onClick={() => navigate(path)}>
+                    <div className="adm-dash-quick-icon">
+                      <Icon size={20} strokeWidth={1.8} />
                     </div>
-                  ))}
-                </div>
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Exports de données */}
+            <div className="adm-dash-card adm-dash-export-card">
+              <h3 className="adm-dash-card-title">Exports de données</h3>
+              <div className="adm-dash-export-icon-wrap">
+                <Download size={38} strokeWidth={1.8} />
+              </div>
+              <div className="adm-dash-export-list">
+                {[
+                  { key: 'users', label: 'Utilisateurs' },
+                  { key: 'investments', label: 'Investissements' },
+                  { key: 'transactions', label: 'Transactions' },
+                ].map(({ key, label }) => (
+                  <div key={key} className="adm-dash-export-item" onClick={() => handleExport(key, 'csv')}>
+                    <div className="adm-dash-export-info">
+                      <div className="adm-dash-export-dot">
+                        <Clock size={14} />
+                      </div>
+                      <span>Export {label}</span>
+                    </div>
+                    <div className="adm-dash-export-actions">
+                      <button onClick={(e) => { e.stopPropagation(); handleExport(key, 'csv'); }}>CSV</button>
+                      <button onClick={(e) => { e.stopPropagation(); handleExport(key, 'json'); }}>JSON</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Statut des Projets — Pipeline */}
+            <div className="adm-dash-card adm-dash-pipeline-card">
+              <h3 className="adm-dash-card-title">Statut des Projets</h3>
+              <div className="adm-dash-pipeline">
+                {projectStatuses.map((status) => (
+                  <div key={status.label} className="adm-dash-pipeline-station">
+                    <div
+                      className="adm-dash-pipeline-circle"
+                      style={{
+                        background: (status.value ?? 0) > 0 ? '#DAA520' : '#E5E7EB',
+                        color: (status.value ?? 0) > 0 ? '#fff' : '#6B7280',
+                      }}
+                    >
+                      {status.value ?? '—'}
+                    </div>
+                    <span className="adm-dash-pipeline-label">{status.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -253,7 +351,7 @@ export default function AdminDashboardPage() {
       ) : (
         <div className="card">
           <div className="empty-state">
-            <Activity size={48} />
+            <Briefcase size={48} />
             <p>Aucune donnée disponible</p>
           </div>
         </div>

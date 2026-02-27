@@ -4,12 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import {
   LogOut, User, LayoutDashboard, Wallet, Building, FileCheck, ClipboardCheck,
   TrendingUp, Briefcase, Shield, BarChart3, ScrollText, CreditCard, Settings,
-  Menu, X, Headphones,
+  Menu, X, Headphones, Search,
 } from 'lucide-react';
 import Navbar from './Navbar';
 import NotificationBell from './NotificationBell';
 import FloatingChat from './FloatingChat';
 import { ROLE_LABELS } from '../utils';
+import xfundLogo from '../assets/XFUND LOGO.png';
 
 export default function Layout() {
   const { user, signOut } = useAuth();
@@ -49,7 +50,7 @@ export default function Layout() {
         {/* Sidebar desktop (caché sur mobile via CSS) */}
         <aside className="sidebar">
           <div className="sidebar-header">
-            <span className="logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+            <img src={xfundLogo} alt="X-Fund" className="logo-img" />
           </div>
 
           <nav className="sidebar-nav">
@@ -105,7 +106,7 @@ export default function Layout() {
           <button className="admin-mobile-menu-btn" onClick={() => setShowAdminMobileMenu(!showAdminMobileMenu)}>
             {showAdminMobileMenu ? <X size={22} /> : <Menu size={22} />}
           </button>
-          <span className="admin-mobile-logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+          <img src={xfundLogo} alt="X-Fund" className="admin-mobile-logo-img" />
           <div className="admin-mobile-topbar-actions">
             <span className="admin-mobile-role">Admin</span>
           </div>
@@ -147,11 +148,22 @@ export default function Layout() {
 
         <main className="main-content">
           <div className="content-topbar">
-            <div className="content-topbar-left" />
+            <div className="content-topbar-left">
+              <div className="topbar-search">
+                <Search size={16} />
+                <input type="text" placeholder="Rechercher..." />
+              </div>
+            </div>
             <div className="content-topbar-right">
               <NotificationBell />
               <div className="content-topbar-user" onClick={() => navigate('/admin/profile')}>
-                <span>{user?.first_name} {user?.last_name}</span>
+                <div className="topbar-avatar">
+                  {user?.first_name?.[0]}{user?.last_name?.[0]}
+                </div>
+                <div className="topbar-user-info">
+                  <span className="topbar-user-name">{user?.first_name} {user?.last_name}</span>
+                  <span className="topbar-user-role">{ROLE_LABELS[user?.role] || user?.role}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -186,7 +198,7 @@ export default function Layout() {
       <div className="layout admin-mobile-layout">
         <aside className="sidebar">
           <div className="sidebar-header">
-            <span className="logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+            <img src={xfundLogo} alt="X-Fund" className="logo-img" />
           </div>
 
           <nav className="sidebar-nav">
@@ -220,7 +232,7 @@ export default function Layout() {
           <button className="admin-mobile-menu-btn" onClick={() => setShowAdminMobileMenu(!showAdminMobileMenu)}>
             {showAdminMobileMenu ? <X size={22} /> : <Menu size={22} />}
           </button>
-          <span className="admin-mobile-logo">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+          <img src={xfundLogo} alt="X-Fund" className="admin-mobile-logo-img" />
           <div className="admin-mobile-topbar-actions">
             <span className="admin-mobile-role">Analyste</span>
           </div>

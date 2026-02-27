@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { UserPlus } from 'lucide-react';
 import FormSelect from '../../components/FormSelect';
+import xfundLogo from '../../assets/XFUND LOGO.png';
 
 export default function RegisterPage() {
   const { signUp } = useAuth();
@@ -41,7 +42,7 @@ export default function RegisterPage() {
   return (
     <div className="auth-page">
       <div className="auth-card auth-card-wide">
-        <h1 className="auth-title">X-Fund</h1>
+        <div className="auth-logo-header"><img src={xfundLogo} alt="X-Fund" className="auth-logo-img" /></div>
         <p className="auth-subtitle">Créer votre compte investisseur</p>
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-row">

@@ -244,6 +244,31 @@ textarea:focus {
   color: var(--text);
 }
 
+/* ── Logo image variants ── */
+.logo-img {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+}
+
+.admin-mobile-logo-img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-logo-img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.auth-logo-img {
+  height: 56px;
+  width: auto;
+  object-fit: contain;
+}
+
 .auth-card-wide {
   max-width: 560px;
 }
@@ -305,8 +330,8 @@ textarea:focus {
 
 .sidebar {
   width: var(--sidebar-w);
-  background: var(--bg-sidebar);
-  color: var(--text-sidebar);
+  background: #ffffff;
+  color: var(--text);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -315,11 +340,12 @@ textarea:focus {
   bottom: 0;
   z-index: 50;
   transition: width var(--transition);
+  border-right: 1px solid var(--border);
 }
 
 .sidebar-header {
   padding: 1.5rem 1.25rem;
-  border-bottom: 1px solid rgba(218, 165, 32, .15);
+  border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -329,7 +355,7 @@ textarea:focus {
   font-size: 2.35rem;
   font-weight: 800;
   letter-spacing: -.5px;
-  color: #ffffff;
+  color: var(--text);
 }
 
 .logo-icon {
@@ -359,7 +385,7 @@ textarea:focus {
   font-size: .65rem;
   text-transform: uppercase;
   letter-spacing: .1em;
-  color: #DAA520;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -368,7 +394,7 @@ textarea:focus {
   align-items: center;
   gap: .75rem;
   padding: .6rem 1.25rem;
-  color: var(--text-sidebar);
+  color: var(--text-secondary);
   font-size: .875rem;
   font-weight: 450;
   transition: all var(--transition);
@@ -379,30 +405,33 @@ textarea:focus {
 }
 
 .nav-link:hover {
-  background: var(--bg-sidebar-hover);
-  color: #ffffff;
+  background: rgba(218, 165, 32, .08);
+  color: var(--text);
   text-decoration: none;
 }
 
 .nav-link.active {
-  background: rgba(218, 165, 32, .15);
-  color: var(--text-sidebar);
+  background: rgba(218, 165, 32, .12);
+  color: var(--text);
+  font-weight: 550;
 }
 
 .nav-link svg {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  opacity: .7;
+  opacity: .6;
+  color: var(--text-muted);
 }
 
 .nav-link.active svg {
   opacity: 1;
+  color: #DAA520;
 }
 
 .sidebar-footer {
   padding: 1rem 1.25rem;
-  border-top: 1px solid rgba(218, 165, 32, .15);
+  border-top: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -422,13 +451,13 @@ textarea:focus {
 }
 
 .user-info-clickable:hover {
-  background: rgba(218, 165, 32, .12);
+  background: rgba(218, 165, 32, .08);
 }
 
 .user-name {
   font-size: .85rem;
-  color: #DAA520;
-  font-weight: 500;
+  color: var(--text);
+  font-weight: 550;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -436,7 +465,7 @@ textarea:focus {
 
 .user-role {
   font-size: .7rem;
-  color: var(--text-sidebar);
+  color: var(--text-muted);
   text-transform: capitalize;
 }
 
@@ -7556,5 +7585,542 @@ textarea.error:focus {
 
   .analyste-actions .btn {
     min-width: unset;
+  }
+}
+
+/* ============================================================
+   ADMIN DASHBOARD — Redesign
+   ============================================================ */
+
+/* ── Topbar: search bar ── */
+.topbar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 14px;
+  height: 38px;
+}
+
+.topbar-search input {
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-size: 13px;
+  color: var(--text);
+  width: 200px;
+  height: 100% !important;
+  padding: 0 !important;
+}
+
+.topbar-search svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Topbar: avatar + user info ── */
+.topbar-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #DAA520, #F5D78E);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: .75rem;
+  flex-shrink: 0;
+  letter-spacing: .02em;
+}
+
+.topbar-user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.topbar-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.topbar-user-role {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── Page wrapper ── */
+.adm-dash {
+  max-width: 1400px;
+  animation: fadeUp .3s ease-out;
+}
+
+/* ── Greeting header ── */
+.adm-dash-header {
+  margin-bottom: 1.75rem;
+}
+
+.adm-dash-greeting {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+
+.adm-dash-subtitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-top: .25rem;
+  font-weight: 400;
+}
+
+/* ── KPI Row — 4 equal columns ── */
+.adm-dash-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Shared card style ── */
+.adm-dash-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  transition: box-shadow var(--transition);
+}
+
+.adm-dash-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.adm-dash-card-title {
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: .5rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.adm-dash-card-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Portefeuille Actif stats ── */
+.adm-dash-portfolio-stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: .4rem;
+}
+
+.adm-dash-portfolio-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.adm-dash-portfolio-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+}
+
+/* ── Big number display ── */
+.adm-dash-big-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.15;
+  letter-spacing: -.02em;
+}
+
+.adm-dash-gold {
+  color: #DAA520;
+}
+
+.adm-dash-stat-label {
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin-top: .1rem;
+}
+
+/* ── Card footnote ── */
+.adm-dash-card-footnote {
+  font-size: .7rem;
+  color: var(--text-muted);
+  margin-top: .25rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.adm-dash-card-footnote strong {
+  color: var(--text);
+}
+
+/* ── Doughnut chart wrapper ── */
+.adm-dash-doughnut-wrap {
+  width: 120px;
+  height: 120px;
+  position: relative;
+}
+
+/* ── Legend ── */
+.adm-dash-legend {
+  display: flex;
+  gap: .75rem;
+  margin-top: .4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.adm-dash-legend-item {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.adm-dash-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Bottom grid: 3 cols + pipeline spanning below ── */
+.adm-dash-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.8fr) minmax(0, 1.4fr);
+  grid-template-rows: auto auto;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.adm-dash-invest-card {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-dash-quick-card {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.adm-dash-pipeline-card {
+  grid-column: 1 / 3;
+  grid-row: 2;
+}
+
+/* ── Quick links ── */
+.adm-dash-quick-links {
+  display: flex;
+  gap: 0;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  padding: .25rem 0 0;
+}
+
+.adm-dash-quick-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: .65rem;
+  font-weight: 500;
+  padding: .15rem .25rem;
+  transition: all var(--transition);
+  max-width: 72px;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.adm-dash-quick-btn:hover {
+  transform: translateY(-2px);
+  color: var(--text);
+}
+
+.adm-dash-quick-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  box-shadow: 0 4px 12px rgba(218, 165, 32, .3);
+  transition: all var(--transition);
+}
+
+.adm-dash-quick-btn:hover .adm-dash-quick-icon {
+  box-shadow: 0 6px 18px rgba(218, 165, 32, .45);
+  transform: scale(1.05);
+}
+
+/* ── Exports de données ── */
+.adm-dash-export-card {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+
+}
+
+.adm-dash-export-icon-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 6px 20px rgba(218, 165, 32, .35);
+}
+
+.adm-dash-export-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+.adm-dash-export-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .7rem .85rem;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: .82rem;
+  cursor: pointer;
+  transition: background var(--transition);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.adm-dash-export-item:last-child {
+  border-bottom: none;
+}
+
+.adm-dash-export-item:hover {
+  background: var(--bg);
+}
+
+.adm-dash-export-info {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.adm-dash-export-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(218, 165, 32, .12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.adm-dash-export-dot svg {
+  color: #DAA520;
+}
+
+.adm-dash-export-actions {
+  display: flex;
+  gap: .35rem;
+}
+
+.adm-dash-export-actions button {
+  background: transparent;
+  color: #DAA520;
+  border: 1.5px solid #DAA520;
+  border-radius: 6px;
+  padding: .25rem .6rem;
+  font-size: .7rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: var(--font);
+  transition: all var(--transition);
+}
+
+.adm-dash-export-actions button:hover {
+  background: #DAA520;
+  color: #fff;
+}
+
+/* ── Pipeline / Stepper ── */
+.adm-dash-pipeline {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  padding: 1rem 1.5rem .5rem;
+}
+
+.adm-dash-pipeline::before {
+  content: '';
+  position: absolute;
+  top: calc(1rem + 20px);
+  left: calc(1.5rem + 20px);
+  right: calc(1.5rem + 20px);
+  height: 3px;
+  background: #E5E7EB;
+  z-index: 0;
+}
+
+.adm-dash-pipeline-station {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.adm-dash-pipeline-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: .85rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+  transition: transform var(--transition);
+}
+
+.adm-dash-pipeline-circle:hover {
+  transform: scale(1.1);
+}
+
+.adm-dash-pipeline-label {
+  font-size: .72rem;
+  color: var(--text-muted);
+  margin-top: .5rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ── Responsive: Tablet ── */
+@media (max-width: 1200px) {
+  .adm-dash-kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .adm-dash-bottom-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .adm-dash-invest-card {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .adm-dash-quick-card {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .adm-dash-export-card {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+
+  .adm-dash-pipeline-card {
+    grid-column: 1 / 3;
+    grid-row: 3;
+  }
+}
+
+/* ── Responsive: Mobile ── */
+@media (max-width: 768px) {
+  .adm-dash-greeting {
+    font-size: 1.5rem;
+  }
+
+  .adm-dash-kpi-row {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-dash-bottom-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .adm-dash-invest-card,
+  .adm-dash-quick-card,
+  .adm-dash-export-card,
+  .adm-dash-pipeline-card {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .adm-dash-export-card {
+    flex-direction: column;
+  }
+
+  .adm-dash-pipeline {
+    padding: 1rem .5rem .5rem;
+  }
+
+  .adm-dash-pipeline::before {
+    left: calc(.5rem + 18px);
+    right: calc(.5rem + 18px);
+  }
+
+  .adm-dash-pipeline-circle {
+    width: 34px;
+    height: 34px;
+    font-size: .75rem;
+  }
+
+  .adm-dash-pipeline-label {
+    font-size: .65rem;
+  }
+
+  .adm-dash-quick-links {
+    gap: .5rem;
+  }
+
+  .adm-dash-quick-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .adm-dash-quick-btn {
+    font-size: .65rem;
+  }
+
+  .topbar-search {
+    display: none;
   }
 }
