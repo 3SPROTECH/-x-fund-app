@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FileText, Building, ClipboardList, Star, ClipboardCheck, ArrowLeft, ArrowRight, Check, Send, FlaskConical } from 'lucide-react';
+import { FileText, Building, ClipboardList, Star, ClipboardCheck, ArrowLeft, ArrowRight, Check, Send, FlaskConical, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -178,7 +178,7 @@ function getGradeColor(grade) {
   return 'red';
 }
 
-export default function AnalysisStepper({ project }) {
+export default function AnalysisStepper({ project, redoComment, previousAnalysisData }) {
   const projectId = project?.id || project?.data?.id;
   const navigate = useNavigate();
 
@@ -199,7 +199,7 @@ export default function AnalysisStepper({ project }) {
   const [submitting, setSubmitting] = useState(false);
   const stepRef = useRef();
 
-  // Restore draft data once loaded
+  // Restore draft data once loaded, or pre-populate from previous analysis on redo
   useEffect(() => {
     if (initialData) {
       setFormData(initialData.formData);
@@ -209,8 +209,15 @@ export default function AnalysisStepper({ project }) {
       const restored = new Set();
       for (let i = 0; i < (initialData.macroIndex ?? 0); i++) restored.add(i);
       setCompletedMacros(restored);
+    } else if (!loadingDraft && previousAnalysisData) {
+      // Redo scenario: no draft exists, pre-populate from previous submission
+      setFormData(previousAnalysisData);
+      const all = new Set();
+      for (let i = 0; i < STEPS.length; i++) all.add(i);
+      setCompletedMacros(all);
+      markDirty(previousAnalysisData, 0, 0);
     }
-  }, [initialData]);
+  }, [initialData, loadingDraft, previousAnalysisData]);
 
   const macro = STEPS[macroIndex];
   const micro = macro.micro[microIndex];
@@ -362,6 +369,17 @@ export default function AnalysisStepper({ project }) {
           );
         })}
       </div>
+
+      {/* Redo comment banner */}
+      {redoComment && (
+        <div className="an-redo-banner">
+          <div className="an-redo-banner-title">
+            <RefreshCw size={14} />
+            Reprise d&apos;analyse demandee par l&apos;administrateur
+          </div>
+          <div className="an-redo-banner-comment">{redoComment}</div>
+        </div>
+      )}
 
       {/* Save status + test fill */}
       <div className="an-stepper-save-status">

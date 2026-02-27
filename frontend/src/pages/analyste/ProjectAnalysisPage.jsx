@@ -13,7 +13,10 @@ import {
 } from '../../utils';
 import ProjectDataViewer from '../../components/analysis/ProjectDataViewer';
 import AnalysisStepper from '../../components/analysis/AnalysisStepper';
+import ReadOnlyAnalysisView from '../../components/analysis/ReadOnlyAnalysisView';
 import '../../components/analysis/analysis.css';
+
+const EDITABLE_STATUSES = ['pending_analysis', 'info_requested', 'info_resubmitted'];
 
 export default function ProjectAnalysisPage() {
   const { id } = useParams();
@@ -21,6 +24,8 @@ export default function ProjectAnalysisPage() {
   const [project, setProject] = useState(null);
   const [infoRequests, setInfoRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reportAnalysis, setReportAnalysis] = useState(null);
+  const [loadingReport, setLoadingReport] = useState(false);
 
   useEffect(() => {
     loadProject();
@@ -41,10 +46,34 @@ export default function ProjectAnalysisPage() {
     }
   };
 
+  // Fetch submitted analysis data from report when needed
+  useEffect(() => {
+    if (!project) return;
+    const a = project.attributes || project;
+    const needsReport = a.has_analyst_report && (
+      !EDITABLE_STATUSES.includes(a.status) || // read-only
+      (EDITABLE_STATUSES.includes(a.status) && a.review_comment) // redo
+    );
+    if (!needsReport) return;
+
+    setLoadingReport(true);
+    analysteApi.getReport(id)
+      .then((res) => {
+        const report = res.data.report?.attributes || res.data.report?.data?.attributes;
+        if (report?.report_data?.analysis) {
+          setReportAnalysis(report.report_data.analysis);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingReport(false));
+  }, [project, id]);
+
   if (loading) return <LoadingSpinner />;
   if (!project) return null;
 
   const a = project.attributes || project;
+  const isReadOnly = !EDITABLE_STATUSES.includes(a.status);
+  const isRedoMode = EDITABLE_STATUSES.includes(a.status) && !!a.review_comment && a.has_analyst_report;
 
   return (
     <div className="an-page">
@@ -70,7 +99,15 @@ export default function ProjectAnalysisPage() {
       {/* Split layout */}
       <div className="an-split">
         <ProjectDataViewer project={project} infoRequests={infoRequests} onRefresh={loadProject} />
-        <AnalysisStepper project={project} />
+        {isReadOnly ? (
+          <ReadOnlyAnalysisView formData={reportAnalysis} loading={loadingReport} />
+        ) : (
+          <AnalysisStepper
+            project={project}
+            redoComment={isRedoMode ? a.review_comment : null}
+            previousAnalysisData={isRedoMode ? reportAnalysis : null}
+          />
+        )}
       </div>
     </div>
   );
