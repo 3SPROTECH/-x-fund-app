@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FileText, Building, ClipboardList, Star, ClipboardCheck, ArrowLeft, ArrowRight, Check, Send } from 'lucide-react';
+import { FileText, Building, ClipboardList, Star, ClipboardCheck, ArrowLeft, ArrowRight, Check, Send, FlaskConical } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,6 +11,7 @@ import StepScoring from './steps/StepScoring';
 import StepSummary from './steps/StepSummary';
 import useAnalysisDraft from '../../hooks/useAnalysisDraft';
 import { analysteApi } from '../../api/analyste';
+import { generateTestData, PROFILE_OPTIONS } from './testData';
 
 const STEPS = [
   {
@@ -287,6 +288,18 @@ export default function AnalysisStepper({ project }) {
     }
   };
 
+  const handleTestFill = (profileKey) => {
+    const data = generateTestData(profileKey);
+    setFormData(data);
+    // Mark all macros as completed so user can navigate freely
+    const all = new Set();
+    for (let i = 0; i < STEPS.length; i++) all.add(i);
+    setCompletedMacros(all);
+    markDirty(data, macroIndex, microIndex);
+    saveDraft();
+    toast.success(`Donnees de test "${PROFILE_OPTIONS.find(p => p.key === profileKey)?.label}" injectees`);
+  };
+
   const canNavigateToMacro = (idx) => {
     if (idx === macroIndex) return false; // already there
     if (completedMacros.has(idx)) return true; // already completed
@@ -350,8 +363,16 @@ export default function AnalysisStepper({ project }) {
         })}
       </div>
 
-      {/* Save status */}
+      {/* Save status + test fill */}
       <div className="an-stepper-save-status">
+        <div className="an-test-fill">
+          <FlaskConical size={13} />
+          {PROFILE_OPTIONS.map((p) => (
+            <button key={p.key} className="an-test-fill-btn" onClick={() => handleTestFill(p.key)}>
+              {p.label}
+            </button>
+          ))}
+        </div>
         {saving ? (
           <span className="an-save-saving">Sauvegarde...</span>
         ) : lastSavedAt ? (

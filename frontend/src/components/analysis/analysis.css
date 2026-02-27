@@ -223,16 +223,43 @@
 }
 
 .an-stepper-save-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 0.25rem 0.75rem;
   font-size: 0.7rem;
   color: var(--text-muted);
-  text-align: right;
   min-height: 1.25rem;
 }
 
 .an-save-saving { opacity: 0.7; }
 
 .an-save-saved { color: var(--success, #10b981); }
+
+/* ── Test fill buttons ── */
+.an-test-fill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+}
+
+.an-test-fill-btn {
+  background: none;
+  border: 1px dashed var(--border, #d1d5db);
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.an-test-fill-btn:hover {
+  background: var(--bg, #f3f4f6);
+  color: var(--text);
+  border-color: var(--text-muted);
+}
 
 .an-stepper-loading {
   display: flex;
