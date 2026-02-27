@@ -1,12 +1,14 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Calculator, Save, FileText, AlertTriangle } from 'lucide-react';
+import {
+  ArrowLeft, Calculator, Save, FileText, AlertTriangle,
+  DollarSign, TrendingUp, Calendar, Coins,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { investmentProjectsApi } from '../../api/investments';
 import { adminApi } from '../../api/admin';
 import { LoadingSpinner } from '../../components/ui';
-import { formatCents } from '../../utils';
 import '../../styles/admin-project-review.css';
 
 const PAYMENT_FREQUENCIES = [
@@ -16,95 +18,88 @@ const PAYMENT_FREQUENCIES = [
   { value: 'in_fine', label: 'In fine (a echeance)' },
 ];
 
-function formatEur(value) {
+function fmtEur(value) {
   if (value == null || isNaN(value)) return '—';
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
 }
 
-// ─── Owner Terms (read-only column) ───
+/* ─────────────────────────────────────────────────────────
+   Owner Column (left, read-only)
+   ───────────────────────────────────────────────────────── */
 function OwnerColumn({ snapshot }) {
   const fin = snapshot.financialStructure || {};
   const proj = snapshot.projections || {};
   const assets = snapshot.assets || [];
 
   const totalCosts = assets.reduce((sum, a) => {
-    const costs = a.costs?.items || [];
-    return sum + costs.reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
+    const items = a.costs?.items || [];
+    return sum + items.reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
   }, 0);
-
   const totalRecettes = assets.reduce((sum, a) => sum + (parseFloat(a.recettesTotal) || 0), 0);
 
+  const Row = ({ label, value }) => (
+    <div className="apr-str-row">
+      <span className="apr-str-row-label">{label}</span>
+      <span className={`apr-str-row-value${value === '—' ? ' muted' : ''}`}>{value}</span>
+    </div>
+  );
+
   return (
-    <div>
-      <div className="apr-structuring-col-label">
-        Demande du porteur <span className="apr-source-owner">Porteur</span>
+    <div className="apr-str-col">
+      <div className="apr-str-col-head">
+        Demande du porteur <span className="apr-tag-owner">Porteur</span>
       </div>
 
-      <div className="apr-card apr-anim apr-d1">
-        <div className="apr-card-title">Financement demande</div>
-        <div className="apr-owner-row">
-          <span className="apr-owner-label">Montant sollicite</span>
-          <span className="apr-owner-value">{fin.totalFunding ? formatEur(parseFloat(fin.totalFunding)) : '—'}</span>
-        </div>
-        <div className="apr-owner-row">
-          <span className="apr-owner-label">Marge brute</span>
-          <span className="apr-owner-value">{fin.grossMargin ? `${fin.grossMargin}%` : '—'}</span>
-        </div>
-        <div className="apr-owner-row">
-          <span className="apr-owner-label">Rendement net cible</span>
-          <span className="apr-owner-value">{fin.netYield ? `${fin.netYield}%` : '—'}</span>
-        </div>
-        {fin.yieldJustification && (
-          <>
-            <div className="apr-owner-row" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-              <span className="apr-owner-label">Justification du rendement</span>
+      <div className="apr-str-section">
+        <div className="apr-str-section-head"><DollarSign size={14} /> Financement demande</div>
+        <div className="apr-str-section-body">
+          <Row label="Montant sollicite" value={fin.totalFunding ? fmtEur(parseFloat(fin.totalFunding)) : '—'} />
+          <Row label="Marge brute" value={fin.grossMargin ? `${fin.grossMargin}%` : '—'} />
+          <Row label="Rendement net cible" value={fin.netYield ? `${fin.netYield}%` : '—'} />
+          {fin.yieldJustification && (
+            <div className="apr-str-justification">
+              <span className="apr-str-row-label" style={{ display: 'block', marginBottom: 4 }}>Justification du rendement</span>
+              {fin.yieldJustification}
             </div>
-            <div className="apr-owner-justification">{fin.yieldJustification}</div>
-          </>
-        )}
-      </div>
-
-      <div className="apr-card apr-anim apr-d2">
-        <div className="apr-card-title">Parametres de collecte</div>
-        <div className="apr-owner-row">
-          <span className="apr-owner-label">Apport porteur</span>
-          <span className="apr-owner-value">{proj.contributionPct != null ? `${proj.contributionPct}%` : '—'}</span>
-        </div>
-        <div className="apr-owner-row">
-          <span className="apr-owner-label">Duree souhaitee</span>
-          <span className="apr-owner-value">{proj.durationMonths ? `${proj.durationMonths} mois` : '—'}</span>
+          )}
         </div>
       </div>
 
-      <div className="apr-card apr-anim apr-d3">
-        <div className="apr-card-title">Budget de l&apos;operation</div>
-        <div className="apr-owner-row">
-          <span className="apr-owner-label">Total couts</span>
-          <span className="apr-owner-value">{totalCosts > 0 ? formatEur(totalCosts) : '—'}</span>
+      <div className="apr-str-section">
+        <div className="apr-str-section-head"><Coins size={14} /> Parametres de collecte</div>
+        <div className="apr-str-section-body">
+          <Row label="Apport porteur" value={proj.contributionPct != null ? `${proj.contributionPct}%` : '—'} />
+          <Row label="Duree souhaitee" value={proj.durationMonths ? `${proj.durationMonths} mois` : '—'} />
         </div>
-        <div className="apr-owner-row">
-          <span className="apr-owner-label">Total recettes prevues</span>
-          <span className="apr-owner-value">{totalRecettes > 0 ? formatEur(totalRecettes) : '—'}</span>
+      </div>
+
+      <div className="apr-str-section">
+        <div className="apr-str-section-head"><TrendingUp size={14} /> Budget de l&apos;operation</div>
+        <div className="apr-str-section-body">
+          <Row label="Total couts" value={totalCosts > 0 ? fmtEur(totalCosts) : '—'} />
+          <Row label="Total recettes prevues" value={totalRecettes > 0 ? fmtEur(totalRecettes) : '—'} />
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Platform Proposition (editable column) ───
+/* ─────────────────────────────────────────────────────────
+   Proposition Column (right, editable)
+   ───────────────────────────────────────────────────────── */
 function PropositionColumn({ form, onChange, investmentFeePct }) {
   const totalShares = form.share_price_cents > 0
     ? Math.floor(form.total_amount_cents / form.share_price_cents)
     : 0;
 
-  const field = (label, name, opts = {}) => (
-    <div className="apr-field-group">
-      <label className="apr-field-label">{label}</label>
+  const Field = ({ label, name, opts = {} }) => (
+    <div className="apr-str-field">
+      <label className="apr-str-label">{label}</label>
       {opts.readOnly ? (
-        <input className="apr-field-input" value={opts.display || ''} readOnly />
+        <input className="apr-str-input" value={opts.display || ''} readOnly />
       ) : opts.type === 'select' ? (
         <select
-          className="apr-field-input"
+          className="apr-str-input"
           value={form[name] || ''}
           onChange={(e) => onChange(name, e.target.value)}
         >
@@ -114,7 +109,7 @@ function PropositionColumn({ form, onChange, investmentFeePct }) {
         </select>
       ) : (
         <input
-          className="apr-field-input"
+          className="apr-str-input"
           type={opts.type || 'number'}
           step={opts.step || 'any'}
           value={form[name] ?? ''}
@@ -130,65 +125,66 @@ function PropositionColumn({ form, onChange, investmentFeePct }) {
           {...(opts.type === 'date' ? {} : { min: opts.min })}
         />
       )}
-      {opts.suffix && <div className="apr-field-suffix">{opts.suffix}</div>}
     </div>
   );
 
   return (
-    <div>
-      <div className="apr-structuring-col-label">
-        Proposition plateforme <span className="apr-source-platform">Plateforme</span>
+    <div className="apr-str-col">
+      <div className="apr-str-col-head">
+        Proposition plateforme <span className="apr-tag-platform">Plateforme</span>
       </div>
 
-      <div className="apr-card apr-anim apr-d1">
-        <div className="apr-card-title">Montant &amp; Parts</div>
-        {field('Montant valide a lever (EUR)', 'total_amount_cents', { cents: true, min: 0, step: '100' })}
-        <div className="apr-field-row">
-          {field('Prix par part (EUR)', 'share_price_cents', { cents: true, min: 1 })}
-          {field('Investissement minimum (EUR)', 'min_investment_cents', { cents: true, min: 1 })}
-        </div>
-        <div className="apr-field-group">
-          <label className="apr-field-label">Nombre de parts</label>
-          <div className="apr-field-computed">{totalShares.toLocaleString('fr-FR')}</div>
-        </div>
-      </div>
-
-      <div className="apr-card apr-anim apr-d2">
-        <div className="apr-card-title">Rendement &amp; Frais</div>
-        <div className="apr-field-row">
-          {field('Rendement brut (%)', 'gross_yield_percent', { step: '0.1', min: 0 })}
-          {field('Rendement net investisseur (%)', 'net_yield_percent', { step: '0.1', min: 0 })}
-        </div>
-        {field('Commission plateforme (%)', 'investment_fee', {
-          readOnly: true,
-          display: `${investmentFeePct}% (parametre global)`,
-        })}
-        <div className="apr-field-row">
-          {field('Duree du pret (mois)', 'duration_months', { step: '1', min: 1 })}
-          {field('Frequence de remboursement', 'payment_frequency', {
-            type: 'select',
-            options: PAYMENT_FREQUENCIES,
-          })}
+      <div className="apr-str-section">
+        <div className="apr-str-section-head"><DollarSign size={14} /> Montant &amp; Parts</div>
+        <div className="apr-str-section-body">
+          <Field label="Montant valide a lever (EUR)" name="total_amount_cents" opts={{ cents: true, min: 0, step: '100' }} />
+          <div className="apr-str-input-row">
+            <Field label="Prix par part (EUR)" name="share_price_cents" opts={{ cents: true, min: 1 }} />
+            <Field label="Investissement minimum (EUR)" name="min_investment_cents" opts={{ cents: true, min: 1 }} />
+          </div>
+          <div className="apr-str-field">
+            <label className="apr-str-label">Nombre de parts</label>
+            <div className="apr-str-computed">{totalShares.toLocaleString('fr-FR')}</div>
+          </div>
         </div>
       </div>
 
-      <div className="apr-card apr-anim apr-d3">
-        <div className="apr-card-title">Calendrier</div>
-        <div className="apr-field-row">
-          {field('Debut de collecte', 'funding_start_date', { type: 'date' })}
-          {field('Fin de collecte', 'funding_end_date', { type: 'date' })}
+      <div className="apr-str-section">
+        <div className="apr-str-section-head"><TrendingUp size={14} /> Rendement &amp; Frais</div>
+        <div className="apr-str-section-body">
+          <div className="apr-str-input-row">
+            <Field label="Rendement brut (%)" name="gross_yield_percent" opts={{ step: '0.1', min: 0 }} />
+            <Field label="Rendement net investisseur (%)" name="net_yield_percent" opts={{ step: '0.1', min: 0 }} />
+          </div>
+          <Field label="Commission plateforme (%)" name="_fee" opts={{ readOnly: true, display: `${investmentFeePct}% (parametre global)` }} />
+          <div className="apr-str-input-row">
+            <Field label="Duree du pret (mois)" name="duration_months" opts={{ step: '1', min: 1 }} />
+            <Field label="Frequence de remboursement" name="payment_frequency" opts={{ type: 'select', options: PAYMENT_FREQUENCIES }} />
+          </div>
         </div>
-        <div className="apr-field-row">
-          {field('Acquisition prevue', 'planned_acquisition_date', { type: 'date' })}
-          {field('Livraison prevue', 'planned_delivery_date', { type: 'date' })}
+      </div>
+
+      <div className="apr-str-section">
+        <div className="apr-str-section-head"><Calendar size={14} /> Calendrier</div>
+        <div className="apr-str-section-body">
+          <div className="apr-str-input-row">
+            <Field label="Debut de collecte" name="funding_start_date" opts={{ type: 'date' }} />
+            <Field label="Fin de collecte" name="funding_end_date" opts={{ type: 'date' }} />
+          </div>
+          <div className="apr-str-input-row">
+            <Field label="Acquisition prevue" name="planned_acquisition_date" opts={{ type: 'date' }} />
+            <Field label="Livraison prevue" name="planned_delivery_date" opts={{ type: 'date' }} />
+          </div>
+          <Field label="Remboursement prevu" name="planned_repayment_date" opts={{ type: 'date' }} />
         </div>
-        {field('Remboursement prevu', 'planned_repayment_date', { type: 'date' })}
       </div>
     </div>
   );
 }
 
-// ─── Simulation Panel ───
+/* ─────────────────────────────────────────────────────────
+   Simulation Panel
+   ───────────────────────────────────────────────────────── */
 function SimulationPanel({ form, investmentFeePct }) {
   const totalEur = (form.total_amount_cents || 0) / 100;
   const feePct = parseFloat(investmentFeePct) || 0;
@@ -205,42 +201,53 @@ function SimulationPanel({ form, investmentFeePct }) {
   const end = form.funding_end_date ? new Date(form.funding_end_date) : null;
   const fundingDays = start && end ? Math.ceil((end - start) / (1000 * 60 * 60 * 24)) : null;
 
-  const items = [
-    { label: 'Total collecte', value: formatEur(totalEur) },
-    { label: `Commission plateforme (${feePct}%)`, value: formatEur(platformFee) },
-    { label: 'Reserve d\'interets', value: formatEur(interestReserve), sub: `${netYield}% x ${months} mois` },
-    { label: 'Montant net au porteur', value: formatEur(netToOwner), cls: netToOwner > 0 ? 'green' : 'red' },
-    { label: 'Nombre de parts', value: totalShares.toLocaleString('fr-FR') },
-    { label: 'Duree de collecte', value: fundingDays != null ? `${fundingDays} jours` : '—' },
-  ];
-
   return (
-    <div className="apr-simulation-panel apr-anim apr-d3">
-      <div className="apr-simulation-title">
-        <Calculator size={16} /> Simulation en temps reel
+    <div className="apr-str-sim">
+      <div className="apr-str-sim-head">
+        <Calculator size={14} /> Simulation en temps reel
       </div>
-
-      {netToOwner <= 0 && totalEur > 0 && (
-        <div className="apr-structuring-warning">
-          <AlertTriangle size={14} />
-          Le montant net au porteur est negatif. Verifiez les parametres.
-        </div>
-      )}
-
-      <div className="apr-simulation-grid">
-        {items.map((it) => (
-          <div className="apr-sim-item" key={it.label}>
-            <div className="apr-sim-label">{it.label}</div>
-            <div className={`apr-sim-value${it.cls ? ` ${it.cls}` : ''}`}>{it.value}</div>
-            {it.sub && <div className="apr-sim-sub">{it.sub}</div>}
+      <div className="apr-str-sim-body">
+        {netToOwner <= 0 && totalEur > 0 && (
+          <div className="apr-str-warning">
+            <AlertTriangle size={14} />
+            Le montant net au porteur est negatif ou nul. Verifiez les parametres.
           </div>
-        ))}
+        )}
+        <div className="apr-str-sim-grid">
+          <div className="apr-str-sim-item">
+            <div className="apr-str-sim-label">Total collecte</div>
+            <div className="apr-str-sim-value">{fmtEur(totalEur)}</div>
+          </div>
+          <div className="apr-str-sim-item">
+            <div className="apr-str-sim-label">Commission plateforme ({feePct}%)</div>
+            <div className="apr-str-sim-value">{fmtEur(platformFee)}</div>
+          </div>
+          <div className="apr-str-sim-item">
+            <div className="apr-str-sim-label">Reserve d&apos;interets</div>
+            <div className="apr-str-sim-value">{fmtEur(interestReserve)}</div>
+            <div className="apr-str-sim-sub">{netYield}% &times; {months} mois</div>
+          </div>
+          <div className={`apr-str-sim-item${netToOwner > 0 ? ' highlight' : ''}`}>
+            <div className="apr-str-sim-label">Montant net au porteur</div>
+            <div className={`apr-str-sim-value${netToOwner > 0 ? ' green' : ' red'}`}>{fmtEur(netToOwner)}</div>
+          </div>
+          <div className="apr-str-sim-item">
+            <div className="apr-str-sim-label">Nombre de parts</div>
+            <div className="apr-str-sim-value">{totalShares.toLocaleString('fr-FR')}</div>
+          </div>
+          <div className="apr-str-sim-item">
+            <div className="apr-str-sim-label">Duree de collecte</div>
+            <div className="apr-str-sim-value">{fundingDays != null ? `${fundingDays} jours` : '—'}</div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── Main Page ───
+/* ─────────────────────────────────────────────────────────
+   Main Page
+   ───────────────────────────────────────────────────────── */
 export default function AdminProjectStructuringPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -278,7 +285,6 @@ export default function AdminProjectStructuringPage() {
       const fin = snapshot.financialStructure || {};
       const proj = snapshot.projections || {};
 
-      // Pre-populate from model, falling back to snapshot
       setForm({
         total_amount_cents: a.total_amount_cents || (fin.totalFunding ? Math.round(parseFloat(fin.totalFunding) * 100) : 0),
         share_price_cents: a.share_price_cents || 10000,
@@ -310,12 +316,12 @@ export default function AdminProjectStructuringPage() {
   };
 
   const buildPayload = () => {
-    const sharePriceCents = parseInt(form.share_price_cents) || 10000;
-    const totalAmountCents = parseInt(form.total_amount_cents) || 0;
+    const sp = parseInt(form.share_price_cents) || 10000;
+    const ta = parseInt(form.total_amount_cents) || 0;
     return {
-      total_amount_cents: totalAmountCents,
-      share_price_cents: sharePriceCents,
-      total_shares: sharePriceCents > 0 ? Math.floor(totalAmountCents / sharePriceCents) : 0,
+      total_amount_cents: ta,
+      share_price_cents: sp,
+      total_shares: sp > 0 ? Math.floor(ta / sp) : 0,
       min_investment_cents: parseInt(form.min_investment_cents) || 10000,
       gross_yield_percent: parseFloat(form.gross_yield_percent) || 0,
       net_yield_percent: parseFloat(form.net_yield_percent) || 0,
@@ -330,21 +336,19 @@ export default function AdminProjectStructuringPage() {
   };
 
   const validate = () => {
-    const f = form;
-    if (!f.total_amount_cents || f.total_amount_cents <= 0) return 'Le montant total est requis.';
-    if (!f.share_price_cents || f.share_price_cents <= 0) return 'Le prix par part est requis.';
-    if (!f.net_yield_percent || parseFloat(f.net_yield_percent) <= 0) return 'Le rendement net est requis.';
-    if (!f.duration_months || parseInt(f.duration_months) <= 0) return 'La duree du pret est requise.';
-    if (!f.funding_start_date) return 'La date de debut de collecte est requise.';
-    if (!f.funding_end_date) return 'La date de fin de collecte est requise.';
-    if (f.funding_end_date <= f.funding_start_date) return 'La date de fin doit etre apres la date de debut.';
+    if (!form.total_amount_cents || form.total_amount_cents <= 0) return 'Le montant total est requis.';
+    if (!form.share_price_cents || form.share_price_cents <= 0) return 'Le prix par part est requis.';
+    if (!form.net_yield_percent || parseFloat(form.net_yield_percent) <= 0) return 'Le rendement net est requis.';
+    if (!form.duration_months || parseInt(form.duration_months) <= 0) return 'La duree du pret est requise.';
+    if (!form.funding_start_date) return 'La date de debut de collecte est requise.';
+    if (!form.funding_end_date) return 'La date de fin de collecte est requise.';
+    if (form.funding_end_date <= form.funding_start_date) return 'La date de fin doit etre apres la date de debut.';
     return null;
   };
 
   const handleSave = async () => {
     const err = validate();
     if (err) { toast.error(err); return; }
-
     setSaving(true);
     try {
       await adminApi.updateProject(id, buildPayload());
@@ -360,7 +364,6 @@ export default function AdminProjectStructuringPage() {
   const handleSaveAndProceed = async () => {
     const err = validate();
     if (err) { toast.error(err); return; }
-
     setSaving(true);
     try {
       await adminApi.updateProject(id, buildPayload());
@@ -376,7 +379,6 @@ export default function AdminProjectStructuringPage() {
   if (loading) return <LoadingSpinner />;
   if (!project) return null;
 
-  // Guard: only accessible when approved
   if (a.status !== 'approved') {
     navigate(`/admin/projects/${id}`);
     return null;
@@ -392,7 +394,6 @@ export default function AdminProjectStructuringPage() {
 
   return (
     <div className="apr-page">
-      {/* Breadcrumb */}
       <nav className="apr-breadcrumb">
         <Link to="/admin/projects">Projets</Link>
         <span className="apr-sep">&rsaquo;</span>
@@ -401,51 +402,32 @@ export default function AdminProjectStructuringPage() {
         <span className="apr-current">Structuration financiere</span>
       </nav>
 
-      {/* Header */}
-      <div className="apr-structuring-header">
+      <div className="apr-str-header">
         <div>
           <h1>Structuration financiere</h1>
-          <div className="apr-structuring-header-sub">{a.title}</div>
+          <div className="apr-str-header-sub">{a.title}</div>
         </div>
-        <button className="apr-structuring-back" onClick={() => navigate(`/admin/projects/${id}`)}>
+        <button className="apr-str-back" onClick={() => navigate(`/admin/projects/${id}`)}>
           <ArrowLeft size={14} /> Retour au projet
         </button>
       </div>
 
-      {/* Two-column grid */}
-      <div className="apr-structuring-grid">
+      <div className="apr-str-grid">
         <OwnerColumn snapshot={snapshot} />
-        <PropositionColumn
-          form={displayForm}
-          onChange={onChange}
-          investmentFeePct={investmentFeePct}
-        />
+        <PropositionColumn form={displayForm} onChange={onChange} investmentFeePct={investmentFeePct} />
       </div>
 
-      {/* Simulation */}
       <SimulationPanel form={form} investmentFeePct={investmentFeePct} />
 
-      {/* Sticky actions */}
-      <div className="apr-structuring-actions">
-        <button
-          className="apr-btn apr-btn-secondary"
-          onClick={() => navigate(`/admin/projects/${id}`)}
-        >
+      <div className="apr-str-actions">
+        <button className="apr-btn apr-btn-secondary" onClick={() => navigate(`/admin/projects/${id}`)}>
           Annuler
         </button>
-        <div className="apr-structuring-actions-right">
-          <button
-            className="apr-btn apr-btn-secondary"
-            onClick={handleSave}
-            disabled={saving}
-          >
+        <div className="apr-str-actions-right">
+          <button className="apr-btn apr-btn-secondary" onClick={handleSave} disabled={saving}>
             <Save size={14} /> {saving ? 'Sauvegarde...' : 'Enregistrer'}
           </button>
-          <button
-            className="apr-btn apr-btn-approve"
-            onClick={handleSaveAndProceed}
-            disabled={saving}
-          >
+          <button className="apr-btn apr-btn-approve" onClick={handleSaveAndProceed} disabled={saving}>
             <FileText size={14} /> {saving ? 'Sauvegarde...' : 'Enregistrer et generer le contrat'}
           </button>
         </div>
