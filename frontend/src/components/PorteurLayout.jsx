@@ -8,6 +8,7 @@ import {
 import { ROLE_LABELS } from '../utils';
 import NotificationBell from './NotificationBell';
 import FloatingChat from './FloatingChat';
+import xfundLogo from '../assets/XFUND LOGO.png';
 
 export default function PorteurLayout() {
     const { user, signOut } = useAuth();
@@ -59,7 +60,7 @@ export default function PorteurLayout() {
                         <div className="porteur-mobile-header">
                             <div className="pmh-left" aria-hidden="true" />
                             <div className="pmh-logo" onClick={() => navigate('/dashboard')}>
-                                <span className="brand-title">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+                                <img src={xfundLogo} alt="X-Fund" className="brand-logo-img" />
                             </div>
                             <div className="pmh-right">
                                 <NotificationBell />
@@ -69,7 +70,7 @@ export default function PorteurLayout() {
                         {/* Logo */}
                         <div className="navbar-brand" onClick={() => navigate('/dashboard')}>
                             <div className="brand-text">
-                                <span className="brand-title">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+                                <img src={xfundLogo} alt="X-Fund" className="brand-logo-img" />
                                 <span className="brand-subtitle">Espace porteur de projet</span>
                             </div>
                         </div>
@@ -243,7 +244,7 @@ export default function PorteurLayout() {
                 <div className="porteur-header-inner">
                     <div className="porteur-header-logo" onClick={() => navigate('/dashboard')}>
                         <div className="porteur-logo-wrap">
-                            <span className="porteur-logo-text">X<span className="porteur-logo-accent">-</span>Fund</span>
+                            <img src={xfundLogo} alt="X-Fund" className="brand-logo-img" />
                             <span className="porteur-logo-sub">Espace de financement</span>
                         </div>
                     </div>

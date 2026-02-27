@@ -8,6 +8,7 @@ import WalletRechargeModal from './WalletRechargeModal';
 import NotificationBell from './NotificationBell';
 import useWalletStore from '../stores/useWalletStore';
 import { formatBalance, ROLE_LABELS } from '../utils';
+import xfundLogo from '../assets/XFUND LOGO.png';
 
 export default function Navbar() {
   const { user, signOut } = useAuth();
@@ -66,7 +67,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className="nav-brand" onClick={() => navigate(`${investorBase}/projects`)}>
             <div className="brand-text">
-              <span className="brand-title">X<span style={{ color: '#DAA520' }}>-</span>Fund</span>
+              <img src={xfundLogo} alt="X-Fund" className="brand-logo-img" />
               <span className="brand-subtitle">Plateforme d'investissement</span>
             </div>
           </div>
