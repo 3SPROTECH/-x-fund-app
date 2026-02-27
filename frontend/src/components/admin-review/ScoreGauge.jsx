@@ -59,13 +59,14 @@ export default function ScoreGauge({ scoring }) {
       {criteria.length > 0 && CRITERIA.map((c, i) => {
         const grade = criteria[i]?.grade;
         const pct = grade != null ? (grade / 10) * 100 : 0;
+        const barColor = grade == null ? 'var(--apr-text-hint)' : grade >= 7 ? 'var(--apr-green)' : grade >= 4 ? 'var(--apr-orange)' : 'var(--apr-red)';
         return (
           <div className="apr-crit" key={i}>
             <span className="apr-crit-name">{c.name}</span>
             <div className="apr-crit-bar">
-              <div className="apr-crit-fill" style={{ width: `${pct}%` }} />
+              <div className="apr-crit-fill" style={{ width: `${pct}%`, background: barColor }} />
             </div>
-            <span className="apr-crit-score">{grade != null ? grade.toFixed(1) : '—'}</span>
+            <span className="apr-crit-score" style={{ color: barColor }}>{grade != null ? grade.toFixed(1) : '—'}</span>
           </div>
         );
       })}
