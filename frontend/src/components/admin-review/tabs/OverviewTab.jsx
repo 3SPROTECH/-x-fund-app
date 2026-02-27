@@ -1,6 +1,35 @@
-import { FileText, Grid2x2, TrendingUp, AlertTriangle, Info, Zap, BarChart3 } from 'lucide-react';
+import { FileText, Grid2x2, TrendingUp, Shield, Info, Zap, BarChart3 } from 'lucide-react';
 import { formatCents } from '../../../utils/formatters';
+import { CRITERIA } from '../../analysis/steps/StepScoring';
 import ScoreGauge from '../ScoreGauge';
+
+const RISK_DIMENSIONS = [
+  { label: 'Garanties & suretes', indices: [0, 1] },
+  { label: 'Structure financiere', indices: [2, 3, 5] },
+  { label: 'Marche & valorisation', indices: [4, 6] },
+  { label: 'Porteur de projet', indices: [7] },
+  { label: 'Rentabilite', indices: [8, 9] },
+];
+
+function computeDimensionScore(criteria, indices) {
+  let totalWeight = 0;
+  let weightedSum = 0;
+  for (const idx of indices) {
+    const grade = criteria[idx]?.grade;
+    if (grade == null) continue;
+    const coeff = CRITERIA[idx]?.coeff || 1;
+    weightedSum += grade * coeff;
+    totalWeight += coeff;
+  }
+  return totalWeight > 0 ? weightedSum / totalWeight : null;
+}
+
+function getDimensionColor(score) {
+  if (score == null) return 'var(--apr-text-hint)';
+  if (score >= 7) return 'var(--apr-green)';
+  if (score >= 4) return 'var(--apr-orange)';
+  return 'var(--apr-red)';
+}
 
 const OPERATION_LABELS = {
   marchand_de_biens: 'Marchand de biens',
@@ -31,29 +60,6 @@ function SwotQuadrant({ className, title, items }) {
   );
 }
 
-function RiskBar({ score }) {
-  const segments = 10;
-  const filledCount = score != null ? Math.round((score / 100) * segments) : 0;
-  return (
-    <div className="apr-risk-bar">
-      {Array.from({ length: segments }, (_, i) => {
-        const on = i < filledCount;
-        const level = i < 3 ? 'low' : i < 6 ? 'med' : 'high';
-        return <div key={i} className={`apr-risk-seg${on ? ` on ${level}` : ''}`} />;
-      })}
-    </div>
-  );
-}
-
-function getRiskLevel(score) {
-  if (score == null) return null;
-  // Invert: higher analysis score = lower risk
-  const riskScore = 100 - score;
-  if (riskScore <= 30) return { label: 'Faible', color: 'green' };
-  if (riskScore <= 50) return { label: 'Modere', color: 'orange' };
-  return { label: 'Eleve', color: 'red' };
-}
-
 export default function OverviewTab({ project, reportData }) {
   const a = project?.attributes || project || {};
   const snapshot = a.form_snapshot || {};
@@ -72,8 +78,8 @@ export default function OverviewTab({ project, reportData }) {
 
   const highlights = analysis.highlights || [];
   const elementsCles = analysis.elements_cles || [];
-
-  const riskInfo = scoring.finalScore != null ? getRiskLevel(scoring.finalScore) : null;
+  const criteria = scoring?.criteria || [];
+  const hasCriteria = criteria.some(c => c?.grade != null);
 
   const operationType = pres.operationType || a.operation_type;
   const strategy = pres.exploitationStrategy || a.exploitation_strategy;
@@ -210,33 +216,31 @@ export default function OverviewTab({ project, reportData }) {
             </div>
           )}
 
-          {/* Risk Synthesis */}
-          {hasReport && scoring.finalScore != null && (
+          {/* Risk Profile */}
+          {hasReport && hasCriteria && (
             <div className="apr-card">
               <div className="apr-card-h">
                 <div className="apr-card-h-left">
-                  <div className="apr-card-icon" style={{ background: 'var(--apr-orange-bg)', color: 'var(--apr-orange)' }}>
-                    <AlertTriangle size={14} />
-                  </div>
-                  <span className="apr-card-t">Synthese des risques</span>
+                  <div className="apr-card-icon"><Shield size={14} /></div>
+                  <span className="apr-card-t">Profil de risque</span>
                 </div>
                 <span className="apr-source-tag apr-source-analyst">Analyste</span>
               </div>
               <div className="apr-card-b">
-                <RiskBar score={scoring.finalScore} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, color: 'var(--apr-text-hint)', marginBottom: 14 }}>
-                  <span>Faible</span><span>Eleve</span>
-                </div>
-                {riskInfo && (
-                  <div className="apr-drow">
-                    <span className="apr-dl">Niveau global</span>
-                    <span className={`apr-dv ${riskInfo.color}`}>{riskInfo.label}</span>
-                  </div>
-                )}
-                <div className="apr-admin-note">
-                  <Info size={14} />
-                  <span>Les risques sont evalues par l'analyste sur la base de l'analyse financiere, la visite du site, et l'etude de marche locale.</span>
-                </div>
+                {RISK_DIMENSIONS.map((dim, i) => {
+                  const dimScore = computeDimensionScore(criteria, dim.indices);
+                  const color = getDimensionColor(dimScore);
+                  const pct = dimScore != null ? (dimScore / 10) * 100 : 0;
+                  return (
+                    <div className="apr-crit" key={i}>
+                      <span className="apr-crit-name">{dim.label}</span>
+                      <div className="apr-crit-bar">
+                        <div className="apr-crit-fill" style={{ width: `${pct}%`, background: color }} />
+                      </div>
+                      <span className="apr-crit-score" style={{ color }}>{dimScore != null ? dimScore.toFixed(1) : '—'}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

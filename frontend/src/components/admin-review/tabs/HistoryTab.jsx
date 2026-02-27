@@ -1,45 +1,64 @@
 import { Clock, MessageSquare } from 'lucide-react';
 import { formatDate } from '../../../utils/formatters';
+import { PROJECT_STATUS_LABELS } from '../../../utils/constants';
 
 function buildTimeline(project) {
   const a = project?.attributes || project || {};
   const events = [];
 
-  // Current status event (most recent)
-  if (a.status === 'analysis_submitted') {
-    events.push({
-      label: 'Analyse soumise — en attente de decision',
-      date: a.analyst_reviewed_at || a.updated_at,
-      state: 'active',
-    });
-  } else if (a.status === 'approved') {
-    events.push({ label: 'Projet approuve', date: a.updated_at, state: 'active' });
-  } else if (a.status === 'rejected') {
-    events.push({ label: 'Projet rejete', date: a.updated_at, state: 'active' });
-  } else if (a.status === 'signing') {
-    events.push({ label: 'En signature', date: a.updated_at, state: 'active' });
-  } else if (a.status === 'funding_active') {
-    events.push({ label: 'Collecte en cours', date: a.updated_at, state: 'active' });
-  } else if (a.status) {
-    events.push({ label: `Statut: ${a.status}`, date: a.updated_at, state: 'active' });
-  }
+  // Helper to add an event with a date for sorting
+  const add = (label, date, state = 'done', detail = null) => {
+    if (date) events.push({ label, date, state, detail });
+  };
 
-  // Analyst assigned
+  // 1. Project created
+  add('Projet soumis par le porteur', a.created_at);
+
+  // 2. Analyst assigned
   if (a.analyst_name) {
-    events.push({
-      label: `Analyste assigne — ${a.analyst_name}`,
-      date: a.analyst_assigned_at || a.created_at,
-      state: 'done',
-    });
+    add(`Analyste assigne — ${a.analyst_name}`, a.analyst_assigned_at || a.created_at);
   }
 
-  // Project submitted
-  if (a.created_at) {
-    events.push({
-      label: 'Projet soumis',
-      date: a.created_at,
-      state: 'done',
-    });
+  // 3. Analysis submitted (analyst reviewed)
+  if (a.analyst_reviewed_at) {
+    add('Analyse soumise par l\'analyste', a.analyst_reviewed_at);
+  }
+
+  // 4. Admin decision (approve / reject / redo)
+  if (a.reviewed_at) {
+    const reviewer = a.reviewer_name || 'Administrateur';
+    if (a.status === 'rejected') {
+      add(`Projet rejete par ${reviewer}`, a.reviewed_at, 'done', a.review_comment);
+    } else if (a.review_comment && (a.status === 'pending_analysis' || a.status === 'info_requested' || a.status === 'info_resubmitted')) {
+      // Redo requested — status went back to pending_analysis with a review_comment
+      add(`Reprise d'analyse demandee par ${reviewer}`, a.reviewed_at, 'done', a.review_comment);
+    } else if (a.status === 'approved' || a.status === 'signing' || a.status === 'funding_active' || a.status === 'funded') {
+      add(`Projet approuve par ${reviewer}`, a.reviewed_at);
+    }
+  }
+
+  // 5. Contract sent
+  if (a.yousign_sent_at) {
+    add('Contrat envoye via YouSign', a.yousign_sent_at);
+  }
+
+  // 6. Funding started
+  if (a.funding_start_date && (a.status === 'funding_active' || a.status === 'funded')) {
+    add('Debut de la collecte', a.funding_start_date);
+  }
+
+  // Sort chronologically (most recent first)
+  events.sort((x, y) => new Date(y.date) - new Date(x.date));
+
+  // Mark the first event (most recent) as active
+  if (events.length > 0) {
+    events[0].state = 'active';
+  }
+
+  // Append current status label at the top if it differs from the most recent event
+  const statusLabel = PROJECT_STATUS_LABELS[a.status];
+  if (statusLabel && events.length > 0) {
+    events[0].statusBadge = statusLabel;
   }
 
   return events;
@@ -72,7 +91,14 @@ export default function HistoryTab({ project }) {
               {timeline.map((event, i) => (
                 <div className="apr-tl-item" key={i}>
                   <div className={`apr-tl-dot ${event.state}`} />
-                  <div className="apr-tl-event">{event.label}</div>
+                  <div style={{ flex: 1 }}>
+                    <div className="apr-tl-event">{event.label}</div>
+                    {event.detail && (
+                      <div style={{ fontSize: 12, color: 'var(--apr-text-tertiary)', marginTop: 2, fontStyle: 'italic' }}>
+                        &laquo; {event.detail} &raquo;
+                      </div>
+                    )}
+                  </div>
                   {event.date && <div className="apr-tl-date">{formatDateTime(event.date)}</div>}
                 </div>
               ))}
