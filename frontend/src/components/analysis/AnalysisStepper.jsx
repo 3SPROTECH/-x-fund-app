@@ -205,10 +205,17 @@ export default function AnalysisStepper({ project, redoComment, previousAnalysis
       setFormData(initialData.formData);
       setMacroIndex(initialData.macroIndex);
       setMicroIndex(initialData.microIndex);
-      // Mark all macros before the restored position as completed
-      const restored = new Set();
-      for (let i = 0; i < (initialData.macroIndex ?? 0); i++) restored.add(i);
-      setCompletedMacros(restored);
+      if (previousAnalysisData) {
+        // Redo mode with existing draft: allow free navigation across all sections
+        const all = new Set();
+        for (let i = 0; i < STEPS.length; i++) all.add(i);
+        setCompletedMacros(all);
+      } else {
+        // Normal mode: only mark macros before the restored position as completed
+        const restored = new Set();
+        for (let i = 0; i < (initialData.macroIndex ?? 0); i++) restored.add(i);
+        setCompletedMacros(restored);
+      }
     } else if (!loadingDraft && previousAnalysisData) {
       // Redo scenario: no draft exists, pre-populate from previous submission
       setFormData(previousAnalysisData);

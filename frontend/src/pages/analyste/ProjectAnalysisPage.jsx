@@ -25,7 +25,7 @@ export default function ProjectAnalysisPage() {
   const [infoRequests, setInfoRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reportAnalysis, setReportAnalysis] = useState(null);
-  const [loadingReport, setLoadingReport] = useState(false);
+  const [reportReady, setReportReady] = useState(false);
 
   useEffect(() => {
     loadProject();
@@ -46,7 +46,7 @@ export default function ProjectAnalysisPage() {
     }
   };
 
-  // Fetch submitted analysis data from report when needed
+  // Fetch submitted analysis data from report when needed (read-only view or redo)
   useEffect(() => {
     if (!project) return;
     const a = project.attributes || project;
@@ -54,9 +54,11 @@ export default function ProjectAnalysisPage() {
       !EDITABLE_STATUSES.includes(a.status) || // read-only
       (EDITABLE_STATUSES.includes(a.status) && a.review_comment) // redo
     );
-    if (!needsReport) return;
+    if (!needsReport) {
+      setReportReady(true);
+      return;
+    }
 
-    setLoadingReport(true);
     analysteApi.getReport(id)
       .then((res) => {
         const report = res.data.report?.attributes || res.data.report?.data?.attributes;
@@ -65,7 +67,7 @@ export default function ProjectAnalysisPage() {
         }
       })
       .catch(() => {})
-      .finally(() => setLoadingReport(false));
+      .finally(() => setReportReady(true));
   }, [project, id]);
 
   if (loading) return <LoadingSpinner />;
@@ -100,7 +102,11 @@ export default function ProjectAnalysisPage() {
       <div className="an-split">
         <ProjectDataViewer project={project} infoRequests={infoRequests} onRefresh={loadProject} />
         {isReadOnly ? (
-          <ReadOnlyAnalysisView formData={reportAnalysis} loading={loadingReport} />
+          <ReadOnlyAnalysisView formData={reportAnalysis} loading={!reportReady} />
+        ) : (isRedoMode && !reportReady) ? (
+          <div className="an-stepper">
+            <div className="an-stepper-loading">Chargement de l&apos;analyse precedente...</div>
+          </div>
         ) : (
           <AnalysisStepper
             project={project}
