@@ -1041,9 +1041,14 @@ select.apr-str-input {
 /* Bottom action bar */
 .apr-legal-bottom {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   padding-top: 8px;
 }
+
+/* Spinning icon */
+.spinning { animation: spin 1s linear infinite; }
 
 /* Responsive */
 @media (max-width: 768px) {

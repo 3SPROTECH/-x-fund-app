@@ -13,6 +13,8 @@ import ContractViewerModal from '../../components/ContractViewerModal';
 import { getContractBase64, generatePlaceholderPdfBase64 } from '../../utils/contractGenerator';
 import '../../styles/admin-project-review.css';
 
+/* ── Document definitions ── */
+
 const LEGAL_DOCUMENTS = [
   {
     key: 'convention',
@@ -30,80 +32,68 @@ const LEGAL_DOCUMENTS = [
   },
   {
     key: 'fici',
-    title: "FICI",
+    title: 'FICI',
     description: "Fiche d'Information Cle sur l'Investissement. Document reglementaire destine aux investisseurs.",
     signerType: 'porteur_only',
     icon: FileCheck,
   },
 ];
 
-function getConventionStatus(a) {
-  if (!a.yousign_status) return 'draft';
-  if (['awaiting_admin', 'ongoing'].includes(a.yousign_status)) return 'awaiting_admin';
-  if (a.yousign_status === 'admin_signed') return 'awaiting_porteur';
-  if (a.yousign_status === 'done') return 'done';
-  return a.yousign_status;
+/* ── Status helpers ── */
+
+const STATUS_CONFIG = {
+  draft:           { label: 'A preparer',              icon: Clock,       className: 'apr-legal-badge-pending' },
+  awaiting_admin:  { label: 'Signature admin requise', icon: AlertCircle, className: 'apr-legal-badge-warning' },
+  awaiting_porteur:{ label: 'En attente du porteur',   icon: Clock,       className: 'apr-legal-badge-info' },
+  sent:            { label: 'En attente de signature', icon: Clock,       className: 'apr-legal-badge-info' },
+  done:            { label: 'Signe',                   icon: CheckCircle, className: 'apr-legal-badge-success' },
+};
+
+function getDocStatus(attrs, docKey) {
+  if (docKey === 'convention') {
+    const s = attrs.yousign_status;
+    if (!s) return 'draft';
+    if (['awaiting_admin', 'ongoing'].includes(s)) return 'awaiting_admin';
+    if (s === 'admin_signed') return 'awaiting_porteur';
+    if (s === 'done') return 'done';
+    return s;
+  }
+  const data = (attrs.legal_documents_status || {})[docKey];
+  if (!data || data.status === 'pending') return 'draft';
+  if (data.status === 'signed') return 'done';
+  return data.status;
 }
 
-function getDocStatus(a, docKey) {
-  if (docKey === 'convention') return getConventionStatus(a);
-  const docData = (a.legal_documents_status || {})[docKey];
-  if (!docData || docData.status === 'pending') return 'draft';
-  if (docData.status === 'sent') return 'sent';
-  if (docData.status === 'signed') return 'done';
-  return docData.status || 'draft';
-}
+/* ── Components ── */
 
 function StatusBadge({ status }) {
-  const configs = {
-    draft: { label: 'A envoyer', icon: Clock, className: 'apr-legal-badge-pending' },
-    awaiting_admin: { label: 'Signature admin requise', icon: AlertCircle, className: 'apr-legal-badge-warning' },
-    awaiting_porteur: { label: 'En attente du porteur', icon: Clock, className: 'apr-legal-badge-info' },
-    sent: { label: 'En attente de signature', icon: Clock, className: 'apr-legal-badge-info' },
-    done: { label: 'Signe', icon: CheckCircle, className: 'apr-legal-badge-success' },
-  };
-  const c = configs[status] || configs.draft;
-  const Icon = c.icon;
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.draft;
+  const Icon = config.icon;
   return (
-    <span className={`apr-legal-badge ${c.className}`}>
-      <Icon size={12} /> {c.label}
+    <span className={`apr-legal-badge ${config.className}`}>
+      <Icon size={12} /> {config.label}
     </span>
   );
 }
 
-function DocumentCard({ doc, status, a, projectId, onRefresh }) {
+function DocumentCard({ doc, status, attrs, projectId, onRefresh }) {
   const [sending, setSending] = useState(false);
   const [checking, setChecking] = useState(false);
   const [showContract, setShowContract] = useState(false);
 
   const Icon = doc.icon;
+  const isConvention = doc.key === 'convention';
 
-  const handleSendConvention = async () => {
-    if (!window.confirm('Envoyer la convention via YouSign ? Vous serez redirige pour signer en premier.')) return;
+  const handleSignConvention = async () => {
+    if (!window.confirm('Envoyer la convention via YouSign ? Vous serez redirige pour signer.')) return;
     setSending(true);
     try {
-      const pdfBase64 = getContractBase64(a);
+      const pdfBase64 = getContractBase64(attrs);
       const res = await adminApi.sendContract(projectId, pdfBase64);
-      toast.success('Convention envoyee via YouSign — signez maintenant');
-      const adminSignLink = res.data?.admin_signature_link;
-      if (adminSignLink) {
-        window.open(adminSignLink, '_blank', 'noopener,noreferrer');
+      toast.success('Convention envoyee — signez maintenant');
+      if (res.data?.admin_signature_link) {
+        window.open(res.data.admin_signature_link, '_blank', 'noopener,noreferrer');
       }
-      onRefresh();
-    } catch (err) {
-      toast.error(err.response?.data?.errors?.[0] || "Erreur lors de l'envoi");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleSendDocument = async () => {
-    if (!window.confirm(`Envoyer "${doc.title}" au porteur pour signature ?`)) return;
-    setSending(true);
-    try {
-      const pdfBase64 = generatePlaceholderPdfBase64(doc.title, a);
-      await adminApi.sendLegalDocument(projectId, doc.key, pdfBase64);
-      toast.success(`${doc.title} envoye pour signature`);
       onRefresh();
     } catch (err) {
       toast.error(err.response?.data?.errors?.[0] || "Erreur lors de l'envoi");
@@ -118,11 +108,11 @@ function DocumentCard({ doc, status, a, projectId, onRefresh }) {
       const res = await adminApi.checkSignatureStatus(projectId);
       const s = res.data.yousign_status;
       if (s === 'done') toast.success('Convention signee par les deux parties');
-      else if (s === 'admin_signed') toast.success('Signature admin confirmee. En attente du porteur.');
-      else toast('Statut mis a jour.', { icon: 'i' });
+      else if (s === 'admin_signed') toast.success('Signature admin confirmee');
+      else toast('Statut mis a jour.');
       onRefresh();
     } catch (err) {
-      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la verification');
+      toast.error(err.response?.data?.errors?.[0] || 'Erreur');
     } finally {
       setChecking(false);
     }
@@ -133,16 +123,14 @@ function DocumentCard({ doc, status, a, projectId, onRefresh }) {
     try {
       const res = await adminApi.checkLegalDocumentStatus(projectId, doc.key);
       if (res.data.status === 'signed') toast.success(`${doc.title} signe`);
-      else toast('Statut mis a jour.', { icon: 'i' });
+      else toast('Statut mis a jour.');
       onRefresh();
     } catch (err) {
-      toast.error(err.response?.data?.errors?.[0] || 'Erreur lors de la verification');
+      toast.error(err.response?.data?.errors?.[0] || 'Erreur');
     } finally {
       setChecking(false);
     }
   };
-
-  const adminSignLink = a.yousign_admin_signature_link;
 
   return (
     <>
@@ -163,46 +151,48 @@ function DocumentCard({ doc, status, a, projectId, onRefresh }) {
         </div>
 
         <div className="apr-legal-card-actions">
-          {/* View/Preview */}
-          {doc.key === 'convention' ? (
+          {/* Preview */}
+          {isConvention ? (
             <button className="apr-btn apr-btn-secondary" onClick={() => setShowContract(true)}>
               <Eye size={14} /> Visualiser
             </button>
           ) : (
             <button className="apr-btn apr-btn-secondary" onClick={() => {
-              toast('Apercu du document provisoire. Ce document sera remplace par un modele definitif.', { icon: 'i' });
+              toast('Apercu provisoire. Document sera remplace par un modele definitif.');
             }}>
               <Eye size={14} /> Visualiser
             </button>
           )}
 
-          {/* Convention-specific actions */}
-          {doc.key === 'convention' && status === 'draft' && (
-            <button className="apr-btn apr-btn-approve" onClick={handleSendConvention} disabled={sending}>
+          {/* Convention: sign & send */}
+          {isConvention && status === 'draft' && (
+            <button className="apr-btn apr-btn-approve" onClick={handleSignConvention} disabled={sending}>
               <Send size={14} /> {sending ? 'Envoi...' : 'Signer et envoyer'}
             </button>
           )}
-          {doc.key === 'convention' && status === 'awaiting_admin' && adminSignLink && (
-            <button className="apr-btn apr-btn-approve" onClick={() => window.open(adminSignLink, '_blank', 'noopener,noreferrer')}>
-              <Send size={14} /> Signer le contrat
+
+          {/* Convention: open signing link */}
+          {isConvention && status === 'awaiting_admin' && attrs.yousign_admin_signature_link && (
+            <button
+              className="apr-btn apr-btn-approve"
+              onClick={() => window.open(attrs.yousign_admin_signature_link, '_blank', 'noopener,noreferrer')}
+            >
+              <FileSignature size={14} /> Signer le contrat
             </button>
           )}
-          {doc.key === 'convention' && ['awaiting_admin', 'awaiting_porteur'].includes(status) && (
+
+          {/* Convention: refresh status */}
+          {isConvention && ['awaiting_admin', 'awaiting_porteur'].includes(status) && (
             <button className="apr-btn apr-btn-secondary" onClick={handleCheckConvention} disabled={checking}>
-              <RefreshCw size={14} style={checking ? { animation: 'spin 1s linear infinite' } : undefined} />
+              <RefreshCw size={14} className={checking ? 'spinning' : ''} />
               {checking ? 'Verification...' : 'Verifier le statut'}
             </button>
           )}
 
-          {/* Porteur-only doc actions */}
-          {doc.key !== 'convention' && status === 'draft' && (
-            <button className="apr-btn apr-btn-approve" onClick={handleSendDocument} disabled={sending}>
-              <Send size={14} /> {sending ? 'Envoi...' : 'Envoyer au porteur'}
-            </button>
-          )}
-          {doc.key !== 'convention' && status === 'sent' && (
+          {/* Porteur docs: refresh status (only when already sent) */}
+          {!isConvention && status === 'sent' && (
             <button className="apr-btn apr-btn-secondary" onClick={handleCheckDocument} disabled={checking}>
-              <RefreshCw size={14} style={checking ? { animation: 'spin 1s linear infinite' } : undefined} />
+              <RefreshCw size={14} className={checking ? 'spinning' : ''} />
               {checking ? 'Verification...' : 'Verifier le statut'}
             </button>
           )}
@@ -211,15 +201,16 @@ function DocumentCard({ doc, status, a, projectId, onRefresh }) {
 
       {showContract && (
         <ContractViewerModal
-          projectAttrs={a}
+          projectAttrs={attrs}
           onClose={() => setShowContract(false)}
           onSendToOwner={async (pdfBase64) => {
             try {
               const res = await adminApi.sendContract(projectId, pdfBase64);
               toast.success('Convention envoyee via YouSign');
               setShowContract(false);
-              const link = res.data?.admin_signature_link;
-              if (link) window.open(link, '_blank', 'noopener,noreferrer');
+              if (res.data?.admin_signature_link) {
+                window.open(res.data.admin_signature_link, '_blank', 'noopener,noreferrer');
+              }
               onRefresh();
             } catch (err) {
               toast.error(err.response?.data?.errors?.[0] || "Erreur lors de l'envoi");
@@ -232,12 +223,15 @@ function DocumentCard({ doc, status, a, projectId, onRefresh }) {
   );
 }
 
+/* ── Main page ── */
+
 export default function AdminLegalDocumentsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sendingAll, setSendingAll] = useState(false);
 
   useEffect(() => { loadProject(); }, [id]);
 
@@ -257,15 +251,47 @@ export default function AdminLegalDocumentsPage() {
   if (loading) return <LoadingSpinner />;
   if (!project) return null;
 
-  const a = project.attributes || project;
-  const projectId = project.id || a.id;
+  const attrs = project.attributes || project;
+  const projectId = project.id || attrs.id;
+
+  const statuses = Object.fromEntries(
+    LEGAL_DOCUMENTS.map(doc => [doc.key, getDocStatus(attrs, doc.key)])
+  );
+
+  // Convention must be signed by admin (or fully done) before sending porteur docs
+  const conventionReady = ['awaiting_porteur', 'done'].includes(statuses.convention);
+  const porteurDocsPending = LEGAL_DOCUMENTS
+    .filter(d => d.signerType === 'porteur_only')
+    .some(d => statuses[d.key] === 'draft');
+  const canSendToPorteur = conventionReady && porteurDocsPending;
+  const allDone = Object.values(statuses).every(s => s === 'done');
+
+  const handleSendAllToPorteur = async () => {
+    if (!window.confirm('Envoyer tous les documents au porteur pour signature ?')) return;
+    setSendingAll(true);
+    try {
+      const docsToSend = LEGAL_DOCUMENTS.filter(
+        d => d.signerType === 'porteur_only' && statuses[d.key] === 'draft'
+      );
+      for (const doc of docsToSend) {
+        const pdfBase64 = generatePlaceholderPdfBase64(doc.title, attrs);
+        await adminApi.sendLegalDocument(projectId, doc.key, pdfBase64);
+      }
+      toast.success('Documents envoyes au porteur');
+      loadProject();
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0] || "Erreur lors de l'envoi");
+    } finally {
+      setSendingAll(false);
+    }
+  };
 
   return (
     <div className="apr-page">
       <nav className="apr-breadcrumb">
         <Link to="/admin/projects">Projets</Link>
         <span className="apr-sep">&rsaquo;</span>
-        <Link to={`/admin/projects/${id}`}>{a.title}</Link>
+        <Link to={`/admin/projects/${id}`}>{attrs.title}</Link>
         <span className="apr-sep">&rsaquo;</span>
         <span className="apr-current">Documents legaux</span>
       </nav>
@@ -287,7 +313,7 @@ export default function AdminLegalDocumentsPage() {
       <div className="apr-str-header">
         <div>
           <h1>Documents legaux</h1>
-          <div className="apr-str-header-sub">{a.title}</div>
+          <div className="apr-str-header-sub">{attrs.title}</div>
         </div>
         <button className="apr-str-back" onClick={() => navigate(`/admin/projects/${id}/structuring`)}>
           <ArrowLeft size={14} /> Retour a la structuration
@@ -296,23 +322,35 @@ export default function AdminLegalDocumentsPage() {
 
       {/* Document Cards */}
       <div className="apr-legal-cards">
-        {LEGAL_DOCUMENTS.map((doc) => (
+        {LEGAL_DOCUMENTS.map(doc => (
           <DocumentCard
             key={doc.key}
             doc={doc}
-            status={getDocStatus(a, doc.key)}
-            a={a}
+            status={statuses[doc.key]}
+            attrs={attrs}
             projectId={projectId}
             onRefresh={loadProject}
           />
         ))}
       </div>
 
-      {/* Bottom action */}
+      {/* Bottom actions */}
       <div className="apr-legal-bottom">
         <button className="apr-btn apr-btn-secondary" onClick={() => navigate(`/admin/projects/${id}`)}>
           Retour au projet
         </button>
+
+        {!allDone && (
+          <button
+            className="apr-btn apr-btn-approve"
+            onClick={handleSendAllToPorteur}
+            disabled={!canSendToPorteur || sendingAll}
+            title={!conventionReady ? 'La convention doit etre signee par la plateforme avant envoi' : ''}
+          >
+            <Send size={14} />
+            {sendingAll ? 'Envoi en cours...' : 'Envoyer au porteur'}
+          </button>
+        )}
       </div>
     </div>
   );
