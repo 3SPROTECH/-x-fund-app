@@ -87,9 +87,10 @@ function OwnerColumn({ snapshot }) {
 /* ─────────────────────────────────────────────────────────
    Proposition Column (right, editable)
    ───────────────────────────────────────────────────────── */
-function PropositionColumn({ form, onChange, investmentFeePct }) {
-  const totalShares = form.share_price_cents > 0
-    ? Math.floor(form.total_amount_cents / form.share_price_cents)
+function PropositionColumn({ form, onChange, platformCommissionPct, sharePriceCents }) {
+  const sharePriceEur = (sharePriceCents || 10000) / 100;
+  const totalShares = sharePriceCents > 0
+    ? Math.floor(form.total_amount_cents / sharePriceCents)
     : 0;
 
   const Field = ({ label, name, opts = {} }) => (
@@ -139,7 +140,7 @@ function PropositionColumn({ form, onChange, investmentFeePct }) {
         <div className="apr-str-section-body">
           <Field label="Montant valide a lever (EUR)" name="total_amount_cents" opts={{ cents: true, min: 0, step: '100' }} />
           <div className="apr-str-input-row">
-            <Field label="Prix par part (EUR)" name="share_price_cents" opts={{ cents: true, min: 1 }} />
+            <Field label="Prix par part (EUR)" name="_share_price" opts={{ readOnly: true, display: `${sharePriceEur.toLocaleString('fr-FR')} € (parametre global)` }} />
             <Field label="Investissement minimum (EUR)" name="min_investment_cents" opts={{ cents: true, min: 1 }} />
           </div>
           <div className="apr-str-field">
@@ -156,7 +157,7 @@ function PropositionColumn({ form, onChange, investmentFeePct }) {
             <Field label="Rendement brut (%)" name="gross_yield_percent" opts={{ step: '0.1', min: 0 }} />
             <Field label="Rendement net investisseur (%)" name="net_yield_percent" opts={{ step: '0.1', min: 0 }} />
           </div>
-          <Field label="Commission plateforme (%)" name="_fee" opts={{ readOnly: true, display: `${investmentFeePct}% (parametre global)` }} />
+          <Field label="Commission plateforme (%)" name="_fee" opts={{ readOnly: true, display: `${platformCommissionPct}% (parametre global)` }} />
           <div className="apr-str-input-row">
             <Field label="Duree du pret (mois)" name="duration_months" opts={{ step: '1', min: 1 }} />
             <Field label="Frequence de remboursement" name="payment_frequency" opts={{ type: 'select', options: PAYMENT_FREQUENCIES }} />
@@ -185,12 +186,12 @@ function PropositionColumn({ form, onChange, investmentFeePct }) {
 /* ─────────────────────────────────────────────────────────
    Simulation Panel
    ───────────────────────────────────────────────────────── */
-function SimulationPanel({ form, investmentFeePct }) {
+function SimulationPanel({ form, platformCommissionPct, sharePriceCents }) {
   const totalEur = (form.total_amount_cents || 0) / 100;
-  const feePct = parseFloat(investmentFeePct) || 0;
+  const feePct = parseFloat(platformCommissionPct) || 0;
   const netYield = parseFloat(form.net_yield_percent) || 0;
   const months = parseInt(form.duration_months) || 0;
-  const sharePriceEur = (form.share_price_cents || 0) / 100;
+  const sharePriceEur = (sharePriceCents || 10000) / 100;
 
   const platformFee = totalEur * (feePct / 100);
   const interestReserve = totalEur * (netYield / 100 / 12) * months;
@@ -258,7 +259,6 @@ export default function AdminProjectStructuringPage() {
 
   const [form, setForm] = useState({
     total_amount_cents: 0,
-    share_price_cents: 10000,
     min_investment_cents: 10000,
     gross_yield_percent: '',
     net_yield_percent: '',
@@ -287,7 +287,6 @@ export default function AdminProjectStructuringPage() {
 
       setForm({
         total_amount_cents: a.total_amount_cents || (fin.totalFunding ? Math.round(parseFloat(fin.totalFunding) * 100) : 0),
-        share_price_cents: a.share_price_cents || 10000,
         min_investment_cents: a.min_investment_cents || 10000,
         gross_yield_percent: a.gross_yield_percent ?? fin.grossMargin ?? '',
         net_yield_percent: a.net_yield_percent ?? fin.netYield ?? '',
@@ -309,14 +308,15 @@ export default function AdminProjectStructuringPage() {
 
   const a = project?.attributes || project || {};
   const snapshot = a.form_snapshot || {};
-  const investmentFeePct = a.investment_fee_percent || 0;
+  const platformCommissionPct = a.platform_commission_percent ?? 6;
+  const sharePriceCents = a.default_share_price_cents || 10000;
 
   const onChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const buildPayload = () => {
-    const sp = parseInt(form.share_price_cents) || 10000;
+    const sp = sharePriceCents;
     const ta = parseInt(form.total_amount_cents) || 0;
     return {
       total_amount_cents: ta,
@@ -337,7 +337,6 @@ export default function AdminProjectStructuringPage() {
 
   const validate = () => {
     if (!form.total_amount_cents || form.total_amount_cents <= 0) return 'Le montant total est requis.';
-    if (!form.share_price_cents || form.share_price_cents <= 0) return 'Le prix par part est requis.';
     if (!form.net_yield_percent || parseFloat(form.net_yield_percent) <= 0) return 'Le rendement net est requis.';
     if (!form.duration_months || parseInt(form.duration_months) <= 0) return 'La duree du pret est requise.';
     if (!form.funding_start_date) return 'La date de debut de collecte est requise.';
@@ -388,7 +387,6 @@ export default function AdminProjectStructuringPage() {
   const displayForm = {
     ...form,
     total_amount_cents: form.total_amount_cents ? form.total_amount_cents / 100 : '',
-    share_price_cents: form.share_price_cents ? form.share_price_cents / 100 : '',
     min_investment_cents: form.min_investment_cents ? form.min_investment_cents / 100 : '',
   };
 
@@ -414,10 +412,10 @@ export default function AdminProjectStructuringPage() {
 
       <div className="apr-str-grid">
         <OwnerColumn snapshot={snapshot} />
-        <PropositionColumn form={displayForm} onChange={onChange} investmentFeePct={investmentFeePct} />
+        <PropositionColumn form={displayForm} onChange={onChange} platformCommissionPct={platformCommissionPct} sharePriceCents={sharePriceCents} />
       </div>
 
-      <SimulationPanel form={form} investmentFeePct={investmentFeePct} />
+      <SimulationPanel form={form} platformCommissionPct={platformCommissionPct} sharePriceCents={sharePriceCents} />
 
       <div className="apr-str-actions">
         <button className="apr-btn apr-btn-secondary" onClick={() => navigate(`/admin/projects/${id}`)}>

@@ -132,6 +132,14 @@ class InvestmentProjectSerializer
     Setting.get("platform_investment_commission_percent") || 0.0
   end
 
+  attribute :platform_commission_percent do |_project|
+    Setting.get("platform_commission_percent") || 6.0
+  end
+
+  attribute :default_share_price_cents do |_project|
+    Setting.get("default_share_price_cents") || 10000
+  end
+
   attribute :yousign_signature_link do |project|
     project.signing? ? project.yousign_signature_link : nil
   end
