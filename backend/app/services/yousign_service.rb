@@ -68,7 +68,7 @@ class YousignService
   # Step 1: Create a draft signature request with ordered signers
   def self.create_signature_request(project)
     body = {
-      name: "Convention de partenariat - #{project.title}",
+      name: "Convention de partenariat - #{project.title}".strip,
       delivery_mode: "email",
       ordered_signers: true,
       timezone: "Europe/Paris",
@@ -172,7 +172,7 @@ class YousignService
   # Create a simple signature request (single signer, not ordered)
   def self.create_signature_request_simple(title)
     body = {
-      name: title,
+      name: title.strip,
       delivery_mode: "email",
       ordered_signers: false,
       timezone: "Europe/Paris",

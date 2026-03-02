@@ -102,6 +102,8 @@
 .apr-btn-redo:hover { background: var(--apr-orange-bg); }
 .apr-btn-ghost { background: transparent; color: var(--apr-text-secondary); padding: 8px; }
 .apr-btn-ghost:hover { background: var(--apr-surface-secondary); border-radius: var(--apr-radius-sm); }
+.apr-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.apr-btn:disabled:hover { filter: none; }
 
 /* ═══ OVERFLOW MENU ═══ */
 .apr-overflow-wrapper { position: relative; }
