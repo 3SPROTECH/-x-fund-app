@@ -439,3 +439,77 @@ function buildContractDoc(projectAttrs) {
 
   return doc;
 }
+
+/**
+ * Generate a placeholder PDF for legal documents (contrat de pret, FICI).
+ * Returns base64-encoded PDF string.
+ */
+export function generatePlaceholderPdfBase64(title, projectAttrs) {
+  const a = projectAttrs || {};
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageW = doc.internal.pageSize.getWidth();
+  let y = 30;
+
+  // Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text(title, pageW / 2, y, { align: 'center' });
+  y += 12;
+
+  // Subtitle
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text(`Projet : ${a.title || 'Sans titre'}`, pageW / 2, y, { align: 'center' });
+  y += 8;
+  doc.text(`Plateforme : ${PLATFORM_NAME}`, pageW / 2, y, { align: 'center' });
+  y += 15;
+
+  // Separator
+  doc.setDrawColor(180, 180, 180);
+  doc.setLineWidth(0.3);
+  doc.line(18, y, pageW - 18, y);
+  y += 12;
+
+  // Info section
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  const fields = [
+    ['Montant total', a.total_amount_cents ? `${(a.total_amount_cents / 100).toLocaleString('fr-FR')} EUR` : '\u2014'],
+    ['Rendement net', a.net_yield_percent ? `${a.net_yield_percent}%` : '\u2014'],
+    ['Duree', a.duration_months ? `${a.duration_months} mois` : '\u2014'],
+    ['Date de debut', a.funding_start_date || '\u2014'],
+    ['Date de fin', a.funding_end_date || '\u2014'],
+  ];
+  fields.forEach(([label, value]) => {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${label} :`, 22, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(value, 80, y);
+    y += 7;
+  });
+
+  y += 15;
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(9);
+  doc.setTextColor(120, 120, 120);
+  doc.text('Ce document est un modele provisoire. Il sera remplace par un document', pageW / 2, y, { align: 'center' });
+  y += 5;
+  doc.text('definitif genere a partir des termes financiers du projet.', pageW / 2, y, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
+
+  // Signature anchor for porteur (YouSign smart anchor)
+  y += 30;
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text('{{s1|signature|180|60}}', 18, y);
+  doc.setTextColor(0, 0, 0);
+
+  // Footer
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.text(`${title} - ${PLATFORM_NAME} - Page 1`, pageW / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+
+  const dataUri = doc.output('datauristring');
+  return dataUri.split(',')[1];
+}

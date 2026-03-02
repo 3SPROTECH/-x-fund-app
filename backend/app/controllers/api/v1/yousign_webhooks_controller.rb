@@ -54,12 +54,43 @@ module Api
               Rails.logger.info("[YousignWebhook] Unhandled event: #{event_name}")
             end
           else
-            Rails.logger.warn("[YousignWebhook] No project found for signature_request_id: #{signature_request_id}")
+            # Check legal_documents_status JSONB for additional document signing requests
+            handle_legal_document_webhook(signature_request_id, event_name)
           end
         end
 
         # Always return 200 to acknowledge the webhook
         head :ok
+      end
+
+      private
+
+      def handle_legal_document_webhook(signature_request_id, event_name)
+        %w[contrat_pret fici].each do |doc_type|
+          project = InvestmentProject.where(
+            "legal_documents_status -> ? ->> 'yousign_request_id' = ?",
+            doc_type, signature_request_id
+          ).first
+
+          next unless project
+
+          case event_name
+          when "signature_request.done", "signer.done"
+            status_data = project.legal_documents_status || {}
+            status_data[doc_type]["status"] = "signed"
+            project.update!(legal_documents_status: status_data)
+            Rails.logger.info("[YousignWebhook] Project #{project.id} legal document '#{doc_type}' signed")
+          when "signature_request.declined"
+            status_data = project.legal_documents_status || {}
+            status_data[doc_type]["status"] = "declined"
+            project.update!(legal_documents_status: status_data)
+            Rails.logger.info("[YousignWebhook] Project #{project.id} legal document '#{doc_type}' declined")
+          end
+
+          return # Found the matching project, stop searching
+        end
+
+        Rails.logger.warn("[YousignWebhook] No project found for signature_request_id: #{signature_request_id}")
       end
     end
   end

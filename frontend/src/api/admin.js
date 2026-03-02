@@ -100,6 +100,18 @@ export const adminApi = {
     return client.post(`/admin/investment_projects/${projectId}/check_signature_status`);
   },
 
+  sendLegalDocument(projectId, documentType, pdfBase64) {
+    return client.post(`/admin/investment_projects/${projectId}/send_legal_document`, {
+      document_type: documentType, pdf_base64: pdfBase64,
+    });
+  },
+
+  checkLegalDocumentStatus(projectId, documentType) {
+    return client.post(`/admin/investment_projects/${projectId}/check_legal_document_status`, {
+      document_type: documentType,
+    });
+  },
+
   // MVP Reports
   getMvpReports(projectId, params = {}) {
     return client.get(`/admin/investment_projects/${projectId}/mvp_reports`, { params });

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  ArrowLeft, Calculator, Save, FileText, AlertTriangle,
+  ArrowLeft, Calculator, Save, ArrowRight, AlertTriangle,
   DollarSign, TrendingUp, Calendar, Coins,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -367,7 +367,7 @@ export default function AdminProjectStructuringPage() {
     try {
       await adminApi.updateProject(id, buildPayload());
       toast.success('Proposition enregistree');
-      navigate(`/admin/projects/${id}`);
+      navigate(`/admin/projects/${id}/legal-documents`);
     } catch (e) {
       toast.error(e.response?.data?.errors?.[0] || 'Erreur lors de la sauvegarde');
     } finally {
@@ -378,7 +378,7 @@ export default function AdminProjectStructuringPage() {
   if (loading) return <LoadingSpinner />;
   if (!project) return null;
 
-  if (a.status !== 'approved') {
+  if (!['approved', 'signing', 'legal_structuring'].includes(a.status)) {
     navigate(`/admin/projects/${id}`);
     return null;
   }
@@ -426,7 +426,7 @@ export default function AdminProjectStructuringPage() {
             <Save size={14} /> {saving ? 'Sauvegarde...' : 'Enregistrer'}
           </button>
           <button className="apr-btn apr-btn-approve" onClick={handleSaveAndProceed} disabled={saving}>
-            <FileText size={14} /> {saving ? 'Sauvegarde...' : 'Enregistrer et generer le contrat'}
+            {saving ? 'Sauvegarde...' : 'Enregistrer et continuer'} <ArrowRight size={14} />
           </button>
         </div>
       </div>

@@ -140,6 +140,10 @@ class InvestmentProjectSerializer
     Setting.get("default_share_price_cents") || 10000
   end
 
+  attribute :legal_documents_status do |project|
+    project.try(:legal_documents_status) || {}
+  end
+
   attribute :yousign_signature_link do |project|
     project.signing? ? project.yousign_signature_link : nil
   end

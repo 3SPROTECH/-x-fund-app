@@ -191,6 +191,8 @@ Rails.application.routes.draw do
             get :report
             post :send_contract
             post :check_signature_status
+            post :send_legal_document
+            post :check_legal_document_status
           end
           resources :mvp_reports, only: [:index, :show] do
             member do

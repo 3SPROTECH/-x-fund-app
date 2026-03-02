@@ -136,6 +136,52 @@ class YousignService
     handle_response!(response, "activate")
   end
 
+  # Send a document for porteur-only signing (no admin co-sign)
+  def self.send_document_for_porteur!(project, pdf_binary, document_type:, document_title:)
+    owner = project.owner
+
+    sr = create_signature_request_simple(document_title)
+    signature_request_id = sr["id"]
+
+    doc = upload_document(signature_request_id, pdf_binary, "#{document_type}_#{project.id}.pdf")
+    document_id = doc["id"]
+    total_pages = doc["total_pages"] || 1
+
+    signer = add_signer(signature_request_id, document_id, owner, total_pages)
+    signer_id = signer["id"]
+
+    activated = activate(signature_request_id)
+    signers = activated["signers"] || []
+    signature_link = signers.find { |s| s["id"] == signer_id }&.dig("signature_link")
+
+    # Store in JSONB column
+    status_data = project.legal_documents_status || {}
+    status_data[document_type] = {
+      "yousign_request_id" => signature_request_id,
+      "yousign_document_id" => document_id,
+      "yousign_signer_id" => signer_id,
+      "yousign_signature_link" => signature_link,
+      "status" => "sent",
+      "sent_at" => Time.current.iso8601
+    }
+    project.update!(legal_documents_status: status_data)
+
+    { signature_request_id:, signer_id:, signature_link: }
+  end
+
+  # Create a simple signature request (single signer, not ordered)
+  def self.create_signature_request_simple(title)
+    body = {
+      name: title,
+      delivery_mode: "email",
+      ordered_signers: false,
+      timezone: "Europe/Paris",
+      audit_trail_locale: "fr"
+    }
+    response = post("/signature_requests", body: body.to_json, headers: json_headers)
+    handle_response!(response, "create_signature_request_simple")
+  end
+
   # Poll signature request status
   def self.get_status(signature_request_id)
     response = HTTParty.get(

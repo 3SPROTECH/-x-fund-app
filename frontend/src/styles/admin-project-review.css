@@ -842,6 +842,235 @@ select.apr-str-input {
   .apr-str-input-row { grid-template-columns: 1fr; }
 }
 
+/* ═══ LEGAL DOCUMENTS PAGE ═══ */
+
+/* Stepper */
+.apr-legal-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 28px;
+  padding: 16px 20px;
+  background: var(--apr-white);
+  border: 1px solid var(--apr-border);
+  border-radius: var(--apr-radius-lg);
+}
+.apr-legal-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--apr-text-tertiary);
+  cursor: default;
+  transition: all 0.15s;
+}
+.apr-legal-step.completed {
+  color: var(--apr-green);
+  cursor: pointer;
+}
+.apr-legal-step.completed:hover {
+  background: var(--apr-green-bg);
+}
+.apr-legal-step.active {
+  color: var(--apr-text-primary);
+  background: var(--apr-surface-secondary);
+}
+.apr-legal-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--apr-surface-secondary);
+  border: 1.5px solid var(--apr-border);
+  color: var(--apr-text-tertiary);
+}
+.apr-legal-step.completed .apr-legal-step-num {
+  background: var(--apr-green-bg);
+  border-color: var(--apr-green-border);
+  color: var(--apr-green);
+}
+.apr-legal-step.active .apr-legal-step-num {
+  background: var(--apr-text-primary);
+  border-color: var(--apr-text-primary);
+  color: #fff;
+}
+.apr-legal-step-line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--apr-border);
+  margin: 0 8px;
+}
+
+/* Document cards container */
+.apr-legal-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+/* Document card */
+.apr-legal-card {
+  background: var(--apr-white);
+  border: 1px solid var(--apr-border);
+  border-radius: var(--apr-radius-lg);
+  padding: 20px 22px;
+  box-shadow: var(--apr-shadow-xs);
+  transition: border-color 0.15s;
+}
+.apr-legal-card:hover {
+  border-color: var(--apr-border-strong);
+}
+.apr-legal-card.done {
+  border-color: var(--apr-green-border);
+  background: linear-gradient(to right, var(--apr-green-bg) 0%, var(--apr-white) 50%);
+}
+
+/* Card header */
+.apr-legal-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.apr-legal-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.apr-legal-card-title svg {
+  color: var(--apr-text-tertiary);
+  flex-shrink: 0;
+}
+.apr-legal-card-title h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--apr-text-primary);
+}
+.apr-legal-card.done .apr-legal-card-title svg {
+  color: var(--apr-green);
+}
+
+/* Card meta */
+.apr-legal-card-meta {
+  margin-bottom: 16px;
+}
+.apr-legal-card-meta p {
+  font-size: 13px;
+  color: var(--apr-text-tertiary);
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+/* Signer type tags */
+.apr-legal-signer-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 3px 9px;
+  border-radius: 100px;
+}
+.apr-legal-signer-tag.both {
+  background: var(--apr-accent-warm-bg);
+  color: var(--apr-accent-warm);
+  border: 1px solid var(--apr-accent-warm-border);
+}
+.apr-legal-signer-tag.porteur {
+  background: #E5F5F0;
+  color: #1D7F4E;
+  border: 1px solid #C9E8D7;
+}
+
+/* Card actions */
+.apr-legal-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--apr-border);
+}
+
+/* Status badges */
+.apr-legal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.apr-legal-badge-pending {
+  background: var(--apr-surface-secondary);
+  color: var(--apr-text-tertiary);
+  border: 1px solid var(--apr-border);
+}
+.apr-legal-badge-warning {
+  background: var(--apr-orange-bg);
+  color: var(--apr-orange);
+  border: 1px solid var(--apr-orange-border);
+}
+.apr-legal-badge-info {
+  background: #EFF6FF;
+  color: #2C6FBB;
+  border: 1px solid #C8DDF5;
+}
+.apr-legal-badge-success {
+  background: var(--apr-green-bg);
+  color: var(--apr-green);
+  border: 1px solid var(--apr-green-border);
+}
+
+/* Bottom action bar */
+.apr-legal-bottom {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .apr-legal-stepper {
+    padding: 12px 14px;
+  }
+  .apr-legal-step span {
+    display: none;
+  }
+  .apr-legal-card {
+    padding: 16px;
+  }
+  .apr-legal-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .apr-legal-card-actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* Spin animation for refresh icon */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* ═══ ANIMATION ═══ */
 .apr-anim { animation: aprFadeUp 0.3s ease both; }
 .apr-d1 { animation-delay: 0.05s; }

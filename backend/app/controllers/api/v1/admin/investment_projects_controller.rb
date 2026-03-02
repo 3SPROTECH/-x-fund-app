@@ -3,7 +3,7 @@ module Api
     module Admin
       class InvestmentProjectsController < ApplicationController
         before_action :require_admin!
-        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :request_redo, :advance_status, :assign_analyst, :report, :send_contract, :check_signature_status]
+        before_action :set_project, only: [:show, :update, :destroy, :approve, :reject, :request_info, :request_redo, :advance_status, :assign_analyst, :report, :send_contract, :check_signature_status, :send_legal_document, :check_legal_document_status]
 
         def index
           projects = InvestmentProject
@@ -323,6 +323,95 @@ module Api
               yousign_status: display_status,
               owner_signer_status: owner_status,
               admin_signer_status: admin_status,
+              data: InvestmentProjectSerializer.new(@project.reload).serializable_hash[:data]
+            }
+          rescue YousignService::YousignError => e
+            render json: { errors: ["Erreur YouSign: #{e.message}"] }, status: :unprocessable_entity
+          end
+        end
+
+        ALLOWED_LEGAL_DOCUMENT_TYPES = %w[contrat_pret fici].freeze
+        LEGAL_DOCUMENT_TITLES = {
+          "contrat_pret" => "Contrat de pret",
+          "fici" => "Fiche d'Information Cle sur l'Investissement (FICI)"
+        }.freeze
+
+        def send_legal_document
+          doc_type = params[:document_type]
+          unless ALLOWED_LEGAL_DOCUMENT_TYPES.include?(doc_type)
+            return render json: { errors: ["Type de document invalide: #{doc_type}"] }, status: :unprocessable_entity
+          end
+
+          unless @project.approved? || @project.signing? || @project.legal_structuring?
+            return render json: { errors: ["Le projet doit etre approuve pour envoyer les documents."] }, status: :unprocessable_entity
+          end
+
+          pdf_base64 = params[:pdf_base64]
+          if pdf_base64.blank?
+            return render json: { errors: ["Le PDF du document est requis."] }, status: :unprocessable_entity
+          end
+
+          begin
+            pdf_binary = Base64.decode64(pdf_base64)
+            title = "#{LEGAL_DOCUMENT_TITLES[doc_type]} - #{@project.title}"
+            result = YousignService.send_document_for_porteur!(@project, pdf_binary, document_type: doc_type, document_title: title)
+
+            log_admin_action("send_legal_document", @project, {
+              document_type: doc_type,
+              yousign_signature_request_id: result[:signature_request_id]
+            })
+
+            NotificationService.notify_project_owner!(
+              @project,
+              actor: current_user,
+              type: "legal_document_sent",
+              title: "Document a signer",
+              body: "Le document \"#{LEGAL_DOCUMENT_TITLES[doc_type]}\" de votre projet \"#{@project.title}\" est pret a etre signe."
+            )
+
+            render json: {
+              message: "Document envoye pour signature.",
+              data: InvestmentProjectSerializer.new(@project.reload).serializable_hash[:data],
+              signature_link: result[:signature_link]
+            }
+          rescue YousignService::YousignError => e
+            render json: { errors: ["Erreur YouSign: #{e.message}"] }, status: :unprocessable_entity
+          rescue => e
+            Rails.logger.error("[SendLegalDocument] Unexpected error: #{e.message}")
+            render json: { errors: ["Erreur inattendue lors de l'envoi du document."] }, status: :internal_server_error
+          end
+        end
+
+        def check_legal_document_status
+          doc_type = params[:document_type]
+          unless ALLOWED_LEGAL_DOCUMENT_TYPES.include?(doc_type)
+            return render json: { errors: ["Type de document invalide."] }, status: :unprocessable_entity
+          end
+
+          status_data = @project.legal_documents_status || {}
+          doc_data = status_data[doc_type]
+          unless doc_data && doc_data["yousign_request_id"].present?
+            return render json: { errors: ["Aucune demande de signature trouvee pour ce document."] }, status: :not_found
+          end
+
+          begin
+            yousign_data = YousignService.get_status(doc_data["yousign_request_id"])
+            yousign_status = yousign_data["status"]
+
+            display_status = yousign_status == "done" ? "signed" : "sent"
+
+            # Update JSONB
+            doc_data["status"] = display_status
+            status_data[doc_type] = doc_data
+            @project.update!(legal_documents_status: status_data)
+
+            if display_status == "signed"
+              log_admin_action("legal_document_signed", @project, { document_type: doc_type })
+            end
+
+            render json: {
+              document_type: doc_type,
+              status: display_status,
               data: InvestmentProjectSerializer.new(@project.reload).serializable_hash[:data]
             }
           rescue YousignService::YousignError => e
